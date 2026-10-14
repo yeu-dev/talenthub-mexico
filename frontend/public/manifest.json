@@ -1,25 +1,23 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
-  "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ],
-  "start_url": ".",
+  "id": "/",
+  "name": "TalentHub México",
+  "short_name": "TalentHub",
+  "description": "Bolsa de trabajo para el sector de TI en México: vacantes con salario visible y revisadas antes de publicarse.",
+  "lang": "es-MX",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Ver vacantes", "short_name": "Vacantes", "url": "/vacantes", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mis aplicaciones", "short_name": "Aplicaciones", "url": "/mis-aplicaciones", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
 }
