@@ -14,6 +14,8 @@ class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Empresa
         fields = '__all__'
+        # Sin esto, un PATCH podia pasarle la empresa a otro usuario.
+        read_only_fields = ['usuario', 'fecha_registro']
 
 class VacanteSerializer(serializers.ModelSerializer):
     empresa_nombre = serializers.CharField(source='empresa.nombre_empresa', read_only=True)
@@ -21,10 +23,18 @@ class VacanteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vacante
         fields = '__all__'
+        # La empresa sale de la sesion y la validacion solo la cambia el
+        # validador (validar_vacante); si vinieran del cliente, cualquiera
+        # publicaria a nombre de otra empresa o se autoaprobaria.
+        read_only_fields = ['empresa', 'estado_validacion', 'fecha_publicacion', 'fecha_actualizacion']
 
 class AplicacionSerializer(serializers.ModelSerializer):
     vacante_titulo = serializers.CharField(source='vacante.titulo', read_only=True)
+    empresa_nombre = serializers.CharField(source='vacante.empresa.nombre_empresa', read_only=True)
     usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
+    # Lo que la empresa necesita para decidir sin ver todavia el contacto.
+    usuario_profesion = serializers.SerializerMethodField()
+    usuario_habilidades = serializers.SerializerMethodField()
     
     # Campo dinámico blindado
     cv_url = serializers.SerializerMethodField()
@@ -32,6 +42,24 @@ class AplicacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Aplicacion
         fields = '__all__'
+        # El usuario sale de la sesion y el estado lo mueve la empresa con
+        # AplicacionEstadoSerializer: un aspirante podia postularse ya
+        # 'aceptado'.
+        read_only_fields = ['usuario', 'estado', 'fecha_creacion', 'fecha_aplicacion']
+
+    def _perfil(self, obj):
+        from .models import Aspirante
+        return Aspirante.objects.filter(usuario_id=obj.usuario_id).first()
+
+    def get_usuario_profesion(self, obj):
+        perfil = self._perfil(obj)
+        return perfil.profesion if perfil and perfil.profesion else ''
+
+    def get_usuario_habilidades(self, obj):
+        perfil = self._perfil(obj)
+        if perfil and isinstance(perfil.habilidades, list):
+            return perfil.habilidades
+        return []
 
     def get_cv_url(self, obj):
         from .models import Aspirante
@@ -69,6 +97,14 @@ class AplicacionSerializer(serializers.ModelSerializer):
             data['usuario_email'] = None
             data['usuario_telefono'] = None
         return data
+
+class AplicacionEstadoSerializer(serializers.ModelSerializer):
+    """Lo unico que la empresa puede cambiar de una postulacion."""
+
+    class Meta:
+        model = Aplicacion
+        fields = ['estado']
+
 
 class AspiranteSerializer(serializers.ModelSerializer):
     # Inyección de URLs absolutas para evitar errores de carga en Frontend
@@ -129,3 +165,5 @@ class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
         fields = '__all__'
+        # Las crea el sistema; el usuario solo las marca como leidas.
+        read_only_fields = ['usuario', 'mensaje', 'fecha']

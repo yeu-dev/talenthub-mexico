@@ -1,7 +1,7 @@
-from rest_framework import viewsets, status
+from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission, SAFE_METHODS
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -11,9 +11,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
-from django.db.models import Avg, Count
+from django.db import IntegrityError
+from django.db.models import Avg, Count, Q
 from django.utils import timezone
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 
 import requests
 import json
@@ -38,13 +40,18 @@ from .serializers import (
     EmpresaSerializer,
     VacanteSerializer,
     AplicacionSerializer,
+    AplicacionEstadoSerializer,
     PlanSerializer,
     SuscripcionSerializer,
     NotificacionSerializer,
     AspiranteSerializer,
 )
 
-from .paypal_config import get_access_token
+from .paypal_config import BASE_URL as PAYPAL_BASE_URL, get_access_token
+
+
+def es_validador(user):
+    return user.is_authenticated and (user.tipo == 'validador' or user.is_superuser)
 
 # ==============================
 # LOGIN
@@ -80,6 +87,14 @@ def login(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
+    # Validador es una cuenta interna: abrirla aqui era darle a cualquiera el
+    # panel de moderacion.
+    if request.data.get('tipo') not in ('aspirante', 'empresa'):
+        return Response(
+            {'message': 'Tipo de cuenta no válido.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     try:
         usuario = Usuario.objects.create(
             username=request.data['username'],
@@ -114,17 +129,72 @@ def register(request):
 # VACANTES
 # ==============================
 
+class PuedeEditarVacante(BasePermission):
+    """Leer es publico; publicar es de empresas; editar es de la duena o del validador."""
+
+    message = 'Solo la empresa que publicó esta vacante puede modificarla.'
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        if not request.user.is_authenticated:
+            return False
+        if view.action == 'create':
+            return Empresa.objects.filter(usuario=request.user).exists()
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.empresa.usuario_id == request.user.id or es_validador(request.user)
+
+
+# Lo que el validador reviso. Si la empresa lo cambia, la vacante vuelve a la cola.
+CAMPOS_REVISADOS = ('titulo', 'descripcion', 'requisitos', 'salario_min', 'salario_max', 'ubicacion', 'modalidad')
+
+
 class VacanteViewSet(viewsets.ModelViewSet):
     queryset = Vacante.objects.all() 
     serializer_class = VacanteSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [PuedeEditarVacante]
 
     def get_queryset(self):
+        publicas = Q(activa=True, estado_validacion='aprobada')
+        queryset = Vacante.objects.select_related('empresa')
         empresa_id = self.request.query_params.get('empresa')
+        user = self.request.user
+
+        # El catalogo publico solo muestra lo aprobado. Antes bastaba con
+        # activa=True, y la empresa podia activar una vacante sin validar.
+        if self.action == 'list' and not empresa_id:
+            return queryset.filter(publicas)
+
+        # Fuera del catalogo, cada quien ve lo publico mas lo suyo: la empresa
+        # su cola completa, el validador todo.
+        if es_validador(user):
+            visibles = queryset
+        elif user.is_authenticated:
+            visibles = queryset.filter(publicas | Q(empresa__usuario=user))
+        else:
+            visibles = queryset.filter(publicas)
+
         if empresa_id:
-            return Vacante.objects.filter(empresa_id=empresa_id)
-            
-        return Vacante.objects.filter(activa=True)
+            visibles = visibles.filter(empresa_id=empresa_id)
+        return visibles
+
+    def perform_create(self, serializer):
+        serializer.save(empresa=self.request.user.empresa, estado_validacion='pendiente')
+
+    def perform_update(self, serializer):
+        instancia = serializer.instance
+        cambio_revisado = any(
+            campo in serializer.validated_data and serializer.validated_data[campo] != getattr(instancia, campo)
+            for campo in CAMPOS_REVISADOS
+        )
+        if cambio_revisado and not es_validador(self.request.user):
+            serializer.save(estado_validacion='pendiente')
+        else:
+            serializer.save()
 
     @action(detail=False, methods=['get'])
     def estadisticas(self, request):
@@ -139,10 +209,29 @@ class VacanteViewSet(viewsets.ModelViewSet):
 # EMPRESAS
 # ==============================
 
+class EsDuenaDeEmpresa(BasePermission):
+    """El directorio es publico; la ficha solo la edita su duena."""
+
+    message = 'Solo la cuenta dueña puede modificar esta empresa.'
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        # Las empresas nacen en /register/; crearlas aqui no tiene caso.
+        if view.action == 'create':
+            return es_validador(request.user)
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.usuario_id == request.user.id or es_validador(request.user)
+
+
 class EmpresaViewSet(viewsets.ModelViewSet):
     queryset = Empresa.objects.all()
     serializer_class = EmpresaSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [EsDuenaDeEmpresa]
 
     def get_queryset(self):
         queryset = Empresa.objects.all()
@@ -165,31 +254,35 @@ class AplicacionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         usuario = self.request.user
 
+        queryset = Aplicacion.objects.select_related('vacante__empresa', 'usuario')
+
         if usuario.tipo == 'aspirante':
-            return Aplicacion.objects.filter(usuario=usuario)
+            return queryset.filter(usuario=usuario)
         
         elif usuario.tipo == 'empresa':
-            vacantes_empresa = Vacante.objects.filter(empresa__usuario=usuario)
-            return Aplicacion.objects.filter(vacante__in=vacantes_empresa)
+            return queryset.filter(vacante__empresa__usuario=usuario)
             
-        elif usuario.tipo == 'validador' or usuario.is_superuser:
-            return Aplicacion.objects.all()
+        elif es_validador(usuario):
+            return queryset
             
         return Aplicacion.objects.none()
 
     def create(self, request, *args, **kwargs):
         usuario = request.user
 
-        if usuario.tipo == 'aspirante':
-            perfil = Aspirante.objects.filter(usuario=usuario).first()
-            if not perfil or not perfil.cv:
-                return Response(
-                    {"error": "CV_MISSING", "detail": "Debes subir tu CV en tu perfil antes de poder postularte."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            cv_url_automatico = request.build_absolute_uri(perfil.cv.url)
-        else:
-            cv_url_automatico = ""
+        if usuario.tipo != 'aspirante':
+            return Response(
+                {"detail": "Solo los aspirantes pueden postularse."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        perfil = Aspirante.objects.filter(usuario=usuario).first()
+        if not perfil or not perfil.cv:
+            return Response(
+                {"error": "CV_MISSING", "detail": "Debes subir tu CV en tu perfil antes de poder postularte."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        cv_url_automatico = request.build_absolute_uri(perfil.cv.url)
 
         suscripcion = Suscripcion.objects.filter(
             usuario=usuario,
@@ -211,15 +304,42 @@ class AplicacionViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(usuario=usuario, cv_url=cv_url_automatico)
+
+        vacante = serializer.validated_data['vacante']
+        if not (vacante.activa and vacante.estado_validacion == 'aprobada'):
+            return Response(
+                {"error": "VACANTE_NO_DISPONIBLE", "detail": "Esta vacante no está recibiendo postulaciones."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # unique_together no se valida en el serializer porque usuario es de
+        # solo lectura; sin esta revision el duplicado reventaba en un 500.
+        ya_postulado = {"error": "YA_POSTULADO", "detail": "Ya te postulaste a esta vacante."}
+        if Aplicacion.objects.filter(vacante=vacante, usuario=usuario).exists():
+            return Response(ya_postulado, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            serializer.save(usuario=usuario, cv_url=cv_url_automatico)
+        except IntegrityError:
+            return Response(ya_postulado, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        estado_anterior = instance.estado
 
-        response = super().update(request, *args, **kwargs)
+        # Mover el proceso es de la empresa que publico la vacante. El aspirante
+        # podia marcarse 'aceptado' a si mismo.
+        if instance.vacante.empresa.usuario_id != request.user.id and not es_validador(request.user):
+            return Response(
+                {"detail": "Solo la empresa que publicó la vacante puede cambiar el estado."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        estado_anterior = instance.estado
+        estado_serializer = AplicacionEstadoSerializer(instance, data=request.data, partial=True)
+        estado_serializer.is_valid(raise_exception=True)
+        estado_serializer.save()
         instance.refresh_from_db()
 
         if estado_anterior != instance.estado:
@@ -237,7 +357,20 @@ class AplicacionViewSet(viewsets.ModelViewSet):
                     mensaje=mensaje
                 )
 
-        return response
+        return Response(self.get_serializer(instance).data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Retirarse es del aspirante; la empresa no borra el historial de nadie.
+        if instance.usuario_id != request.user.id and not es_validador(request.user):
+            return Response(
+                {"detail": "Solo el aspirante puede retirar su postulación."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # ==============================
 # USER INFO
@@ -264,15 +397,26 @@ class PlanViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PlanSerializer
     permission_classes = [AllowAny]
 
-class SuscripcionViewSet(viewsets.ModelViewSet):
+class SuscripcionViewSet(viewsets.ReadOnlyModelViewSet):
+    # Solo lectura y solo las propias. Con el ModelViewSet cualquiera listaba
+    # las suscripciones de todos y se daba de alta en un plan de pago con un
+    # POST, sin pasar por PayPal. Altas y bajas van por /pago/ y /suscripcion/.
     queryset = Suscripcion.objects.all()
     serializer_class = SuscripcionSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
+    def get_queryset(self):
+        return Suscripcion.objects.filter(usuario=self.request.user)
 
-class NotificacionViewSet(viewsets.ModelViewSet):
+class NotificacionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    # Sin create: las notificaciones las genera el sistema. Con el
+    # ModelViewSet se le podian mandar mensajes a cualquier usuario.
     serializer_class = NotificacionSerializer
     permission_classes = [IsAuthenticated]
 
@@ -291,20 +435,32 @@ def capturar_pago(request):
     try:
         order_id = request.data.get('order_id')
         plan_id = request.data.get('plan_id') 
+
+        # El plan se busca antes de cobrar: si no existe, no se captura nada.
+        nuevo_plan = Plan.objects.filter(id=plan_id).first()
+        if not nuevo_plan:
+            return Response({"error": "Plan no encontrado"}, status=404)
         
-        access_token = get_paypal_access_token()
-        url = f"https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture"
+        access_token = get_access_token()
+        url = f"{PAYPAL_BASE_URL}/v2/checkout/orders/{order_id}/capture"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
         }
         
-        response = requests.post(url, headers=headers)
+        response = requests.post(url, headers=headers, timeout=20)
         capture_data = response.json()
 
         if capture_data.get('status') == 'COMPLETED':
             usuario = request.user
-            nuevo_plan = Plan.objects.get(id=plan_id)
+
+            # plan_id lo manda el navegador: sin comparar lo cobrado contra el
+            # precio, se pagaba el plan barato y se activaba el caro.
+            if not monto_capturado_coincide(capture_data, nuevo_plan):
+                return Response(
+                    {"error": "El monto pagado no coincide con el plan seleccionado."},
+                    status=400
+                )
 
             Suscripcion.objects.filter(usuario=usuario, activa=True).update(activa=False)
             fecha_fin = timezone.now() + timedelta(days=30)
@@ -333,15 +489,20 @@ def capturar_pago(request):
         print("Error en capturar_pago:", str(e))
         return Response({"error": str(e)}, status=500)
 
-PAYPAL_CLIENT_ID = "AekJ2ycu6mOuqPUg8IG97Z7KVb_tawnIH2V6gX6qzSPRh1ilpvFlgwFwVdrPzE_R3e6atC-jqbS49bvX"
-PAYPAL_SECRET = "EI0yTmup4YKCwyMst6MgMGH3DScg3mJrb1m8xYfeim6btwtynOFALY0yiq7CrhHA08pNhxulWMerljo4"
-
-def get_paypal_access_token():
-    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
-    headers = {"Accept": "application/json", "Accept-Language": "es_MX"}
-    data = {"grant_type": "client_credentials"}
-    response = requests.post(url, auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET), headers=headers, data=data)
-    return response.json()['access_token']
+def monto_capturado_coincide(capture_data, plan):
+    try:
+        capturas = [
+            captura
+            for unidad in capture_data.get('purchase_units', [])
+            for captura in unidad.get('payments', {}).get('captures', [])
+        ]
+        if not capturas:
+            return False
+        total = sum(Decimal(captura['amount']['value']) for captura in capturas)
+        monedas = {captura['amount']['currency_code'] for captura in capturas}
+    except (KeyError, TypeError, InvalidOperation):
+        return False
+    return monedas == {'MXN'} and total == plan.precio
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -349,9 +510,9 @@ def crear_pago(request):
     try:
         plan_id = request.data.get('plan_id')
         plan = Plan.objects.get(id=plan_id)
-        access_token = get_paypal_access_token()
+        access_token = get_access_token()
         
-        url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+        url = f"{PAYPAL_BASE_URL}/v2/checkout/orders"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
@@ -366,7 +527,7 @@ def crear_pago(request):
             }]
         }
         
-        response = requests.post(url, json=order_data, headers=headers)
+        response = requests.post(url, json=order_data, headers=headers, timeout=20)
         order = response.json()
         return Response({"id": order['id']})
         
@@ -638,11 +799,24 @@ def mi_perfil_aspirante(request):
 
     elif request.method == 'POST':
         
-        # 1. ACTUALIZAR CUENTA PRINCIPAL (Correo y Teléfono)
+        # 1. ACTUALIZAR CUENTA PRINCIPAL (Username, Correo y Teléfono)
+        username = (request.data.get('username') or '').strip()
         email = request.data.get('email')
         telefono = request.data.get('telefono')
         
         cambios_usuario = False
+
+        # La web manda el username y luego lo guarda como si se hubiera
+        # aplicado; vivia en una segunda rama POST que nunca se ejecutaba.
+        if username and username != usuario.username:
+            if Usuario.objects.filter(username=username).exclude(pk=usuario.pk).exists():
+                return Response(
+                    {"username": ["Ese nombre de usuario ya está tomado."]},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            usuario.username = username
+            cambios_usuario = True
+
         if email and email != usuario.email:
             usuario.email = email
             cambios_usuario = True
@@ -672,29 +846,3 @@ def mi_perfil_aspirante(request):
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'POST':
-        
-        # 1. ACTUALIZAR CUENTA PRINCIPAL (Username, Correo y Teléfono)
-        username = request.data.get('username')  # <--- NUEVO
-        email = request.data.get('email')
-        telefono = request.data.get('telefono')
-        
-        cambios_usuario = False
-        
-        # --- BLOQUE NUEVO PARA EL USERNAME ---
-        if username and username != usuario.username:
-            usuario.username = username
-            cambios_usuario = True
-        # -------------------------------------
-
-        if email and email != usuario.email:
-            usuario.email = email
-            cambios_usuario = True
-            
-        if telefono is not None and telefono != usuario.telefono:
-            usuario.telefono = telefono
-            cambios_usuario = True
-            
-        if cambios_usuario:
-            usuario.save()

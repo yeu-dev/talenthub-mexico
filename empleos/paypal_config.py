@@ -1,31 +1,26 @@
+import os
+
 import requests
-import base64
 
-PAYPAL_CLIENT_ID = "TU_CLIENT_ID"
-PAYPAL_CLIENT_SECRET = "TU_SECRET"
+# Las credenciales vienen del entorno (en produccion, las variables de Render).
+# Estuvieron escritas en views.py y siguen en el historial de git: el secreto
+# viejo hay que rotarlo en el panel de PayPal, no basta con borrarlo de aqui.
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
 
-BASE_URL = "https://api-m.sandbox.paypal.com"
+BASE_URL = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com")
 
 
 def get_access_token():
-
-    auth = f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}"
-    auth_bytes = auth.encode("utf-8")
-    auth_base64 = base64.b64encode(auth_bytes).decode("utf-8")
-
-    headers = {
-        "Authorization": f"Basic {auth_base64}",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    data = {
-        "grant_type": "client_credentials"
-    }
+    if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
+        raise RuntimeError("Faltan PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET en el entorno.")
 
     response = requests.post(
         f"{BASE_URL}/v1/oauth2/token",
-        headers=headers,
-        data=data
+        auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+        headers={"Accept": "application/json", "Accept-Language": "es_MX"},
+        data={"grant_type": "client_credentials"},
+        timeout=20,
     )
-
+    response.raise_for_status()
     return response.json()["access_token"]
