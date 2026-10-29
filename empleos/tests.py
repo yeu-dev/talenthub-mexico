@@ -92,6 +92,16 @@ class RegistroTests(PermisosBase):
         self.assertTrue(Empresa.objects.filter(nombre_empresa='Nueva SA').exists())
 
 
+    def test_usuario_o_correo_repetido_da_un_mensaje_legible(self):
+        base = {'password': 'Clave123!', 'tipo': 'aspirante'}
+        repetido = self.client.post('/api/register/', {**base, 'username': 'ANA', 'email': 'otra@x.com'}, format='json')
+        self.assertEqual(repetido.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('usuario', repetido.data['message'])
+        correo = self.client.post('/api/register/', {**base, 'username': 'ana2', 'email': 'ANA@x.com'}, format='json')
+        self.assertEqual(correo.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('correo', correo.data['message'])
+
+
 class EmpresaTests(PermisosBase):
     def test_sin_sesion_no_se_edita_ni_borra_una_empresa(self):
         url = f'/api/empresas/{self.empresa.id}/'
@@ -279,6 +289,8 @@ class AplicacionTests(PermisosBase):
         self.assertEqual(respuesta.data['usuario_email'], 'ana@x.com')
         self.assertEqual(respuesta.data['usuario_profesion'], 'Frontend')
         self.assertEqual(respuesta.data['usuario_habilidades'], ['React'])
+        # usuario, correo, telefono, profesion, habilidades y CV; faltan resumen y foto.
+        self.assertEqual(respuesta.data['usuario_completitud'], 75)
 
     def test_la_empresa_no_borra_postulaciones(self):
         aplicacion = self.crear_aplicacion()
@@ -353,6 +365,13 @@ class SuscripcionYNotificacionTests(PermisosBase):
 
 
 class PerfilAspiranteTests(PermisosBase):
+    def test_el_perfil_trae_su_completitud(self):
+        self.como(self.aspirante2)
+        respuesta = self.client.get('/api/perfil/aspirante/')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        # Solo usuario y correo: beto no tiene telefono ni perfil lleno.
+        self.assertEqual(respuesta.data['completitud'], 20)
+
     def test_cambiar_username_se_aplica(self):
         self.como(self.aspirante)
         respuesta = self.client.post('/api/perfil/aspirante/', {'username': 'ana_dev'}, format='multipart')

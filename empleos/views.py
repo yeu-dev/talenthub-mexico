@@ -95,10 +95,33 @@ def register(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    username = (request.data.get('username') or '').strip()
+    email = (request.data.get('email') or '').strip()
+
+    if not username or not email or not request.data.get('password'):
+        return Response(
+            {'message': 'Usuario, correo y contraseña son obligatorios.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Antes el duplicado salia como el texto crudo del IntegrityError. El
+    # correo repetido ademas rompia la recuperacion de contrasena, que busca
+    # la cuenta con .get(email=...).
+    if Usuario.objects.filter(username__iexact=username).exists():
+        return Response(
+            {'message': 'Ese nombre de usuario ya está tomado.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if Usuario.objects.filter(email__iexact=email).exists():
+        return Response(
+            {'message': 'Ya existe una cuenta con ese correo.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     try:
         usuario = Usuario.objects.create(
-            username=request.data['username'],
-            email=request.data['email'],
+            username=username,
+            email=email,
             password=make_password(request.data['password']),
             tipo=request.data['tipo'],
             telefono=request.data.get('telefono', '')
@@ -107,7 +130,7 @@ def register(request):
         if request.data['tipo'] == 'empresa':
             Empresa.objects.create(
                 usuario=usuario,
-                nombre_empresa=request.data.get('nombre_empresa', request.data['username']),
+                nombre_empresa=request.data.get('nombre_empresa') or username,
                 sector='Tecnología',
                 descripcion='Empresa registrada en TalentHub México',
                 ubicacion='México',
