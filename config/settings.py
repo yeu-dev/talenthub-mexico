@@ -229,3 +229,24 @@ DEFAULT_FROM_EMAIL = 'TalentHub México <hola@talent-hub.me>'
 # Configuración para subir archivos (Media)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# CVs y fotos en Supabase Storage. El disco de Render se borra en cada
+# despliegue, asi que en produccion los archivos tienen que vivir fuera. Sin
+# estas variables (desarrollo local) se guardan en MEDIA_ROOT como siempre.
+SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY', '')
+SUPABASE_BUCKET = os.getenv('SUPABASE_BUCKET', 'talenthub')
+SUPABASE_SIGNED_URL_TTL = int(os.getenv('SUPABASE_SIGNED_URL_TTL', '3600'))
+
+STORAGES = {
+    'default': {
+        'BACKEND': (
+            'empleos.storage.SupabaseStorage'
+            if SUPABASE_URL and SUPABASE_SERVICE_KEY
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
