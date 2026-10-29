@@ -5,7 +5,9 @@ import { FileText, Upload, Check, Save } from 'lucide-react';
 import api, { getMediaUrl } from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, Field, Input, Textarea, Skeleton } from '../components/ui';
+import { prepararFoto, validarCv } from '../lib/archivos';
 import { cx } from '../lib/cx';
+import { mensajeDeError } from '../lib/errores';
 import { rise, riseGlass, stagger } from '../lib/motion';
 
 interface FormState {
@@ -80,11 +82,31 @@ const PerfilAspirante: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    if (!files || !files[0]) return;
-    if (name === 'cv') setCvFile(files[0]);
-    if (name === 'foto') setFotoFile(files[0]);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const archivo = input.files?.[0];
+    // Se vacia para que elegir el mismo archivo otra vez vuelva a disparar onChange.
+    input.value = '';
+    if (!archivo) return;
+
+    if (input.name === 'cv') {
+      const error = validarCv(archivo);
+      if (error) {
+        showError(error, 'Ese CV no se puede subir');
+        return;
+      }
+      setCvFile(archivo);
+      return;
+    }
+
+    if (input.name === 'foto') {
+      const resultado = await prepararFoto(archivo);
+      if ('error' in resultado) {
+        showError(resultado.error, 'Esa foto no se puede subir');
+        return;
+      }
+      setFotoFile(resultado.foto);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,8 +129,8 @@ const PerfilAspirante: React.FC = () => {
       setCvFile(null);
       setFotoFile(null);
       cargarPerfil();
-    } catch (err: any) {
-      showError('Revisa si el nombre de usuario ya está tomado.', 'No se pudo guardar');
+    } catch (err: unknown) {
+      showError(mensajeDeError(err, 'Revisa tus datos e intenta de nuevo.'), 'No se pudo guardar');
     } finally {
       setGuardando(false);
     }
@@ -311,7 +333,7 @@ const PerfilAspirante: React.FC = () => {
             <Card>
               <h2 className="mb-6 text-h3 font-demi text-ink">Documentos</h2>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                {zonaArchivo('foto', 'Foto de perfil', 'image/*', 'JPG o PNG', fotoFile, Boolean(fotoUrlActual))}
+                {zonaArchivo('foto', 'Foto de perfil', 'image/jpeg,image/png', 'JPG o PNG; si pesa más de 2 MB se reduce sola', fotoFile, Boolean(fotoUrlActual))}
                 {zonaArchivo('cv', 'Currículum', '.pdf', 'PDF, máximo 5 MB', cvFile, Boolean(cvUrlActual))}
               </div>
             </Card>
