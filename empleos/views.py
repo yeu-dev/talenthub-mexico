@@ -750,14 +750,20 @@ def eliminar_tecnologia(request, pk):
 
 @api_view(['POST'])
 def solicitar_recuperacion_password(request):
-    correo = request.data.get('email')
+    correo = (request.data.get('email') or '').strip()
     
     if not correo:
         return Response({"error": "Debes proporcionar un correo electrónico."}, status=status.HTTP_400_BAD_REQUEST)
     
-    try:
-        user = User.objects.get(email=correo)
-    except User.DoesNotExist:
+    # iexact: el registro nunca normalizo el correo, asi que Ana@x.com y
+    # ana@x.com son la misma persona. Y .first() en lugar de .get(): con dos
+    # cuentas del mismo correo (el registro lo permitia) .get() tronaba en 500.
+    user = (
+        User.objects.filter(email__iexact=correo, is_active=True)
+        .order_by('-last_login', '-date_joined')
+        .first()
+    )
+    if user is None:
         return Response({"mensaje": "Si el correo coincide con una cuenta, enviaremos un enlace."}, status=status.HTTP_200_OK)
     
     uid = urlsafe_base64_encode(force_bytes(user.pk))

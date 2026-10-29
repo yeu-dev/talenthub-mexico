@@ -458,3 +458,24 @@ class SupabaseStorageTests(PermisosBase):
         self.assertEqual(respuesta.status_code, status.HTTP_200_OK, respuesta.data)
         self.assertTrue(respuesta.data['cv_url'].startswith(f'{self.URL}/storage/v1/object/sign/talenthub/cvs/'))
         self.assertTrue(respuesta.data['cv_url'].endswith('?token=t'))
+
+
+class RecuperarPasswordTests(PermisosBase):
+    @mock.patch('empleos.views.send_mail')
+    def test_encuentra_la_cuenta_sin_importar_mayusculas(self, enviar):
+        respuesta = self.client.post('/api/recuperar-password/', {'email': '  ANA@X.com '}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(enviar.call_args.args[3], ['ana@x.com'])
+
+    @mock.patch('empleos.views.send_mail')
+    def test_correo_repetido_no_truena(self, enviar):
+        Usuario.objects.create_user('ana2', 'Ana@x.com', 'Clave123!', tipo='aspirante')
+        respuesta = self.client.post('/api/recuperar-password/', {'email': 'ana@x.com'}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(enviar.call_count, 1)
+
+    @mock.patch('empleos.views.send_mail')
+    def test_correo_desconocido_responde_igual_sin_enviar(self, enviar):
+        respuesta = self.client.post('/api/recuperar-password/', {'email': 'nadie@x.com'}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        enviar.assert_not_called()
