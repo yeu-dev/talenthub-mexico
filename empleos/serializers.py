@@ -5,6 +5,26 @@ from .models import Aspirante
 import os
 
 
+def url_archivo(archivo, request=None):
+    """La URL de un CV o una foto, o None si no hay forma de abrirlo.
+
+    Con Supabase Storage la URL ya es absoluta y firmada; en local es /media/...
+    y se completa con el host. Un archivo que ya no existe en el bucket (los
+    que se quedaron en el disco de Render) devuelve '' y aqui se vuelve None.
+    """
+    if not archivo:
+        return None
+    try:
+        url = archivo.url
+    except Exception:
+        return None
+    if not url:
+        return None
+    if url.startswith('http') or request is None:
+        return url
+    return request.build_absolute_uri(url)
+
+
 def completitud_perfil(usuario, perfil):
     """Que tan listo esta un aspirante para postularse, de 0 a 100.
 
@@ -96,11 +116,9 @@ class AplicacionSerializer(serializers.ModelSerializer):
             perfil = Aspirante.objects.filter(usuario_id=obj.usuario_id).first()
             
             # 2. Si el perfil actual tiene un CV válido y fresco, lo usamos
-            if perfil and perfil.cv:
-                request = self.context.get('request')
-                if request:
-                    return request.build_absolute_uri(perfil.cv.url)
-                return perfil.cv.url
+            url = url_archivo(perfil.cv if perfil else None, self.context.get('request'))
+            if url:
+                return url
                 
             # 3. Fallback: Si no hay CV dinámico, usamos el estático que se guardó al postularse
             # (El getattr evita errores si el campo crudo no viene en la instancia)
@@ -149,20 +167,10 @@ class AspiranteSerializer(serializers.ModelSerializer):
         return completitud_perfil(obj.usuario, obj)
 
     def get_foto_url(self, obj):
-        if obj.foto:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.foto.url)
-            return obj.foto.url
-        return None
+        return url_archivo(obj.foto, self.context.get('request'))
 
     def get_cv_url(self, obj):
-        if obj.cv:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.cv.url)
-            return obj.cv.url
-        return None
+        return url_archivo(obj.cv, self.context.get('request'))
 
     def validate_cv(self, value):
         if value and hasattr(value, 'name'):

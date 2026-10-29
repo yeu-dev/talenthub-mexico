@@ -305,7 +305,10 @@ class AplicacionViewSet(viewsets.ModelViewSet):
                 {"error": "CV_MISSING", "detail": "Debes subir tu CV en tu perfil antes de poder postularte."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        cv_url_automatico = request.build_absolute_uri(perfil.cv.url)
+        # No se guarda una URL: con Storage es firmada, caduca en una hora y no
+        # cabe en el URLField(200) de Postgres. AplicacionSerializer firma una
+        # nueva cada vez que la empresa abre la postulacion.
+        cv_url_automatico = ''
 
         suscripcion = Suscripcion.objects.filter(
             usuario=usuario,

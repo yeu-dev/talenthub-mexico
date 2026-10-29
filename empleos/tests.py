@@ -384,3 +384,77 @@ class PerfilAspiranteTests(PermisosBase):
         respuesta = self.client.post('/api/perfil/aspirante/', {'username': 'beto'}, format='multipart')
         self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('username', respuesta.data)
+
+
+class SupabaseStorageTests(PermisosBase):
+    """Supabase no es alcanzable desde las pruebas: se simula su API HTTP."""
+
+    URL = 'https://ref.supabase.co'
+
+    def storage(self, key='eyJ.legacy.jwt'):
+        from .storage import SupabaseStorage
+        return SupabaseStorage(url=self.URL, key=key, bucket='talenthub', ttl=3600)
+
+    def respuesta(self, json=None):
+        r = mock.Mock()
+        r.raise_for_status.return_value = None
+        r.json.return_value = json or {}
+        return r
+
+    def test_subir_usa_nombre_unico_y_la_llave_correcta(self):
+        storage = self.storage()
+        with mock.patch('empleos.storage.requests.post', return_value=self.respuesta()) as post:
+            nombre = storage.save('cvs/Mi CV.pdf', SimpleUploadedFile('Mi CV.pdf', b'%PDF', content_type='application/pdf'))
+        self.assertTrue(nombre.startswith('cvs/') and nombre.endswith('_Mi_CV.pdf'), nombre)
+        url, = post.call_args.args
+        self.assertEqual(url, f'{self.URL}/storage/v1/object/talenthub/{nombre}')
+        headers = post.call_args.kwargs['headers']
+        self.assertEqual(headers['Authorization'], 'Bearer eyJ.legacy.jwt')
+        self.assertEqual(headers['Content-Type'], 'application/pdf')
+
+    def test_las_llaves_nuevas_van_solo_en_apikey(self):
+        headers = self.storage(key='sb_secret_abc')._headers()
+        self.assertEqual(headers, {'apikey': 'sb_secret_abc'})
+
+    def test_la_url_firmada_se_reutiliza(self):
+        storage = self.storage()
+        firmada = self.respuesta({'signedURL': '/object/sign/talenthub/cvs/a.pdf?token=t'})
+        with mock.patch('empleos.storage.requests.post', return_value=firmada) as post:
+            primera = storage.url('cvs/a.pdf')
+            segunda = storage.url('cvs/a.pdf')
+        self.assertEqual(primera, f'{self.URL}/storage/v1/object/sign/talenthub/cvs/a.pdf?token=t')
+        self.assertEqual(primera, segunda)
+        self.assertEqual(post.call_count, 1)
+
+    def test_un_archivo_perdido_no_rompe_el_perfil(self):
+        import requests as http
+        storage = self.storage()
+        caido = mock.Mock()
+        caido.raise_for_status.side_effect = http.HTTPError('404')
+        with mock.patch('empleos.storage.requests.post', return_value=caido):
+            self.assertEqual(storage.url('cvs/perdido.pdf'), '')
+
+    def test_el_perfil_entrega_el_cv_como_url_firmada(self):
+        storages = {
+            'default': {
+                'BACKEND': 'empleos.storage.SupabaseStorage',
+                'OPTIONS': {'url': self.URL, 'key': 'eyJ.legacy.jwt', 'bucket': 'talenthub', 'ttl': 3600},
+            },
+            'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+        }
+
+        def falso_post(url, **kwargs):
+            if '/object/sign/' in url:
+                ruta = url.split('/object/sign/talenthub/')[1]
+                return self.respuesta({'signedURL': f'/object/sign/talenthub/{ruta}?token=t'})
+            return self.respuesta()
+
+        self.como(self.aspirante2)
+        with override_settings(STORAGES=storages), mock.patch('empleos.storage.requests.post', side_effect=falso_post):
+            respuesta = self.client.post('/api/perfil/aspirante/', {
+                'cv': SimpleUploadedFile('cv.pdf', b'%PDF-1.4', content_type='application/pdf'),
+            }, format='multipart')
+
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK, respuesta.data)
+        self.assertTrue(respuesta.data['cv_url'].startswith(f'{self.URL}/storage/v1/object/sign/talenthub/cvs/'))
+        self.assertTrue(respuesta.data['cv_url'].endswith('?token=t'))
