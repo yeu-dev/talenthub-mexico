@@ -7,6 +7,7 @@ import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from ".
 import { chipsPopulares, haceCuanto, partesSalario, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { riseGlass, riseVisible, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
+import TitularGiratorio, { palabrasDelTitular } from "../components/TitularGiratorio";
 import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
@@ -114,6 +115,8 @@ const Home: React.FC = () => {
   }, [cargar]);
 
   const chips = useMemo(() => chipsPopulares(vacantes), [vacantes]);
+  // Las palabras que giran en el titular salen de la misma lista: sin otra petición.
+  const palabras = useMemo(() => palabrasDelTitular(vacantes), [vacantes]);
   // El endpoint ya las entrega de la más nueva a la más vieja.
   const recientes = vacantes.slice(0, RECIENTES);
 
@@ -157,7 +160,7 @@ const Home: React.FC = () => {
             variants={riseVisible}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
           >
-            Empleo en TI con el sueldo a la vista
+            <TitularGiratorio palabras={palabras} />
           </motion.h1>
           {/* Lo que distingue al sitio, en íconos y no en un párrafo. */}
           <motion.ul variants={riseVisible} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">

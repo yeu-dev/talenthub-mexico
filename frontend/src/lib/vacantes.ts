@@ -129,6 +129,15 @@ function porFrecuencia(valores: string[]): string[] {
 }
 
 /**
+ * Las tecnologías que más piden las vacantes publicadas, de la más pedida a
+ * la menos. Misma fuente y mismo filtro de relleno que los chips: nada
+ * escrito a mano.
+ */
+export function tecnologiasFrecuentes(vacantes: VacantePublica[], maximo = 5): string[] {
+  return porFrecuencia(vacantes.flatMap(tecnologias)).slice(0, maximo);
+}
+
+/**
  * Búsquedas rápidas sacadas de las vacantes que hay. Nunca un chip escrito a
  * mano: uno que lleva a cero resultados es peor que no tener chip.
  * "Remoto" va primero si existe al menos una; después lo más frecuente,
