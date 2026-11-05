@@ -53,6 +53,46 @@ from .paypal_config import BASE_URL as PAYPAL_BASE_URL, get_access_token
 def es_validador(user):
     return user.is_authenticated and (user.tipo == 'validador' or user.is_superuser)
 
+
+# ==============================
+# PLAN VIGENTE
+# ==============================
+
+def suscripcion_vigente(usuario):
+    """La suscripcion que de verdad cuenta: activa y sin vencer.
+
+    `fecha_fin` se guardaba (el pago la pone a 30 dias) pero nadie la leia, asi
+    que un plan de pago vencido seguia aplicando para siempre. Una suscripcion
+    sin `fecha_fin` (el plan gratis) no vence. Si hay varias activas, gana la
+    mas reciente.
+    """
+    return (
+        Suscripcion.objects.filter(usuario=usuario, activa=True)
+        .filter(Q(fecha_fin__isnull=True) | Q(fecha_fin__gt=timezone.now()))
+        .select_related('plan')
+        .order_by('-fecha_inicio')
+        .first()
+    )
+
+
+def plan_gratis(tipo):
+    """El plan gratis de ese tipo de cuenta, con la misma busqueda que usa
+    `cancelar_suscripcion`. Puede no existir (por ejemplo, en una base nueva)."""
+    return Plan.objects.filter(nombre__icontains='Gratis', tipo_usuario=tipo).first()
+
+
+def plan_vigente(usuario):
+    """El plan cuyos limites aplican al usuario.
+
+    Antes, quien no tenia fila de `Suscripcion` (la mayoria: al registrarse no
+    se asigna ninguna) quedaba sin limites. Ahora le aplica el plan gratis de
+    su tipo. `None` solo si tampoco existe ese plan: entonces no hay limite.
+    """
+    suscripcion = suscripcion_vigente(usuario)
+    if suscripcion:
+        return suscripcion.plan
+    return plan_gratis(usuario.tipo)
+
 # ==============================
 # LOGIN
 # ==============================
@@ -310,19 +350,18 @@ class AplicacionViewSet(viewsets.ModelViewSet):
         # nueva cada vez que la empresa abre la postulacion.
         cv_url_automatico = ''
 
-        suscripcion = Suscripcion.objects.filter(
-            usuario=usuario,
-            activa=True
-        ).first()
+        # Limite diario del aspirante. Con `plan_vigente` aplica tambien a quien
+        # nunca tuvo suscripcion o la tiene vencida (cae al plan gratis).
+        plan_aspirante = plan_vigente(usuario)
 
-        if suscripcion and suscripcion.plan.max_postulaciones_dia:
+        if plan_aspirante and plan_aspirante.max_postulaciones_dia:
             hoy = timezone.now().date()
             postulaciones_hoy = Aplicacion.objects.filter(
                 usuario=usuario,
                 fecha_creacion__date=hoy
             ).count()
 
-            if postulaciones_hoy >= suscripcion.plan.max_postulaciones_dia:
+            if postulaciones_hoy >= plan_aspirante.max_postulaciones_dia:
                 return Response(
                     {"detail": "Has alcanzado el límite de postulaciones diarias de tu plan."},
                     status=status.HTTP_400_BAD_REQUEST
@@ -337,6 +376,18 @@ class AplicacionViewSet(viewsets.ModelViewSet):
                 {"error": "VACANTE_NO_DISPONIBLE", "detail": "Esta vacante no está recibiendo postulaciones."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Limite de candidatos por vacante, segun el plan de la EMPRESA ("Hasta
+        # N candidatos por vacante" en /planes). Antes solo se mostraba. Se
+        # cuentan todas las postulaciones, rechazadas incluidas: si no, la
+        # empresa liberaria lugares rechazando gente. Nulo o 0 = sin limite.
+        plan_empresa = plan_vigente(vacante.empresa.usuario)
+        if plan_empresa and plan_empresa.max_candidatos:
+            if vacante.aplicaciones.count() >= plan_empresa.max_candidatos:
+                return Response(
+                    {"error": "VACANTE_LLENA", "detail": "Esta vacante ya alcanzó el límite de candidatos de su plan."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         # unique_together no se valida en el serializer porque usuario es de
         # solo lectura; sin esta revision el duplicado reventaba en un 500.
@@ -564,7 +615,9 @@ def crear_pago(request):
 @permission_classes([IsAuthenticated])
 def mi_suscripcion(request):
     try:
-        suscripcion = Suscripcion.objects.filter(usuario=request.user, activa=True).first()
+        # La misma regla que aplica los limites: un plan vencido ya no se
+        # muestra como "Tu plan".
+        suscripcion = suscripcion_vigente(request.user)
         if suscripcion:
             return Response({
                 "plan": suscripcion.plan.nombre,
