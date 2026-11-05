@@ -66,6 +66,14 @@ describe('chipsPopulares', () => {
     expect(chips.length).toBeLessThanOrEqual(3);
   });
 
+  it('ignora el relleno que las empresas escriben como tecnología', () => {
+    const chips = chipsPopulares([vacante({ requisitos: { lenguajes: ['React', 'etc.', 'Otros', ''] } })]);
+    const etiquetas = chips.map((c) => c.etiqueta);
+    expect(etiquetas).toContain('React');
+    expect(etiquetas).not.toContain('etc.');
+    expect(etiquetas).not.toContain('Otros');
+  });
+
   it('sin vacantes no hay chips', () => {
     expect(chipsPopulares([])).toEqual([]);
   });

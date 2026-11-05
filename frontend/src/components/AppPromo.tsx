@@ -89,6 +89,8 @@ const AppPromo: React.FC = () => {
   const [mini, setMini] = useState(leer);
   const [listo, setListo] = useState(false);
   const [bajo, setBajo] = useState(false);
+  // Abierta a mano desde el botón: entonces se muestra aunque se esté arriba.
+  const [forzada, setForzada] = useState(false);
 
   // Arriba de la página la tarjeta taparía el buscador y los botones del
   // encabezado: ahí se queda como botón chico, y se abre al empezar a bajar.
@@ -111,17 +113,19 @@ const AppPromo: React.FC = () => {
 
   const encoger = () => {
     setMini(true);
+    setForzada(false);
     guardar(true);
   };
   const abrir = () => {
     setMini(false);
+    setForzada(true);
     guardar(false);
   };
 
   return (
     <>
       {/* ── Escritorio ── */}
-      {mini || !bajo ? (
+      {mini || (!bajo && !forzada) ? (
         <button
           type="button"
           onClick={abrir}

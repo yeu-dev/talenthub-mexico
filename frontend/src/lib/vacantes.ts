@@ -98,12 +98,16 @@ export interface Chip {
 /** La parte de la ciudad antes de la coma: "Puebla, Pue." → "Puebla". */
 const ciudad = (ubicacion: string) => ubicacion.split(',')[0].trim();
 
+// Lo que las empresas escriben como relleno en la lista de tecnologías. Un
+// chip "etc." no lleva a ninguna búsqueda útil.
+const RELLENO = new Set(['etc', 'etc.', 'otros', 'otro', 'otras', 'n/a', 'na', 'ninguno', 'ninguna', '-', '...']);
+
 /** Valores distintos (sin acentos ni mayúsculas) ordenados por frecuencia. */
 function porFrecuencia(valores: string[]): string[] {
   const conteo = new Map<string, { etiqueta: string; n: number }>();
   for (const valor of valores) {
     const clave = normalizar(valor);
-    if (!clave) continue;
+    if (clave.length < 2 || RELLENO.has(clave)) continue;
     const actual = conteo.get(clave);
     if (actual) actual.n += 1;
     else conteo.set(clave, { etiqueta: valor.trim(), n: 1 });
