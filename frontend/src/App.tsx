@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
@@ -45,12 +44,7 @@ const Pagina: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 function App() {
-  // `reducedMotion="user"`: framer-motion lee la preferencia del sistema. Si
-  // está activa, apaga desplazamientos, escalas y `layoutId` (las líneas que
-  // se deslizan) y deja los cambios de opacidad y color. Si no, todo se ve
-  // igual que siempre. Sin esto, la regla de index.css solo cubría el CSS.
   return (
-    <MotionConfig reducedMotion="user">
     <Router>
       <PromoAppProvider>
       <Navbar />
@@ -92,7 +86,6 @@ function App() {
       <ConfirmHost />
       </PromoAppProvider>
     </Router>
-    </MotionConfig>
   );
 }
 
