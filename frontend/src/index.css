@@ -104,8 +104,11 @@
   /* Sustrato de página completa, en oscuro.
      El vidrio es una lente: sin algo detrás no refracta nada y una tarjeta
      translúcida se ve idéntica a una opaca. Estos halos le dan tono —azul,
-     verde azulado y un cálido muy bajo— que atravesar. `fixed`: se quedan
-     quietos mientras el contenido corre por encima. */
+     verde azulado y un cálido muy bajo— que atravesar.
+
+     `fixed` (los halos quietos mientras el contenido corre encima) solo desde
+     `md`: en celular obliga a repintar todo el fondo en cada cuadro del scroll
+     y se traba en gama media. Ahí se mueven con la página, que casi no se nota. */
   .mesh-page {
     background-color: theme('colors.night');
     background-image:
@@ -113,7 +116,12 @@
       radial-gradient(44% 38% at 96% 22%, rgba(56, 190, 178, 0.13), transparent 70%),
       radial-gradient(52% 44% at 80% 96%, rgba(74, 102, 255, 0.14), transparent 72%),
       radial-gradient(56% 48% at 16% 90%, rgba(255, 170, 92, 0.06), transparent 72%);
-    background-attachment: fixed;
+  }
+
+  @media (min-width: 768px) {
+    .mesh-page {
+      background-attachment: fixed;
+    }
   }
 
   /* Panel de vidrio oscuro: la firma del sistema. Montado sobre el filo de
@@ -121,8 +129,17 @@
   .glass-panel {
     background-color: rgba(255, 255, 255, 0.06);
     border-radius: theme('borderRadius.card');
-    -webkit-backdrop-filter: blur(22px) saturate(1.6);
-    backdrop-filter: blur(22px) saturate(1.6);
+    /* 12px en celular, 22px desde `md`: el desenfoque es lo más caro del
+       vidrio, y en una pantalla chica 12px se ve igual de esmerilado. */
+    -webkit-backdrop-filter: blur(12px) saturate(1.6);
+    backdrop-filter: blur(12px) saturate(1.6);
+  }
+
+  @media (min-width: 768px) {
+    .glass-panel {
+      -webkit-backdrop-filter: blur(22px) saturate(1.6);
+      backdrop-filter: blur(22px) saturate(1.6);
+    }
   }
 
   /* Montado ~96px sobre la banda oscura de arriba. */
