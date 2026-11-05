@@ -163,11 +163,13 @@ const Navbar: React.FC = () => {
       <Link
         to="/mis-aplicaciones"
         aria-label={unreadCount > 0 ? `Notificaciones: ${unreadCount} sin leer` : "Notificaciones"}
-        className="relative text-white/90 transition-colors duration-200 hover:text-white"
+        // El padding agranda el área de toque a 44×44 y el margen negativo lo
+        // compensa: la campana no se mueve. El globo se recorre lo mismo.
+        className="relative -m-3 rounded-pill p-3 text-white/90 transition-colors duration-200 hover:bg-white/[0.06] hover:text-white"
       >
         <Bell size={20} strokeWidth={1.6} />
         {unreadCount > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-pill bg-accent px-1 text-[0.6875rem] font-mid text-white">
+          <span className="absolute right-1.5 top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-pill bg-accent px-1 text-[0.6875rem] font-mid text-white">
             {unreadCount}
           </span>
         )}
@@ -199,7 +201,8 @@ const Navbar: React.FC = () => {
             type="button"
             aria-expanded={isMobileMenuOpen}
             aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            className="text-white/90 transition-colors hover:text-white lg:hidden"
+            // 44×44 de área de toque; el margen negativo deja el ícono donde estaba.
+            className="-mr-2.5 flex h-11 w-11 items-center justify-center rounded-pill text-white/90 transition-colors hover:bg-white/[0.06] hover:text-white lg:hidden"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
           >
             {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}

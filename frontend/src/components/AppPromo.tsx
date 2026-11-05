@@ -63,7 +63,7 @@ const TarjetaApp: React.FC<{ onCerrar?: () => void }> = ({ onCerrar }) => (
         type="button"
         onClick={onCerrar}
         aria-label="Minimizar aviso de la app"
-        className="absolute right-3 top-3 rounded-pill p-1.5 text-[#3f4045] transition-colors hover:bg-white hover:text-[#161616]"
+        className="absolute right-1.5 top-1.5 flex h-11 w-11 items-center justify-center rounded-pill text-[#3f4045] transition-colors hover:bg-white hover:text-[#161616]"
       >
         <X size={18} strokeWidth={1.8} />
       </button>
@@ -175,7 +175,7 @@ const AppPromo: React.FC = () => {
               type="button"
               onClick={encoger}
               aria-label="Cerrar aviso de la app"
-              className="flex-none rounded-pill p-1.5 text-muted-d hover:text-ink-d"
+              className="-mr-2 flex h-11 w-11 flex-none items-center justify-center rounded-pill text-muted-d hover:text-ink-d"
             >
               <X size={18} />
             </button>

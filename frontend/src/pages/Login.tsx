@@ -204,7 +204,7 @@ const Login: React.FC = () => {
               onClick={() => setVerPassword((v) => !v)}
               aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               aria-pressed={verPassword}
-              className="absolute right-[10px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-pill text-muted-d transition-colors hover:bg-white/[0.07] hover:text-ink-d"
+              className="absolute right-[1px] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-pill text-muted-d transition-colors hover:bg-white/[0.07] hover:text-ink-d"
             >
               {verPassword ? <EyeOff size={16} strokeWidth={1.7} /> : <Eye size={16} strokeWidth={1.7} />}
             </button>

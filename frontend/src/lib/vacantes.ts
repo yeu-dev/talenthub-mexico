@@ -76,6 +76,17 @@ export function formatoSalario(min: string, max: string): string {
   return 'Salario por definir';
 }
 
+/**
+ * El sueldo partido en dos: la cifra grande y si lleva moneda. Las tarjetas
+ * pintan "MXN" en chico junto a "mensual" para que la cifra quepa en un
+ * renglón; sin monto ("Salario por definir") no hay moneda que poner.
+ */
+export function partesSalario(min: string, max: string): { cifra: string; conMoneda: boolean } {
+  const texto = formatoSalario(min, max);
+  const conMoneda = texto.endsWith(' MXN');
+  return { cifra: conMoneda ? texto.slice(0, -4) : texto, conMoneda };
+}
+
 const DIA = 24 * 60 * 60 * 1000;
 
 /** "hoy", "ayer", "hace 3 días", "hace 2 semanas", o la fecha. */

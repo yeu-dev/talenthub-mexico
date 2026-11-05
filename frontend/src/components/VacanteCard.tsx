@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin } from './icons';
 import { Card, Tag, TONO_MODALIDAD } from './ui';
 import Iniciales from './Iniciales';
-import { formatoSalario, haceCuanto, tecnologias, VacantePublica } from '../lib/vacantes';
+import { haceCuanto, partesSalario, tecnologias, VacantePublica } from '../lib/vacantes';
 
 interface Props {
   vacante: VacantePublica;
@@ -24,6 +24,9 @@ const capital = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1
 const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
   const techs = tecnologias(vacante).slice(0, 3);
   const fecha = haceCuanto(vacante.fecha_publicacion);
+  const tono = TONO_MODALIDAD[vacante.modalidad] ?? 'neutro';
+  const modalidad = capital(vacante.modalidad);
+  const salario = partesSalario(vacante.salario_min, vacante.salario_max);
 
   return (
     <Card as="article" glass interactive className="relative flex h-full flex-col gap-4 p-6">
@@ -42,12 +45,22 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
           </h3>
           <p className="mt-1 text-[0.875rem] text-muted">{vacante.empresa_nombre}</p>
         </div>
-        <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? 'neutro'}>{capital(vacante.modalidad)}</Tag>
+        {/* En celular la etiqueta baja junto a la ubicación: arriba le quitaba
+            tanto ancho al título que "Full Stack" y el "MXN" del sueldo
+            brincaban de renglón. */}
+        <span className="hidden flex-none sm:block">
+          <Tag tono={tono}>{modalidad}</Tag>
+        </span>
       </div>
 
       <p className="tabular text-[1.25rem] font-demi tracking-[-0.01em] text-ink">
-        {formatoSalario(vacante.salario_min, vacante.salario_max)}
-        <span className="ml-1.5 text-[0.8125rem] font-book text-muted">mensual</span>
+        {/* La moneda va con "mensual", en chico y sin partirse: así la cifra
+            cabe en un renglón en celular, igual que en la lista de la portada. */}
+        {/* La cifra no se parte en el guion: si no cabe, baja entera la moneda. */}
+        <span className="whitespace-nowrap">{salario.cifra}</span>
+        {salario.conMoneda && (
+          <span className="ml-1.5 whitespace-nowrap text-[0.8125rem] font-book text-muted">MXN mensual</span>
+        )}
       </p>
 
       {conDescripcion && vacante.descripcion && (
@@ -64,7 +77,10 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
             </span>
           ))}
         </div>
-        <p className="flex items-center gap-3 text-[0.8125rem] text-muted">
+        <p className="flex flex-wrap items-center gap-3 text-[0.8125rem] text-muted">
+          <span className="sm:hidden">
+            <Tag tono={tono}>{modalidad}</Tag>
+          </span>
           <span className="flex items-center gap-1">
             <MapPin size={13} strokeWidth={1.7} aria-hidden="true" />
             {vacante.ubicacion}
