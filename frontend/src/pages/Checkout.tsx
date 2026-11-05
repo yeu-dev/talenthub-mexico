@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
-import { rise, riseGlass, stagger } from '../lib/motion';
+import { rise, stagger } from '../lib/motion';
+import { useTitulo } from '../hooks/useTitulo';
 
 const Checkout: React.FC = () => {
+  useTitulo('Pago');
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -47,11 +49,7 @@ const Checkout: React.FC = () => {
   };
 
   return (
-    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] flex min-h-screen items-center justify-center overflow-hidden bg-night px-6 pb-24 pt-[168px] text-ink-d">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-[1000px] -translate-x-1/2 -translate-y-[56%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),rgba(255,255,255,0.03)_52%,transparent_76%)] blur-[8px]"
-      />
+    <div className="flex min-h-[calc(100vh-var(--nav-flow))] items-center justify-center bg-night px-6 py-16 text-ink-d">
 
       <motion.div variants={stagger(0.09)} initial="hidden" animate="show" className="w-full max-w-[440px]">
         <motion.div variants={rise} className="mb-8 text-center">
@@ -65,8 +63,8 @@ const Checkout: React.FC = () => {
         </motion.div>
 
         <motion.div
-          variants={riseGlass}
-          className="edge-d rounded-card bg-white/[0.045] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9"
+          variants={rise}
+          className="rounded-card border border-hairline-d bg-elevated p-8 sm:p-9"
         >
           <h1 className="text-h3 font-demi text-ink-d">Completar pago</h1>
           <p className="mt-1.5 text-[0.9375rem] text-muted-d">

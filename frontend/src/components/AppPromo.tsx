@@ -1,17 +1,31 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Camera, Clock, Image, Map, MessageCircle, X } from 'lucide-react';
+import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, X } from 'lucide-react';
 import { PLAY_STORE_URL } from '../lib/app';
 
-const CLAVE = 'th_app_promo_cerrado';
+/** Cerrado en esta visita: en la siguiente vuelve a abrirse grande. */
+const CLAVE = 'th_app_promo_mini';
 
-const yaCerrado = () => {
+const leer = () => {
   try {
-    return localStorage.getItem(CLAVE) === '1';
+    return sessionStorage.getItem(CLAVE) === '1';
   } catch {
     return false;
   }
 };
+
+const guardar = (mini: boolean) => {
+  try {
+    if (mini) sessionStorage.setItem(CLAVE, '1');
+    else sessionStorage.removeItem(CLAVE);
+  } catch {
+    /* sin almacenamiento solo se olvida al recargar */
+  }
+};
+
+/** Pantallas cerradas: ahí la única salida útil es la que da la página. */
+const SIN_AVISO = ['/login', '/register', '/olvide-password', '/restablecer-password', '/checkout'];
 
 /** Los íconos de relleno de la pantalla de inicio: grises, para que destaque el de TalentHub. */
 const APPS = [
@@ -61,61 +75,116 @@ const Celular: React.FC = () => (
 );
 
 /**
- * Aviso para descargar la app, con un QR que abre la ficha de Google Play.
- *
- * Solo en pantallas grandes: quien ya está en el celular no puede escanear su
- * propia pantalla. Es una tarjeta en la esquina, no un modal: no tapa la
- * página ni obliga a cerrarla para seguir. Al cerrarla no vuelve a salir.
+ * Aviso para descargar la app. Insistente a propósito, pero sin bloquear:
+ * - Sale en todas las páginas públicas mientras no haya sesión iniciada; al
+ *   iniciar sesión desaparece del todo. La web no puede saber si alguien
+ *   escaneó el QR (eso pasa en el celular), así que la sesión es la señal.
+ * - En escritorio es la tarjeta con QR. Cerrarla la encoge a un botón en la
+ *   esquina que la vuelve a abrir; en la siguiente visita sale grande otra vez.
+ * - En celular un QR no sirve (no se escanea la propia pantalla): es una barra
+ *   abajo con el botón que abre Google Play. Cerrarla dura lo que la visita.
  */
 const AppPromo: React.FC = () => {
-  const [visible, setVisible] = useState(false);
+  const { pathname } = useLocation();
+  const [mini, setMini] = useState(leer);
+  const [listo, setListo] = useState(false);
 
+  // Un momento después de cargar, para no competir con lo primero que se lee.
   useEffect(() => {
-    if (yaCerrado()) return;
-    // Un momento después de cargar, para no competir con el buscador.
-    const t = window.setTimeout(() => setVisible(true), 1200);
+    const t = window.setTimeout(() => setListo(true), 1200);
     return () => window.clearTimeout(t);
   }, []);
 
-  if (!visible) return null;
+  const conSesion = Boolean(localStorage.getItem('token'));
+  const cerrada = SIN_AVISO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
+  if (!listo || conSesion || cerrada) return null;
 
-  const cerrar = () => {
-    setVisible(false);
-    try {
-      localStorage.setItem(CLAVE, '1');
-    } catch {
-      /* sin almacenamiento solo vuelve a salir en la siguiente visita */
-    }
+  const encoger = () => {
+    setMini(true);
+    guardar(true);
+  };
+  const abrir = () => {
+    setMini(false);
+    guardar(false);
   };
 
   return (
-    <aside
-      aria-label="Descarga la app de TalentHub"
-      className="fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card border border-accent/15 bg-[#eef1ff] px-6 pt-6 text-center lg:block"
-    >
-      <button
-        type="button"
-        onClick={cerrar}
-        aria-label="Cerrar aviso de la app"
-        className="absolute right-3 top-3 rounded-pill p-1.5 text-ink-2 transition-colors hover:bg-white hover:text-ink"
-      >
-        <X size={18} strokeWidth={1.8} />
-      </button>
+    <>
+      {/* ── Escritorio ── */}
+      {mini ? (
+        <button
+          type="button"
+          onClick={abrir}
+          className="fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-pill bg-accent px-4 py-3 text-[0.9375rem] font-mid text-white transition-colors hover:bg-accent-hover lg:flex"
+        >
+          <QrCode size={17} strokeWidth={1.8} />
+          Descarga la app
+        </button>
+      ) : (
+        <aside
+          aria-label="Descarga la app de TalentHub"
+          className="fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card border border-accent/15 bg-[#eef1ff] px-6 pt-6 text-center lg:block"
+        >
+          <button
+            type="button"
+            onClick={encoger}
+            aria-label="Minimizar aviso de la app"
+            className="absolute right-3 top-3 rounded-pill p-1.5 text-ink-2 transition-colors hover:bg-white hover:text-ink"
+          >
+            <X size={18} strokeWidth={1.8} />
+          </button>
 
-      <div className="mx-auto w-fit rounded-ui bg-canvas p-3">
-        <QRCodeSVG value={PLAY_STORE_URL} size={120} bgColor="#ffffff" fgColor="#161616" level="M" />
-      </div>
+          <div className="mx-auto w-fit rounded-ui bg-canvas p-3">
+            <QRCodeSVG value={PLAY_STORE_URL} size={120} bgColor="#ffffff" fgColor="#161616" level="M" />
+          </div>
 
-      <h2 className="mt-4 font-heading text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
-        Las vacantes, también en tu celular
-      </h2>
-      <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-2">
-        Escanea el código con la cámara de tu celular y descarga la app.
-      </p>
-      <p className="mt-1.5 text-[0.75rem] text-muted">En prueba cerrada: por ahora solo para testers.</p>
+          <h2 className="mt-4 font-heading text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
+            Las vacantes, también en tu celular
+          </h2>
+          <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-2">
+            Escanea el código con la cámara de tu celular y descarga la app.
+          </p>
+          <p className="mt-1.5 text-[0.75rem] text-muted">En prueba cerrada: por ahora solo para testers.</p>
 
-      <Celular />
-    </aside>
+          <Celular />
+        </aside>
+      )}
+
+      {/* ── Celular ── */}
+      {!mini && (
+        <>
+          {/* Hueco del alto de la barra, para que no tape el final de la página. */}
+          <div aria-hidden="true" className="h-[76px] lg:hidden" />
+          <aside
+            aria-label="Descarga la app de TalentHub"
+            className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline bg-canvas px-4 py-3 lg:hidden"
+          >
+            <img src="/icon-192.png" alt="" className="h-11 w-11 flex-none rounded-[11px]" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[0.9375rem] font-demi text-ink">TalentHub</p>
+              <p className="truncate text-[0.8125rem] text-muted">App para Android</p>
+            </div>
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-none items-center gap-1.5 rounded-pill bg-accent px-4 py-2 text-[0.875rem] font-mid text-white"
+            >
+              <Download size={15} strokeWidth={1.8} />
+              Descargar
+            </a>
+            <button
+              type="button"
+              onClick={encoger}
+              aria-label="Cerrar aviso de la app"
+              className="flex-none rounded-pill p-1.5 text-muted hover:text-ink"
+            >
+              <X size={17} strokeWidth={1.8} />
+            </button>
+          </aside>
+        </>
+      )}
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, Menu, X, LogOut } from "lucide-react";
 import api from "../services/api";
@@ -64,59 +64,68 @@ const Navbar: React.FC = () => {
     rutaLogo = tipo === "empresa" ? "/dashboard" : "/vacantes";
   }
 
-  const linkClass = "text-[0.9375rem] text-white/70 transition-colors duration-200 hover:text-white";
+  // La sección actual se marca: texto blanco y una línea azul debajo. Antes
+  // todos los links se veían igual y no se sabía en qué página se estaba.
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cx(
+      "relative text-[0.9375rem] transition-colors duration-200 hover:text-white",
+      isActive
+        ? "text-white after:absolute after:-bottom-[22px] after:left-0 after:right-0 after:h-[2px] after:rounded-pill after:bg-accent-on-dark max-lg:after:hidden"
+        : "text-white/70"
+    );
+  const linkPlano = "text-[0.9375rem] text-white/70 transition-colors duration-200 hover:text-white";
 
   const navLinks = (
     <>
       {tipo !== "empresa" && tipo !== "validador" && (
-        <Link to="/vacantes" className={linkClass}>
+        <NavLink to="/vacantes" className={linkClass}>
           Vacantes
-        </Link>
+        </NavLink>
       )}
 
       {tipo === "aspirante" && (
         <>
-          <Link to="/mi-perfil" className={linkClass}>
+          <NavLink to="/mi-perfil" className={linkClass}>
             Mi perfil
-          </Link>
-          <Link to="/mis-aplicaciones" className={linkClass}>
+          </NavLink>
+          <NavLink to="/mis-aplicaciones" className={linkClass}>
             Mis postulaciones
-          </Link>
+          </NavLink>
         </>
       )}
 
       {tipo === "empresa" && (
         <>
-          <Link to="/dashboard" className={linkClass}>
-            Dashboard
-          </Link>
-          <Link to="/aplicaciones-empresa" className={linkClass}>
+          <NavLink to="/dashboard" className={linkClass}>
+            Mis vacantes
+          </NavLink>
+          <NavLink to="/aplicaciones-empresa" className={linkClass}>
             Postulaciones
-          </Link>
+          </NavLink>
         </>
       )}
 
       {tipo === "validador" && (
-        <Link to="/validador" className={cx(linkClass, "text-accent-on-dark hover:text-accent-on-dark")}>
+        <NavLink to="/validador" className={(estado) => cx(linkClass(estado), "text-accent-on-dark hover:text-accent-on-dark")}>
           Panel de auditoría
-        </Link>
+        </NavLink>
       )}
 
       {tipo !== "validador" && (
-        <Link to="/planes" className={linkClass}>
+        <NavLink to="/planes" className={linkClass}>
           Planes
-        </Link>
+        </NavLink>
       )}
 
-      <Link to="/politicas" className={linkClass}>
+      <NavLink to="/politicas" className={linkClass}>
         Privacidad
-      </Link>
+      </NavLink>
     </>
   );
 
   const sessionControls = !token ? (
     <>
-      <Link to="/login" className={linkClass}>
+      <Link to="/login" className={linkPlano}>
         Iniciar sesión
       </Link>
       <Link to="/register">

@@ -94,59 +94,6 @@
   }
 }
 
-@layer utilities {
-  /*
-    Clases de transicion. El sistema de vidrio (paneles translucidos montados
-    sobre el filo de bandas oscuras, halos de color de fondo, filos inset)
-    salio del diseno: era lo que hacia que la web pareciera generada. Mientras
-    cada pagina se limpia, estas clases conservan su nombre pero pintan la
-    version solida, para que nada se rompa. Se borran al terminar la fase 7.
-  */
-  .mesh-page {
-    background-color: theme('colors.surface');
-  }
-
-  .mesh-light {
-    position: relative;
-  }
-
-  .glass-panel {
-    background-color: theme('colors.canvas');
-    border-radius: theme('borderRadius.card');
-  }
-
-  /* Ya no se monta sobre la banda: queda debajo con aire normal. */
-  .glass-panel-overlap,
-  .glass-panel-overlap-sm {
-    position: relative;
-    margin-top: 1.5rem;
-  }
-
-  .glass-panel-hot:hover {
-    border-color: theme('colors.hairline-strong');
-  }
-
-  .edge-l {
-    border: 1px solid theme('colors.hairline');
-  }
-
-  .edge-l-hot:hover {
-    border-color: rgba(51, 85, 255, 0.4);
-  }
-
-  .edge-d {
-    border: 1px solid theme('colors.hairline-d');
-  }
-
-  .edge-d-hot:hover {
-    border-color: theme('colors.hairline-d-strong');
-  }
-
-  .accent-wash {
-    background: theme('colors.hairline-d');
-  }
-}
-
 /* Escape obligatorio. Sin esto el sitio es hostil para quien tiene
    sensibilidad vestibular. */
 @media (prefers-reduced-motion: reduce) {

@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { MapPin, RotateCcw, Search, X } from 'lucide-react';
 import api from '../services/api';
 import { Button, EmptyState, Input, SkeletonList } from '../components/ui';
+import PageHeader from '../components/PageHeader';
 import VacanteCard from '../components/VacanteCard';
+import { useTitulo } from '../hooks/useTitulo';
 import { cx } from '../lib/cx';
 import { coincide, VacantePublica } from '../lib/vacantes';
 
@@ -23,6 +25,7 @@ const Vacantes: React.FC = () => {
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
   const [params, setParams] = useSearchParams();
+  useTitulo('Vacantes');
 
   const q = params.get('q') ?? '';
   const lugar = params.get('lugar') ?? '';
@@ -68,31 +71,30 @@ const Vacantes: React.FC = () => {
   const hayFiltros = Boolean(q || lugar || modalidad || salario);
   const limpiarFiltros = () => setParams(new URLSearchParams(), { replace: true });
 
-  const campo = 'flex flex-1 items-center gap-3 rounded-ui px-4 py-3 transition-colors focus-within:bg-surface';
+  const campo =
+    'flex flex-1 items-center gap-2.5 rounded-ui border border-hairline px-3.5 py-2.5 transition-colors focus-within:border-accent focus-within:shadow-focus-accent';
   const input = 'w-full bg-transparent text-body text-ink placeholder:text-muted focus:outline-none';
 
   return (
-    <div className="min-h-screen bg-canvas">
-      {/* ── Franja oscura corta: título, conteo y el mismo buscador de la portada ── */}
-      <header className="bg-night pb-10 pt-10 text-ink-d md:pt-12">
-        <div className="mx-auto max-w-page px-6 md:px-7">
-          <h1 className="font-heading text-[clamp(1.875rem,4vw,2.5rem)] font-mid leading-none tracking-[-0.02em]">
-            Vacantes
-          </h1>
-          <p className="tabular mt-2.5 text-body text-ink-2d">
-            {estado === 'listo'
-              ? hayFiltros
-                ? `${vacantesFiltradas.length} de ${vacantes.length} vacantes`
-                : `${vacantes.length} ${vacantes.length === 1 ? 'vacante abierta' : 'vacantes abiertas'}`
-              : 'Cargando vacantes…'}
-          </p>
+    <div className="min-h-screen bg-surface">
+      {/* ── Encabezado claro: es la herramienta de búsqueda, no una portada ── */}
+      <PageHeader
+        titulo="Vacantes"
+        detalle={
+          estado === 'listo'
+            ? hayFiltros
+              ? `${vacantesFiltradas.length} de ${vacantes.length} vacantes`
+              : `${vacantes.length} ${vacantes.length === 1 ? 'vacante abierta' : 'vacantes abiertas'}`
+            : 'Cargando vacantes…'
+        }
+      />
 
-          <div
-            role="search"
-            className="mt-6 flex flex-col gap-1 rounded-card bg-canvas p-2 md:flex-row md:items-center md:gap-0"
-          >
+      {/* ── Barra de búsqueda y filtros: se queda pegada bajo la navegación al bajar ── */}
+      <div className="sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-canvas">
+        <div className="mx-auto flex max-w-page flex-col gap-3 px-6 py-4 md:px-7 lg:flex-row lg:items-center">
+          <div role="search" className="flex flex-1 flex-col gap-2 sm:flex-row">
             <label className={campo}>
-              <Search size={18} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+              <Search size={17} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
               <span className="sr-only">Puesto, empresa o tecnología</span>
               <input
                 value={q}
@@ -101,9 +103,8 @@ const Vacantes: React.FC = () => {
                 className={input}
               />
             </label>
-            <span className="mx-1 hidden h-8 w-px bg-hairline md:block" aria-hidden="true" />
-            <label className={campo}>
-              <MapPin size={18} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+            <label className={cx(campo, 'sm:max-w-[260px]')}>
+              <MapPin size={17} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
               <span className="sr-only">Ciudad o remoto</span>
               <input
                 value={lugar}
@@ -113,40 +114,34 @@ const Vacantes: React.FC = () => {
               />
             </label>
           </div>
-        </div>
-      </header>
 
-      <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Filtros secundarios: modalidad y sueldo, en una barra ── */}
-        <div className="flex flex-col gap-4 border-b border-hairline py-5 md:flex-row md:items-center md:justify-between">
-          <div role="radiogroup" aria-label="Modalidad" className="flex flex-wrap gap-2">
-            {MODALIDADES.map(({ valor, etiqueta }) => {
-              const activo = modalidad === valor;
-              return (
-                <button
-                  key={etiqueta}
-                  type="button"
-                  role="radio"
-                  aria-checked={activo}
-                  onClick={() => cambiar('modalidad', valor)}
-                  className={cx(
-                    'rounded-pill border px-4 py-1.5 text-[0.875rem] font-mid transition-colors',
-                    activo
-                      ? 'border-accent bg-accent/[0.06] text-accent'
-                      : 'border-hairline text-ink-2 hover:border-hairline-strong hover:text-ink'
-                  )}
-                >
-                  {etiqueta}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <label htmlFor="f-salario" className="whitespace-nowrap text-[0.875rem] text-ink-2">
-              Sueldo mínimo
-            </label>
-            <div className="w-[140px]">
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="radiogroup" aria-label="Modalidad" className="flex flex-wrap gap-1.5">
+              {MODALIDADES.map(({ valor, etiqueta }) => {
+                const activo = modalidad === valor;
+                return (
+                  <button
+                    key={etiqueta}
+                    type="button"
+                    role="radio"
+                    aria-checked={activo}
+                    onClick={() => cambiar('modalidad', valor)}
+                    className={cx(
+                      'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-colors',
+                      activo
+                        ? 'border-accent bg-accent/[0.06] text-accent'
+                        : 'border-hairline text-ink-2 hover:border-hairline-strong hover:text-ink'
+                    )}
+                  >
+                    {etiqueta}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="w-[150px]">
+              <label htmlFor="f-salario" className="sr-only">
+                Sueldo mínimo
+              </label>
               <Input
                 id="f-salario"
                 type="number"
@@ -155,7 +150,7 @@ const Vacantes: React.FC = () => {
                 step={1000}
                 value={salario}
                 onChange={(e) => cambiar('salario', e.target.value)}
-                placeholder="30000"
+                placeholder="Sueldo mín."
               />
             </div>
             {hayFiltros && (
@@ -166,7 +161,9 @@ const Vacantes: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resultados ── */}
         <div className="pt-6">
           {estado === 'cargando' && <SkeletonList count={4} />}

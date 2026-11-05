@@ -18,7 +18,6 @@ import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import {
   Button,
   Card,
-  CountUp,
   EmptyState,
   Input,
   SkeletonList,
@@ -27,6 +26,8 @@ import {
 } from '../components/ui';
 import type { TabItem } from '../components/ui';
 import { DUR, EASE, rise, stagger } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
 
 interface VacantePendiente {
   id: number;
@@ -60,6 +61,7 @@ type Pestana = 'vacantes' | 'usuarios' | 'historial' | 'stack';
 const FECHA = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
 
 const DashboardValidador: React.FC = () => {
+  useTitulo('Centro de validación');
   const navigate = useNavigate();
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
   const [tab, setTab] = useState<Pestana>('vacantes');
@@ -231,48 +233,37 @@ const DashboardValidador: React.FC = () => {
   });
 
   return (
-    <div className="mesh-page min-h-screen">
-      {/* ───────────── Banda oscura ───────────── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto flex max-w-page flex-wrap items-end justify-between gap-6 px-6 md:px-7">
-          <div>
-            <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Validación</p>
-            <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-              Centro de validación
-            </h1>
-            <p className="tabular mt-3 text-sub text-ink-2d">
-              {estado === 'cargando'
-                ? 'Cargando la cola…'
-                : vacantes.length === 0
-                  ? 'Sin vacantes esperando revisión'
-                  : vacantes.length === 1
-                    ? '1 vacante espera revisión'
-                    : `${vacantes.length} vacantes esperan revisión`}
-            </p>
-          </div>
-
+    <div className="min-h-screen bg-surface">
+      <PageHeader
+        migas={[{ etiqueta: 'Validación' }, { etiqueta: 'Centro de validación' }]}
+        titulo="Centro de validación"
+        detalle={
+          estado === 'cargando'
+            ? 'Cargando la cola…'
+            : vacantes.length === 0
+              ? 'Sin vacantes esperando revisión'
+              : vacantes.length === 1
+                ? '1 vacante espera revisión'
+                : `${vacantes.length} vacantes esperan revisión`
+        }
+        acciones={
           <Link to="/vacantes">
-            <Button variant="ghost" tone="dark">
+            <Button variant="ghost">
               <ArrowLeft size={15} strokeWidth={1.8} />
               Muro público
             </Button>
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Métricas en glass, montadas sobre la banda ── */}
-        <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+        {/* ── Métricas ── */}
+        <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
           {METRICAS.map(({ label, total }) => (
             <div key={label} className="px-6 py-7">
-              <CountUp
-                to={total}
-                className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink"
-              />
+              <span className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
+                {total}
+              </span>
               <p className="mt-2 text-[0.8125rem] text-muted">{label}</p>
             </div>
           ))}
@@ -383,7 +374,7 @@ const DashboardValidador: React.FC = () => {
                     ) : (
                       // Filas OPACAS a propósito: `backdrop-filter` por fila
                       // obliga al navegador a recomponer la pila entera en cada
-                      // scroll. El glass se queda en el chrome. Ver DESIGN.md §7.
+                      // scroll.
                       <div className="overflow-x-auto rounded-card border border-hairline bg-canvas">
                         <table className="w-full min-w-[640px] border-collapse text-left">
                           <thead>

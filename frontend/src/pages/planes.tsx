@@ -7,6 +7,8 @@ import { showSuccess, showError, showConfirm } from "../utils/alerts";
 import { Button, Card, EmptyState, SkeletonList } from "../components/ui";
 import { cx } from "../lib/cx";
 import { rise, stagger, revealViewport } from "../lib/motion";
+import PageHeader from "../components/PageHeader";
+import { useTitulo } from "../hooks/useTitulo";
 
 interface Plan {
   id: number;
@@ -40,6 +42,7 @@ const GARANTIAS = [
 ];
 
 const Planes: React.FC = () => {
+  useTitulo("Planes");
   const navigate = useNavigate();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [miSuscripcion, setMiSuscripcion] = useState<MiSuscripcion | null>(null);
@@ -113,7 +116,6 @@ const Planes: React.FC = () => {
     if (plan.max_postulaciones_dia) items.push(`${plan.max_postulaciones_dia} postulaciones por día`);
     if (plan.max_candidatos) items.push(`Hasta ${plan.max_candidatos} candidatos por vacante`);
     items.push("Acceso completo al catálogo de TI");
-    items.push("Soporte y plataforma verificada");
     return items;
   };
 
@@ -242,39 +244,17 @@ const Planes: React.FC = () => {
 
   return (
     <div className="bg-canvas">
-      {/* ── Hero oscuro ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[150px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[620px] w-[980px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),transparent_74%)] blur-[6px]"
-        />
-        <motion.div
-          variants={stagger(0.1, 0.05)}
-          initial="hidden"
-          animate="show"
-          className="relative mx-auto max-w-page px-6 md:px-7"
-        >
-          <motion.p variants={rise} className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">
-            Planes
-          </motion.p>
-          <motion.h1
-            variants={rise}
-            className="mb-5 max-w-[16ch] font-heading text-[clamp(2rem,5vw,3.5rem)] font-mid leading-none tracking-[-0.035em]"
-          >
-            Elige cómo quieres crecer
-          </motion.h1>
-          <motion.p variants={rise} className="max-w-[46ch] text-sub text-ink-2d">
-            Sin permanencia y sin cargos ocultos. Cambias o cancelas cuando quieras.
-          </motion.p>
-        </motion.div>
-      </header>
+      <PageHeader
+        titulo="Planes"
+        detalle="Elige el plan de tu cuenta. Puedes cambiarlo después."
+      />
 
       {/* ── Banda clara con los planes ── */}
-      <section className="mesh-light flow-root bg-surface pb-20 md:pb-[88px]">
+      <section className="bg-surface pb-20 pt-2 md:pb-[88px]">
         <div className="relative mx-auto max-w-page px-6 md:px-7">
           {/* Panel a caballo del filo: refracta la banda oscura arriba y la
               página clara abajo. Ese degradado no está pintado. */}
-          <dl className="glass-panel glass-panel-overlap-sm edge-l mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
+          <dl className="mt-6 rounded-card border border-hairline bg-canvas mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
             {GARANTIAS.map(({ titulo, detalle }) => (
               <div key={titulo}>
                 <dt className="font-mid text-[0.9375rem] text-ink">{titulo}</dt>

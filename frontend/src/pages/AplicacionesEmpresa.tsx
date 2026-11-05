@@ -14,6 +14,9 @@ import {
 import type { EstadoPostulacion } from '../components/ui';
 import { cx } from '../lib/cx';
 import { DUR, EASE, rise, stagger } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface Aplicacion {
   id: number;
@@ -46,6 +49,7 @@ const FILTROS: Array<{ id: string; label: string }> = [
 ];
 
 const AplicacionesEmpresa: React.FC = () => {
+  useTitulo('Postulaciones recibidas');
   const navigate = useNavigate();
   const [aplicaciones, setAplicaciones] = useState<Aplicacion[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
@@ -129,33 +133,25 @@ const AplicacionesEmpresa: React.FC = () => {
   const visibles = filtro ? aplicaciones.filter((a) => a.estado === filtro) : aplicaciones;
 
   return (
-    <div className="mesh-page min-h-screen">
-      {/* ───────────── Banda oscura ───────────── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-page px-6 md:px-7">
-          <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Empresa</p>
-          <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-            Postulaciones recibidas
-          </h1>
-          <p className="tabular mt-3 text-sub text-ink-2d">
-            {estado === 'cargando'
-              ? 'Cargando candidaturas…'
-              : aplicaciones.length === 0
-                ? 'Todavía no llega ninguna'
-                : aplicaciones.length === 1
-                  ? '1 persona ha aplicado a tus vacantes'
-                  : `${aplicaciones.length} personas han aplicado a tus vacantes`}
-          </p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface">
+      <PageHeader
+        migas={migasDeCuenta('Postulaciones')}
+        titulo="Postulaciones recibidas"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+        detalle={
+          estado === 'cargando'
+            ? 'Cargando candidaturas…'
+            : aplicaciones.length === 0
+              ? 'Todavía no llega ninguna'
+              : aplicaciones.length === 1
+                ? '1 persona ha aplicado a tus vacantes'
+                : `${aplicaciones.length} personas han aplicado a tus vacantes`
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Filtros en glass, montados sobre la banda ── */}
-        <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 p-6">
+        {/* ── Filtros ── */}
+        <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 p-6">
           <p className="mb-4 text-caption uppercase tracking-[0.06em] text-ink-2">Filtrar</p>
           <div className="flex flex-wrap gap-2">
             {FILTROS.map(({ id, label }) => {

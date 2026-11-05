@@ -16,7 +16,7 @@ interface DialogProps {
   onCancel: () => void;
 }
 
-/** Panel glass sobre overlay difuminado. El glass funciona aquí porque siempre tiene contenido real debajo. */
+/** Panel sólido sobre un velo oscuro: el contenido de atrás se apaga, no se difumina. */
 export const Dialog: React.FC<DialogProps> = ({
   open,
   title,

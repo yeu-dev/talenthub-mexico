@@ -8,7 +8,10 @@ import { Button, Card, Field, Input, Textarea, Skeleton } from '../components/ui
 import { prepararFoto, validarCv } from '../lib/archivos';
 import { cx } from '../lib/cx';
 import { mensajeDeError } from '../lib/errores';
-import { rise, riseGlass, stagger } from '../lib/motion';
+import { rise, stagger } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface FormState {
   username: string;
@@ -29,6 +32,7 @@ const VACIO: FormState = {
 };
 
 const PerfilAspirante: React.FC = () => {
+  useTitulo('Mi perfil');
   const navigate = useNavigate();
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -138,7 +142,7 @@ const PerfilAspirante: React.FC = () => {
 
   if (cargando) {
     return (
-      <div className="min-h-screen mesh-page">
+      <div className="min-h-screen bg-surface">
         <div className="mx-auto max-w-4xl px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <div className="flex items-center gap-5">
             <Skeleton className="h-20 w-20 rounded-pill" />
@@ -205,20 +209,13 @@ const PerfilAspirante: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-4xl px-6 md:px-7">
-          <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Tu cuenta</p>
-          <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-            Mi perfil
-          </h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface">
+      <PageHeader
+        ancho="doc"
+        migas={migasDeCuenta('Mi perfil')}
+        titulo="Mi perfil"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+      />
 
       <motion.div
         variants={stagger(0.07)}
@@ -226,11 +223,10 @@ const PerfilAspirante: React.FC = () => {
         animate="show"
         className="mx-auto max-w-4xl px-6 pb-20 md:px-7"
       >
-        {/* ── Identidad en glass, a caballo entre la banda y el cuerpo.
-             El panel existe porque es quién eres, no un adorno. ── */}
+        {/* ── Identidad: quién eres, antes que los campos ── */}
         <motion.header
-          variants={riseGlass}
-          className="glass-panel glass-panel-overlap edge-l mb-8 flex flex-wrap items-center gap-6 p-7"
+          variants={rise}
+          className="mt-6 rounded-card border border-hairline bg-canvas mb-8 flex flex-wrap items-center gap-6 p-7"
         >
           <div className="h-20 w-20 flex-none overflow-hidden rounded-pill border border-hairline bg-surface">
             {mostrarFoto ? (

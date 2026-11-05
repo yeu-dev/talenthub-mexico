@@ -5,8 +5,10 @@ import PasswordValidator from '../../components/PasswordValidator';
 import api from '../../services/api';
 import { showSuccess, showError } from '../../utils/alerts';
 import { AuthShell, Button, Field, Input } from '../../components/ui';
+import { useTitulo } from '../../hooks/useTitulo';
 
 export default function RestablecerPassword() {
+  useTitulo('Nueva contraseña');
   const { uid, token } = useParams<{ uid: string; token: string }>();
   const navigate = useNavigate();
 

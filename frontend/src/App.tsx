@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
+import AppPromo from './components/AppPromo';
 import { ConfirmHost } from './components/ui';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -46,6 +47,9 @@ function App() {
       </Routes>
 
       <Footer />
+
+      {/* Aviso de la app: en todas las páginas públicas hasta que se inicia sesión. */}
+      <AppPromo />
 
       {/*
         Notificaciones. OJO con `theme`: sileo lo nombra por el color del TEXTO,

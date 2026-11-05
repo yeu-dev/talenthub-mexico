@@ -4,11 +4,6 @@ import { cx } from '../../lib/cx';
 interface CardProps extends React.HTMLAttributes<HTMLElement> {
   /** Registro de la banda que contiene la card. */
   tone?: 'light' | 'dark';
-  /**
-   * Ya no hace nada: el vidrio salió del sistema. Se acepta para que las
-   * llamadas que lo pasan sigan compilando mientras se limpian.
-   */
-  glass?: boolean;
   /** Al pasar el cursor cambia el borde; la card no se levanta. */
   interactive?: boolean;
   as?: 'div' | 'article' | 'li';
@@ -22,7 +17,6 @@ interface CardProps extends React.HTMLAttributes<HTMLElement> {
  */
 const Card: React.FC<CardProps> = ({
   tone = 'light',
-  glass: _glass,
   interactive = false,
   as = 'div',
   className,

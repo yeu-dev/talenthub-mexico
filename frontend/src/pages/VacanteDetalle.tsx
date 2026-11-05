@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, CalendarDays, ArrowRight, Send, LogIn } from 'lucide-react';
+import { MapPin, CalendarDays, ArrowRight, Send, LogIn } from 'lucide-react';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
 import { formatoSalario } from '../lib/vacantes';
 
 interface Vacante {
@@ -23,9 +25,18 @@ interface Vacante {
 
 /** La ruta de regreso depende del rol: cada uno llegó aquí desde otro lado. */
 const REGRESO: Record<string, { ruta: string; texto: string }> = {
-  empresa: { ruta: '/dashboard', texto: 'Volver al dashboard' },
-  validador: { ruta: '/validador', texto: 'Volver al centro de validación' },
+  empresa: { ruta: '/dashboard', texto: 'Mis vacantes' },
+  validador: { ruta: '/validador', texto: 'Validación' },
 };
+
+/** "Nebula Labs" → "NL": el membrete de la empresa en el encabezado. */
+const iniciales = (nombre: string) =>
+  nombre
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join('') || '·';
 
 const VacanteDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,10 +44,11 @@ const VacanteDetalle: React.FC = () => {
   const [vacante, setVacante] = useState<Vacante | null>(null);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
   const [enviando, setEnviando] = useState(false);
+  useTitulo(vacante?.titulo);
 
   const userTipo = localStorage.getItem('user_tipo') ?? '';
   const { ruta: rutaRegreso, texto: textoRegreso } =
-    REGRESO[userTipo] ?? { ruta: '/vacantes', texto: 'Volver a vacantes' };
+    REGRESO[userTipo] ?? { ruta: '/vacantes', texto: 'Vacantes' };
 
   const fetchVacante = useCallback(async () => {
     setEstado('cargando');
@@ -135,32 +147,34 @@ const VacanteDetalle: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* ── Franja oscura corta: de qué vacante se trata ── */}
-      <header className="bg-night pb-10 pt-8 text-ink-d md:pt-10">
-        <div className="mx-auto max-w-page px-6 md:px-7">
-          <Link
-            to={rutaRegreso}
-            className="mb-6 inline-flex items-center gap-2 text-[0.875rem] text-muted-d transition-colors hover:text-ink-d"
+      {/* ── Membrete: se lee como la ficha de un puesto, no como otra portada ── */}
+      <PageHeader
+        migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: vacante.titulo }]}
+        inicio={
+          <span
+            aria-hidden="true"
+            className="flex h-14 w-14 flex-none items-center justify-center rounded-[14px] bg-accent/[0.08] text-[1.125rem] font-demi text-accent"
           >
-            <ArrowLeft size={15} strokeWidth={1.8} />
-            {textoRegreso}
-          </Link>
-          <h1 className="max-w-[28ch] font-heading text-[clamp(1.75rem,4vw,2.5rem)] font-mid leading-tight tracking-[-0.02em]">
-            {vacante.titulo}
-          </h1>
-          <p className="mt-2 text-sub text-ink-2d">{vacante.empresa_nombre}</p>
-        </div>
-      </header>
+            {iniciales(vacante.empresa_nombre)}
+          </span>
+        }
+        titulo={vacante.titulo}
+        detalle={vacante.empresa_nombre}
+        acciones={
+          <div className="text-left sm:text-right">
+            <p className="tabular text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
+              {formatoSalario(vacante.salario_min, vacante.salario_max)}
+            </p>
+            <p className="text-[0.8125rem] text-muted">al mes</p>
+          </div>
+        }
+      />
 
       <div className="mx-auto grid max-w-page grid-cols-1 gap-5 px-6 pb-20 pt-6 md:px-7 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="flex flex-col gap-5">
-          {/* ── Resumen: lo que se decide antes de leer lo demás ── */}
+          {/* ── Resumen: dónde y cómo; el sueldo ya va en el membrete ── */}
           <Card className="p-7">
-            <p className={etiqueta}>Sueldo mensual</p>
-            <p className="tabular mt-2 text-[clamp(1.5rem,3.4vw,2rem)] font-demi leading-none tracking-[-0.02em] text-ink">
-              {formatoSalario(vacante.salario_min, vacante.salario_max)}
-            </p>
-            <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-hairline pt-5 sm:grid-cols-3">
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <dt className={etiqueta}>Modalidad</dt>
                 <dd className="mt-1.5 flex items-center gap-2 text-body text-ink">
@@ -251,9 +265,9 @@ const VacanteDetalle: React.FC = () => {
             <Card className="p-6">
               <p className="text-body text-ink">Esta es una vacante publicada en la plataforma.</p>
               <p className="mt-2 text-[0.9375rem] text-ink-2">
-                Puedes gestionar las tuyas desde el{' '}
+                Puedes gestionar las tuyas desde{' '}
                 <Link to="/dashboard" className="text-accent hover:underline">
-                  dashboard
+                  Mis vacantes
                 </Link>
                 .
               </p>

@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Search } from "lucide-react";
 import api from "../services/api";
 import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
-import AppPromo from "../components/AppPromo";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { rise, stagger } from "../lib/motion";
+import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
 
@@ -70,6 +70,7 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
  */
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  useTitulo("Empleo en TI con el sueldo a la vista");
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
   const [q, setQ] = useState("");
@@ -224,7 +225,6 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      <AppPromo />
     </div>
   );
 };

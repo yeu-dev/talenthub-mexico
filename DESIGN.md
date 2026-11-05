@@ -12,10 +12,11 @@
 
 ## Overview
 
-TalentHub is a **light-first job board** with a short dark band at the top of
-every page. The band carries the navigation, the page title and, on the home
-page, the search; everything else lives on white or `{colors.surface}`. The
-band and the light body meet at a hard edge, never a gradient.
+TalentHub is a **light-first job board**. The dark register is reserved for
+three places: the navigation bar, the home page hero (which carries the
+search) and the closed screens (sign-in, registration, checkout), plus the
+footer. Every other page opens with a light header. When every page started
+with the same dark band and a title, pages could not be told apart.
 
 > **Why this changed (phase 7).** The first version of this system was built
 > around frosted glass panels mounted across the dark/light seam, colour halos
@@ -27,8 +28,11 @@ band and the light body meet at a hard edge, never a gradient.
 > palette and the state rules.
 
 **Key Characteristics:**
-- Light canvas with a short dark band at the top; the colour change is the
-  divider.
+- Light canvas. Dark only for the nav, the home hero, the closed screens and
+  the footer.
+- Each page is recognisable on its own: the nav marks the current section,
+  the browser tab names the page, and the header changes with the job of the
+  page (see *Band Architecture*).
 - **Ultramarine `{colors.accent}` (#3355ff) is both the brand and the action
   colour.** Primary buttons, links and focus rings, nowhere else.
 - The "th" monogram (the same icon as the mobile app, Play Store and the
@@ -217,15 +221,23 @@ Base 4px. Scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80`.
 
 ### Band Architecture
 
-Every page starts with a **short dark band** directly under the navigation, in
-the same `{colors.night}`, so bar and band read as one piece. The band holds
-the eyebrow (optional), the page title and a count or one line of context; on
-the home page it also holds the search. It is short: 40–64px of padding below
-the content, not a stage.
+Each kind of page has its own header, so moving between them is legible:
 
-Below the band the page continues on light surfaces. Summary panels, filters
-and metrics are ordinary solid cards placed **below** the band with normal
-spacing; nothing is mounted across the edge.
+- **Home** — dark hero under the nav with one headline, the search and quick
+  searches derived from real data; below it, the salary list.
+- **Listing (`/vacantes`)** — light `page-header` with title and count, then a
+  search-and-filter toolbar that sticks under the nav while scrolling.
+- **Job detail** — light letterhead: company initials tile, title, company,
+  and the salary on the right. Body on `{colors.surface}` with solid cards
+  and a sticky action card.
+- **Account pages** (profile, applications, company and validator panels) —
+  light `page-header` with breadcrumbs ("Mi cuenta › …") and tabs between
+  sibling sections.
+- **Closed screens** — full dark register with a single solid card.
+
+The navigation marks the current section (white text and a 2px
+`{colors.accent-on-dark}` underline) and every page sets the browser tab title
+(`useTitulo`).
 
 ---
 
@@ -343,7 +355,6 @@ as the action it is avoiding.
 **`card`** — `{rounded.card}`, 28px padding, solid `{colors.canvas}` (light) or
 `{colors.elevated}` (dark), 1px hairline, no shadow. `interactive` cards change
 only the border on hover (`{colors.accent}` at 40% on light); they do not lift.
-The old `glass` prop is accepted and ignored while the pages are cleaned up.
 
 **`vacante-card`** — The job listing card, shared by the home page and the
 listing. Title, company, **salary as the main figure** (`tabular-nums`),

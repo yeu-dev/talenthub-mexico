@@ -1,9 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
-import { rise, stagger, revealViewport } from "../lib/motion";
+import { revealViewport } from "../lib/motion";
 import { RESPONSABLE, correoTexto, domicilioTexto } from "../lib/responsable";
+import PageHeader from "../components/PageHeader";
+import { useTitulo } from "../hooks/useTitulo";
 
 interface Seccion {
   n: string;
@@ -132,50 +132,21 @@ const META = [
 
 const slug = (n: string) => `seccion-${n}`;
 
-const PoliticasPrivacidad: React.FC = () => (
-  <div className="mesh-page">
-    {/* ── Hero oscuro ── */}
-    <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[142px] text-ink-d">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-44 left-1/2 -z-10 h-[560px] w-[900px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.12),transparent_74%)] blur-[6px]"
-      />
-      <motion.div
-        variants={stagger(0.1, 0.05)}
-        initial="hidden"
-        animate="show"
-        className="relative mx-auto max-w-page px-6 md:px-7"
-      >
-        <motion.div variants={rise}>
-          <Link
-            to="/"
-            className="mb-8 inline-flex items-center gap-2 text-[0.875rem] text-muted-d transition-colors hover:text-ink-d"
-          >
-            <ArrowLeft size={15} strokeWidth={1.8} />
-            Volver al inicio
-          </Link>
-        </motion.div>
-        <motion.p variants={rise} className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">
-          Aviso de privacidad
-        </motion.p>
-        <motion.h1
-          variants={rise}
-          className="mb-5 max-w-[18ch] font-heading text-[clamp(2rem,5vw,3.25rem)] font-mid leading-none tracking-[-0.035em]"
-        >
-          Cómo tratamos tus datos
-        </motion.h1>
-        <motion.p variants={rise} className="max-w-[62ch] text-sub text-ink-2d">
-          Información clara sobre cómo TalentHub México recopila, utiliza y protege los datos personales
-          dentro de su plataforma de empleo tecnológico.
-        </motion.p>
-      </motion.div>
-    </header>
+const PoliticasPrivacidad: React.FC = () => {
+  useTitulo('Aviso de privacidad');
+  return (
+  <div className="bg-surface">
+    <PageHeader
+      migas={[{ etiqueta: 'Inicio', to: '/' }, { etiqueta: 'Aviso de privacidad' }]}
+      titulo="Cómo tratamos tus datos"
+      detalle="Cómo TalentHub México recopila, utiliza y protege los datos personales dentro de su plataforma de empleo tecnológico."
+    />
 
     {/* ── Metadatos, a caballo del filo ──
          El panel monta 96px sobre la banda oscura: el degradado que se ve es
          el vidrio refractando negro arriba y página clara abajo. ── */}
     <div className="mx-auto max-w-page px-6 md:px-7">
-      <dl className="glass-panel glass-panel-overlap-sm edge-l grid grid-cols-1 gap-6 p-7 sm:grid-cols-3">
+      <dl className="mt-6 rounded-card border border-hairline bg-canvas grid grid-cols-1 gap-6 p-7 sm:grid-cols-3">
         {META.map(({ label, value }) => (
           <div key={label}>
             <dt className="text-[0.8125rem] uppercase tracking-[0.06em] text-ink-2">{label}</dt>
@@ -247,5 +218,6 @@ const PoliticasPrivacidad: React.FC = () => (
     </main>
   </div>
 );
+};
 
 export default PoliticasPrivacidad;

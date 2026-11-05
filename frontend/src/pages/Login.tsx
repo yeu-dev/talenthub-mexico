@@ -17,6 +17,7 @@ import api from '../services/api';
 import { showSuccess } from '../utils/alerts';
 import { AuthShell, Button, Field, Input } from '../components/ui';
 import { DUR, EASE, rise } from '../lib/motion';
+import { useTitulo } from '../hooks/useTitulo';
 
 // Solo lo que la plataforma hace de verdad: aquí había "Datos del mercado"
 // (no existe) y una línea con 1,240 vacantes y 380 empresas inventadas.
@@ -39,6 +40,7 @@ const PRUEBAS = [
 ];
 
 const Login: React.FC = () => {
+  useTitulo('Inicia sesión');
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');

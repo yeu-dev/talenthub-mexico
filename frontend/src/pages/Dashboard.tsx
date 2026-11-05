@@ -7,6 +7,9 @@ import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import { Button, Card, EmptyState, Field, Input, Select, Textarea, SkeletonList, Tag } from '../components/ui';
 import type { TagTono } from '../components/ui';
 import { rise, stagger, EASE, DUR } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface Vacante {
   id: number;
@@ -44,6 +47,7 @@ const estadoDe = (v: Vacante): { label: string; tono: TagTono } => {
 };
 
 const Dashboard: React.FC = () => {
+  useTitulo('Mis vacantes');
   const navigate = useNavigate();
   const [vacantes, setVacantes] = useState<Vacante[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
@@ -249,43 +253,33 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto flex max-w-page flex-wrap items-end justify-between gap-6 px-6 md:px-7">
-          <div>
-            <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Empresa</p>
-            <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-              Mis vacantes
-            </h1>
-            <p className="tabular mt-3 text-sub text-ink-2d">
-              {estado === 'listo'
-                ? vacantes.length === 1
-                  ? '1 vacante publicada'
-                  : `${vacantes.length} vacantes publicadas`
-                : 'Cargando tus vacantes…'}
-            </p>
-          </div>
-
+    <div className="min-h-screen bg-surface">
+      <PageHeader
+        migas={migasDeCuenta('Mis vacantes')}
+        titulo="Mis vacantes"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+        detalle={
+          estado === 'listo'
+            ? vacantes.length === 1
+              ? '1 vacante publicada'
+              : `${vacantes.length} vacantes publicadas`
+            : 'Cargando tus vacantes…'
+        }
+        acciones={
           <Button
             variant={showForm ? 'ghost' : 'primary'}
-            tone="dark"
             onClick={() => (showForm ? cerrarForm() : setShowForm(true))}
           >
             {showForm ? <X size={16} strokeWidth={1.8} /> : <Plus size={16} strokeWidth={1.8} />}
             {showForm ? 'Cancelar' : 'Nueva vacante'}
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Resumen en glass, montado sobre la banda ── */}
+        {/* ── Resumen ── */}
         {estado === 'listo' && vacantes.length > 0 && (
-          <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+          <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {resumen.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
@@ -297,7 +291,7 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'relative z-10 -mt-24'}>
+        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'pt-6'}>
           {/* ── Formulario ── */}
           <AnimatePresence initial={false}>
             {showForm && (
@@ -465,7 +459,7 @@ const Dashboard: React.FC = () => {
 
                 return (
                   <motion.li key={vacante.id} variants={rise}>
-                    <Card as="article" glass>
+                    <Card as="article">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
                           <h2 className="text-[1.3125rem] font-demi tracking-[-0.012em] text-ink">
