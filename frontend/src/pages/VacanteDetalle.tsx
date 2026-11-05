@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
-import { AvisoLento, Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
+import { AvisoLento, Button, clasesBoton, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
 import Iniciales from '../components/Iniciales';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
@@ -109,11 +109,9 @@ const VacanteDetalle: React.FC = () => {
             title="No encontramos esta vacante"
             description="Puede que se haya despublicado o que el enlace esté mal."
             action={
-              <Link to="/vacantes">
-                <Button variant="ghost">
-                  <ArrowRight size={15} strokeWidth={1.8} />
-                  Ver todas las vacantes
-                </Button>
+              <Link to="/vacantes" className={clasesBoton({ variant: 'ghost' })}>
+                <ArrowRight size={15} strokeWidth={1.8} />
+                Ver todas las vacantes
               </Link>
             }
           />
@@ -284,11 +282,9 @@ const VacanteDetalle: React.FC = () => {
           ) : (
             <div className="glass-panel edge-l p-6">
               <p className="text-body font-mid text-ink">¿Te interesa?</p>
-              <Link to="/login" className="mt-5 block">
-                <Button className="w-full">
-                  <LogIn size={15} strokeWidth={1.8} />
-                  Iniciar sesión
-                </Button>
+              <Link to="/login" className={clasesBoton({ className: 'mt-5 w-full' })}>
+                <LogIn size={15} strokeWidth={1.8} />
+                Iniciar sesión
               </Link>
               <Link to="/register" className="mt-3 block text-center text-[0.875rem] text-accent-on-dark hover:underline">
                 Crear cuenta

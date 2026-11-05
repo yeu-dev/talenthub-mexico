@@ -94,8 +94,10 @@ const Vacantes: React.FC = () => {
       />
 
       {/* ── Barra de búsqueda y filtros, en vidrio: se queda pegada bajo la navegación
-           y las tarjetas se ven pasar desenfocadas por debajo ── */}
-      <div className="sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-night/70 backdrop-blur-nav backdrop-saturate-150">
+           y las tarjetas se ven pasar desenfocadas por debajo. Solo desde `md`:
+           en celular los filtros ocupan cinco renglones, casi media pantalla, y
+           pegados tapaban las vacantes al bajar. ── */}
+      <div className="md:sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-night/70 backdrop-blur-nav backdrop-saturate-150">
         <div className="mx-auto flex max-w-page flex-col gap-3 px-6 py-4 md:px-7 lg:flex-row lg:items-center">
           <div role="search" className="flex flex-1 flex-col gap-2 sm:flex-row">
             <label className={campo}>

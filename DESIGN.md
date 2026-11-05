@@ -119,8 +119,9 @@ register and no longer applies.
 | `{colors.warn}` · `warn-d` | #fcd34d | 12.76 | 12.19 | Form-level notices only. **Never dresses a state** |
 
 These are text and border colours for dark surfaces. **They are not fills:**
-white on #f87171 measures 2.77:1 and fails. The destructive button fill is
-#dc2626, which gives 4.83:1 with white.
+white on #f87171 measures 2.77:1 and fails. The destructive button fills with
+its own tokens, `{colors.danger-fill}` (#dc2626, 4.83:1 with white) and
+`{colors.danger-fill-hover}` (#b91c1c, 6.47:1).
 
 Anything still in progress carries full `{colors.ink}` and a reinforced
 hairline instead of a hue; anything inactive goes grey.
@@ -189,6 +190,11 @@ Weights: `{weight.book}` 460 · `{weight.mid}` 500 · `{weight.demi}` 540.
   detail page reaches 32px and still uses the body face, because it carries
   `tabular-nums` — a typeface with irregular widths undoes exactly what that
   property exists to provide. It is data, not a headline.
+- **One exception to the 52px cap: the "404" on the not-found page.** It is
+  an illustration, not a headline — up to 240px, weight 540, filled with a
+  white-to-transparent gradient and a 1px glass edge, and hidden from screen
+  readers (`aria-hidden`). The real title of that page is its `h1`, which
+  follows the normal scale. Nothing else may borrow this exception.
 
 ### Note on Font Substitutes
 
@@ -338,8 +344,9 @@ minimal, the silhouette became the thing carrying the system's identity.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
-- Only two loops exist, both in the app notice (the phone floats, the app icon
-  pulses).
+- Only two loops exist, both in the app notice: the phone floats, and a ring
+  grows and fades around the app icon. Both animate `transform` and
+  `opacity` only, never `box-shadow`, which repaints on every frame.
 
 ### Reduced motion
 
@@ -370,8 +377,15 @@ state had changed.
 `{rounded.pill}`, padding 11px × 22px, `{weight.mid}`. **One per section.**
 `accent` is kept as an alias of `primary` so older call sites keep working.
 
-**`button-danger`** — Fill #dc2626, white text (4.83:1). Only to confirm a
-destructive action in a dialog.
+**`button-danger`** — Fill `{colors.danger-fill}`, white text (4.83:1); hover
+`{colors.danger-fill-hover}` (6.47:1). Only to confirm a destructive action in
+a dialog, and it stays the calmest button there: no effects that invite the
+click.
+
+**Links that look like buttons** use `clasesBoton()` on the `<Link>` itself.
+Never a `<Button>` inside a `<Link>`: two nested interactive elements make a
+screen reader announce two controls and keyboard focus land twice in the same
+place.
 
 **`button-ghost`** — Transparent, 1px `{colors.hairline}`, `{rounded.pill}`.
 Secondary actions. The only button allowed coloured text — `!text-ok`,
@@ -430,7 +444,9 @@ location, up to three technologies and a relative date. The title link's
 and its focus ring outlines the whole card.
 
 **`iniciales`** — the company tile: up to two initials on a low tint chosen
-from the company name, so the same company always gets the same tone.
+from the company name, so the same company always gets the same tone. Tints
+are blue, teal, violet, rose and neutral; **no amber**, for the same
+colour-blindness reason it is not a state colour.
 
 ### Inputs & Forms
 
@@ -480,7 +496,9 @@ checkout — where the only useful exit is the one the page itself provides.
 
 **`tag`** — Outline pill, no fill. Colour lives in the text and in the border
 at ~35% alpha, never in a saturated background competing with content. Tones:
-`neutro` · `curso` · `bien` · `mal` · `marca`.
+`neutro` · `curso` · `bien` · `mal`. **There is no blue tone:** a tag is not
+pressable, and a blue tag reads as a button. Modality: "Remoto" in `bien`,
+"Híbrido" and "Presencial" in `curso`.
 
 **`process-track`** — **Replaces the dot-and-label status badge**, which was
 rejected as generic: that pattern appears on every AI-generated SaaS landing
@@ -524,6 +542,10 @@ desktop a floating card with a QR code and a drawn phone that turns into a
 - Give every executing or navigating button an icon from the vocabulary above.
 - Use `{colors.accent}` for the brand and for interaction, and nothing else.
 - Use `{colors.accent-on-dark}` whenever the accent is text or an icon tint.
+- **Blue icons are brand; blue text, borders and fills are action.** A blue
+  icon next to a label may decorate anything. Blue text, a blue border or a
+  blue container fill only goes on something that can be pressed, so icon
+  circles on non-interactive content are neutral (hairline border, 4% white).
 - Reserve colour for resolution; leave work-in-progress in full ink.
 - Give every list a loading state, an empty state and an error state with a
   retry action.

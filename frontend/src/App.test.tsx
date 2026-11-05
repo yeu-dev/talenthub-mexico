@@ -76,3 +76,15 @@ test('reintentar vuelve a pedir las vacantes y las muestra', async () => {
   expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
   expect(screen.queryByText('No pudimos cargar las vacantes recientes')).not.toBeInTheDocument();
 });
+
+test('el titular de la portada se ve desde el primer cuadro (no arranca en opacidad 0)', async () => {
+  renderHome();
+
+  const titular = screen.getByRole('heading', { level: 1 });
+  // `rise` lo dejaba en `opacity: 0` hasta que corría la animación, y eso
+  // retrasa el LCP. La entrada de ahora solo lo mueve.
+  expect(titular.style.opacity).not.toBe('0');
+
+  // Espera a que termine la carga de la lista para no dejar estado pendiente.
+  expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
+});

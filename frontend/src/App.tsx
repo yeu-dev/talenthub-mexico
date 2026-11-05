@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
@@ -23,6 +24,7 @@ import PerfilAspirante from './pages/PerfilAspirante';
 import SolicitarRecuperacion from './pages/auth/SolicitarRecuperacion';
 import RestablecerPassword from './pages/auth/RestablecerPassword';
 import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
+import NoEncontrada from './pages/NoEncontrada';
 
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
@@ -44,7 +46,12 @@ const Pagina: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 function App() {
+  // `reducedMotion="user"`: framer-motion lee la preferencia del sistema. Si
+  // está activa, apaga desplazamientos, escalas y `layoutId` (las líneas que
+  // se deslizan) y deja los cambios de opacidad y color. Si no, todo se ve
+  // igual que siempre. Sin esto, la regla de index.css solo cubría el CSS.
   return (
+    <MotionConfig reducedMotion="user">
     <Router>
       <PromoAppProvider>
       <Navbar />
@@ -67,6 +74,8 @@ function App() {
         {/* El :uid y :token son vitales para que useParams funcione */}
         <Route path="/restablecer-password/:uid/:token" element={<RestablecerPassword />} />
         <Route path="/politicas" element={<PoliticasPrivacidad />} />
+        {/* Cualquier otra ruta: la página de "no encontrada", no un hueco. */}
+        <Route path="*" element={<NoEncontrada />} />
       </Routes>
 
       <Footer />
@@ -86,6 +95,7 @@ function App() {
       <ConfirmHost />
       </PromoAppProvider>
     </Router>
+    </MotionConfig>
   );
 }
 

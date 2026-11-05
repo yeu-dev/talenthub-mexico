@@ -17,6 +17,7 @@ import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import {
   Button,
+  clasesBoton,
   Card,
   EmptyState,
   Input,
@@ -248,11 +249,9 @@ const DashboardValidador: React.FC = () => {
                 : `${vacantes.length} vacantes esperan revisión`
         }
         acciones={
-          <Link to="/vacantes">
-            <Button variant="ghost" tone="dark">
-              <ArrowLeft size={15} strokeWidth={1.8} />
-              Muro público
-            </Button>
+          <Link to="/vacantes" className={clasesBoton({ variant: 'ghost', tone: 'dark' })}>
+            <ArrowLeft size={15} strokeWidth={1.8} />
+            Muro público
           </Link>
         }
       />

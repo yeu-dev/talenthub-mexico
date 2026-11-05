@@ -16,7 +16,7 @@ import {
 import api from '../services/api';
 import { showSuccess } from '../utils/alerts';
 import { AuthShell, Button, Field, Input } from '../components/ui';
-import { DUR, EASE, rise } from '../lib/motion';
+import { DUR, EASE, rise, riseVisible } from '../lib/motion';
 import { useTitulo } from '../hooks/useTitulo';
 
 // Solo lo que la plataforma hace de verdad: aquí había "Datos del mercado"
@@ -99,8 +99,9 @@ const Login: React.FC = () => {
             </Link>
           </motion.div>
 
+          {/* El texto más grande de la pantalla: se ve desde el primer cuadro. */}
           <motion.h2
-            variants={rise}
+            variants={riseVisible}
             className="mt-10 max-w-[13ch] font-heading text-[clamp(2rem,3.4vw,2.75rem)] font-mid leading-[1.05] tracking-[-0.03em] text-ink-d"
           >
             El portal de TI que sí dice cuánto paga
@@ -203,7 +204,7 @@ const Login: React.FC = () => {
               onClick={() => setVerPassword((v) => !v)}
               aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               aria-pressed={verPassword}
-              className="absolute right-[10px] top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-pill text-muted-d transition-colors hover:bg-white/[0.07] hover:text-ink-d"
+              className="absolute right-[1px] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-pill text-muted-d transition-colors hover:bg-white/[0.07] hover:text-ink-d"
             >
               {verPassword ? <EyeOff size={16} strokeWidth={1.7} /> : <Eye size={16} strokeWidth={1.7} />}
             </button>

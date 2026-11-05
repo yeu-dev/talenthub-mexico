@@ -66,6 +66,11 @@ module.exports = {
         danger: '#f87171',   // rojo — rechazada, error, destructivo (versión para oscuro)
         'danger-d': '#f87171',
         warn: '#fcd34d',     // ocre — reservado a avisos de formulario, nunca a estados
+
+        // Relleno del botón destructivo. No es `danger`: ese es el rojo de
+        // texto sobre oscuro y con blanco encima da 2.77. Estos sí pasan AA.
+        'danger-fill': '#dc2626',        // 4.83:1 con blanco
+        'danger-fill-hover': '#b91c1c',  // 6.47:1 con blanco
         'warn-d': '#fcd34d',
       },
 
@@ -148,10 +153,12 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
         },
+        // Un anillo que crece y se apaga. Antes animaba `box-shadow`, que obliga
+        // a repintar en cada cuadro; `transform` y `opacity` los mueve la GPU.
         latido: {
-          '0%': { boxShadow: '0 0 0 0 rgba(51,85,255,0.45)' },
-          '70%': { boxShadow: '0 0 0 9px rgba(51,85,255,0)' },
-          '100%': { boxShadow: '0 0 0 0 rgba(51,85,255,0)' },
+          '0%': { transform: 'scale(1)', opacity: '0.6' },
+          '70%': { transform: 'scale(1.35)', opacity: '0' },
+          '100%': { transform: 'scale(1.35)', opacity: '0' },
         },
       },
       animation: {

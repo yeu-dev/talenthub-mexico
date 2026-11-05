@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
 import api from "../services/api";
 import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
-import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
-import { rise, riseGlass, stagger, subeResorte } from "../lib/motion";
+import { chipsPopulares, haceCuanto, partesSalario, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
+import { riseGlass, riseVisible, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
 import { useTitulo } from "../hooks/useTitulo";
 
@@ -21,6 +21,7 @@ const capital = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1
 const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   const techs = tecnologias(vacante).slice(0, 3);
   const fecha = haceCuanto(vacante.fecha_publicacion);
+  const salario = partesSalario(vacante.salario_min, vacante.salario_max);
 
   return (
     <motion.li
@@ -57,9 +58,11 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
 
       <div className="md:text-right">
         <p className="tabular text-[1.125rem] font-demi tracking-[-0.01em] text-ink-d">
-          {formatoSalario(vacante.salario_min, vacante.salario_max).replace(" MXN", "")}
+          {salario.cifra}
         </p>
-        <p className="text-[0.8125rem] text-muted-d">MXN al mes{fecha && ` · ${fecha}`}</p>
+        <p className="text-[0.8125rem] text-muted-d">
+          {[salario.conMoneda && "MXN al mes", fecha].filter(Boolean).join(" · ")}
+        </p>
       </div>
     </motion.li>
   );
@@ -131,27 +134,31 @@ const Home: React.FC = () => {
   return (
     <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night text-ink-d">
       {/* Halos fijos detrás del cuerpo: el vidrio oscuro necesita tono que
-          refractar; sobre negro plano se vería igual que una tarjeta opaca. */}
+          refractar; sobre negro plano se vería igual que una tarjeta opaca.
+          Sin `blur()`: el degradado radial ya se desvanece solo, y un filtro
+          sobre un cuadro de 640px es caro de pintar en celular. */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-48 top-[420px] h-[640px] w-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.22),transparent_72%)] blur-[24px]" />
-        <div className="absolute -right-40 top-[900px] h-[600px] w-[600px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.14),transparent_72%)] blur-[24px]" />
+        <div className="absolute -left-48 top-[420px] h-[640px] w-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.22),transparent_72%)]" />
+        <div className="absolute -right-40 top-[900px] h-[600px] w-[600px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.14),transparent_72%)]" />
       </div>
       {/* ───────────── Banda oscura ───────────── */}
       <header className="relative isolate pb-8 pt-[calc(var(--nav-flow)+3.5rem)] md:pt-[calc(var(--nav-flow)+4.5rem)]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]"
+          className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)]"
         />
         <div className="relative mx-auto max-w-page px-6 md:px-7">
         <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
+          {/* `riseVisible` y no `rise`: el titular es el LCP de la portada y no
+              puede arrancar invisible. Ver lib/motion.ts. */}
           <motion.h1
-            variants={rise}
+            variants={riseVisible}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
           >
             Empleo en TI con el sueldo a la vista
           </motion.h1>
           {/* Lo que distingue al sitio, en íconos y no en un párrafo. */}
-          <motion.ul variants={rise} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">
+          <motion.ul variants={riseVisible} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">
             {[
               { Icono: Banknote, texto: "Sueldo siempre visible" },
               { Icono: ShieldCheck, texto: "Vacantes revisadas" },
@@ -165,7 +172,7 @@ const Home: React.FC = () => {
           </motion.ul>
 
           {/* Buscador en vidrio oscuro */}
-            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-card backdrop-saturate-150 md:p-4">
+            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md md:backdrop-blur-card backdrop-saturate-150 md:p-4">
               <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
                 <label className={campo}>
                   <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
@@ -265,7 +272,7 @@ const Home: React.FC = () => {
             {estado === "listo" && recientes.length > 0 && (
               <>
                 {/* Encabezado de columnas: solo donde hay columnas. */}
-                <div className="edge-d overflow-hidden rounded-card bg-white/[0.04] px-2 backdrop-blur-card md:px-3">
+                <div className="edge-d overflow-hidden rounded-card bg-white/[0.04] px-2 backdrop-blur-md md:backdrop-blur-card md:px-3">
                 <div className="hidden grid-cols-[minmax(0,1fr)_220px_180px] gap-x-8 border-b border-hairline-d px-4 pb-2 pt-4 text-caption uppercase text-muted-d md:grid">
                   <span>Puesto</span>
                   <span>Lugar</span>

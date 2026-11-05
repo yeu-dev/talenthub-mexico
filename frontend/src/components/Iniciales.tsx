@@ -6,12 +6,16 @@ import { cx } from '../lib/cx';
  * (sale de su nombre), así se reconoce de un vistazo en las listas sin leer.
  * Son tintes bajos sobre el vidrio oscuro con texto claro: dan color sin
  * competir con el azul de los botones.
+ *
+ * Sin ámbar: DESIGN.md lo deja fuera del sistema porque con daltonismo
+ * rojo-verde se confunde con el rojo de "rechazada". En su lugar va un tono
+ * neutro, que también sirve de respiro entre los de color.
  */
 const TONOS = [
   'bg-[rgba(74,102,255,0.16)] text-[#b4c2ff]',
   'bg-[rgba(45,212,191,0.14)] text-[#7eecd9]',
   'bg-[rgba(167,139,250,0.16)] text-[#cfc2ff]',
-  'bg-[rgba(251,191,36,0.13)] text-[#fcd77d]',
+  'bg-white/[0.07] text-ink-2',
   'bg-[rgba(251,113,133,0.14)] text-[#fdb1be]',
 ];
 
