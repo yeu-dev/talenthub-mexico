@@ -45,10 +45,20 @@ export function coincide(vacante: VacantePublica, { q, lugar, modalidad }: Filtr
 
   if (q && normalizar(q)) {
     const buscado = normalizar(q);
-    const texto = normalizar(
-      [vacante.titulo, vacante.empresa_nombre, vacante.descripcion, ...tecnologias(vacante)].join(' ')
-    );
-    if (!texto.includes(buscado)) return false;
+    // Si lo buscado es una tecnología de la lista curada ("java", "node"), se
+    // busca como palabra completa y con sus variantes, igual que la cuenta de
+    // la portada: así "Java · 2" lleva a 2 vacantes y no a las de JavaScript.
+    // Cualquier otra búsqueda sigue siendo por pedazo ("desarr" encuentra
+    // "Desarrollador").
+    const tecnologia = stackDe(buscado);
+    if (tecnologia) {
+      if (!tecnologia.claves.some((clave) => mencionaPalabra(textoDeStack(vacante), clave))) return false;
+    } else {
+      const texto = normalizar(
+        [vacante.titulo, vacante.empresa_nombre, vacante.descripcion, ...tecnologias(vacante)].join(' ')
+      );
+      if (!texto.includes(buscado)) return false;
+    }
   }
 
   if (lugar && normalizar(lugar)) {
@@ -113,9 +123,18 @@ const ciudad = (ubicacion: string) => ubicacion.split(',')[0].trim();
 // chip "etc." no lleva a ninguna búsqueda útil.
 const RELLENO = new Set(['etc', 'etc.', 'otros', 'otro', 'otras', 'n/a', 'na', 'ninguno', 'ninguna', '-', '...']);
 
-/** Valores distintos (sin acentos ni mayúsculas) ordenados por frecuencia. */
-function porFrecuencia(valores: string[]): string[] {
-  const conteo = new Map<string, { etiqueta: string; n: number }>();
+/** Un valor y cuántas vacantes lo tienen. */
+export interface Conteo {
+  etiqueta: string;
+  n: number;
+}
+
+/**
+ * Valores distintos (sin acentos ni mayúsculas) con cuántas veces salen, de
+ * más a menos; los empates en orden alfabético.
+ */
+function contar(valores: string[]): Conteo[] {
+  const conteo = new Map<string, Conteo>();
   for (const valor of valores) {
     const clave = normalizar(valor);
     if (clave.length < 2 || RELLENO.has(clave)) continue;
@@ -123,10 +142,31 @@ function porFrecuencia(valores: string[]): string[] {
     if (actual) actual.n += 1;
     else conteo.set(clave, { etiqueta: valor.trim(), n: 1 });
   }
-  return Array.from(conteo.values())
-    .sort((a, b) => b.n - a.n || a.etiqueta.localeCompare(b.etiqueta, 'es'))
-    .map((item) => item.etiqueta);
+  return Array.from(conteo.values()).sort((a, b) => b.n - a.n || a.etiqueta.localeCompare(b.etiqueta, 'es'));
 }
+
+const porFrecuencia = (valores: string[]): string[] => contar(valores).map((item) => item.etiqueta);
+
+/** Las empresas que tienen vacantes publicadas, de la que más publica a la que menos. */
+export const empresasQuePublican = (vacantes: VacantePublica[], maximo = 8): Conteo[] =>
+  contar(vacantes.map((v) => v.empresa_nombre)).slice(0, maximo);
+
+/** Las ciudades con vacantes, de la que más tiene a la que menos. */
+export const vacantesPorCiudad = (vacantes: VacantePublica[], maximo = 6): Conteo[] =>
+  contar(vacantes.map((v) => ciudad(v.ubicacion))).slice(0, maximo);
+
+/** Las modalidades que maneja la API, con su nombre para mostrar. */
+export const MODALIDADES = [
+  { valor: 'remoto', etiqueta: 'Remoto' },
+  { valor: 'hibrido', etiqueta: 'Híbrido' },
+  { valor: 'presencial', etiqueta: 'Presencial' },
+] as const;
+
+/** Cada modalidad con al menos una vacante, en el orden de `MODALIDADES`. */
+export const vacantesPorModalidad = (vacantes: VacantePublica[]) =>
+  MODALIDADES.map((m) => ({ ...m, n: vacantes.filter((v) => v.modalidad === m.valor).length })).filter(
+    (m) => m.n > 0
+  );
 
 /**
  * Lenguajes, bases de datos y stack web con su nombre bien escrito, para el
@@ -169,23 +209,51 @@ export function mencionaPalabra(texto: string, clave: string): boolean {
   return new RegExp(`(^|[^a-z0-9])${escaparRegex(clave)}(?![a-z0-9])`).test(texto);
 }
 
+/** Dónde se busca el stack de una vacante: título, descripción y tecnologías. */
+const textoDeStack = (v: VacantePublica) => normalizar([v.titulo, v.descripcion, ...tecnologias(v)].join(' '));
+
+/** La entrada del stack curado que corresponde a lo buscado ("node" → Node.js), si hay. */
+function stackDe(buscado: string) {
+  return STACK.find((item) => normalizar(item.etiqueta) === buscado || item.claves.includes(buscado));
+}
+
+/** Una tecnología del stack curado con sus vacantes y el rango de sueldo que pagan. */
+export interface StackConSueldo extends Conteo {
+  /** El `salario_min` más bajo entre sus vacantes. */
+  min: number;
+  /** El `salario_max` más alto entre sus vacantes. */
+  max: number;
+}
+
 /**
- * Del stack curado, lo que menciona al menos una vacante publicada (título,
- * descripción o tecnologías), de lo más pedido a lo menos; los empates van en
- * el orden de la lista. Si nadie pide Java, Java no sale.
+ * Del stack curado, lo que menciona al menos una vacante publicada, con
+ * cuántas lo piden y el rango de sueldo de esas vacantes; de lo más pedido a
+ * lo menos, y los empates en el orden de la lista. Si nadie pide Java, Java
+ * no sale.
  */
-export function stackPresente(vacantes: VacantePublica[], maximo = 8): string[] {
-  const textos = vacantes.map((v) => normalizar([v.titulo, v.descripcion, ...tecnologias(v)].join(' ')));
-  return STACK.map((item, orden) => ({
-    etiqueta: item.etiqueta,
-    orden,
-    n: textos.filter((texto) => item.claves.some((clave) => mencionaPalabra(texto, clave))).length,
-  }))
+export function stackConSueldos(vacantes: VacantePublica[], maximo = 8): StackConSueldo[] {
+  const textos = vacantes.map(textoDeStack);
+  return STACK.map((item, orden) => {
+    const suyas = vacantes.filter((_, i) => item.claves.some((clave) => mencionaPalabra(textos[i], clave)));
+    const mins = suyas.map((v) => parseFloat(v.salario_min)).filter((n) => Number.isFinite(n) && n > 0);
+    const maxs = suyas.map((v) => parseFloat(v.salario_max)).filter((n) => Number.isFinite(n) && n > 0);
+    return {
+      etiqueta: item.etiqueta,
+      orden,
+      n: suyas.length,
+      min: mins.length ? Math.min(...mins) : 0,
+      max: maxs.length ? Math.max(...maxs) : 0,
+    };
+  })
     .filter((item) => item.n > 0)
     .sort((a, b) => b.n - a.n || a.orden - b.orden)
     .slice(0, maximo)
-    .map((item) => item.etiqueta);
+    .map((item) => ({ etiqueta: item.etiqueta, n: item.n, min: item.min, max: item.max }));
 }
+
+/** Solo los nombres de `stackConSueldos`: lo que gira en el titular. */
+export const stackPresente = (vacantes: VacantePublica[], maximo = 8): string[] =>
+  stackConSueldos(vacantes, maximo).map((item) => item.etiqueta);
 
 /**
  * Búsquedas rápidas sacadas de las vacantes que hay. Nunca un chip escrito a

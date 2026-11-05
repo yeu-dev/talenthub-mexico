@@ -162,6 +162,14 @@ const Navbar: React.FC = () => {
         </Enlace>
       )}
 
+      {/* La portada para quien contrata. Solo sin sesión: quien ya entró
+          sabe qué tipo de cuenta tiene, y la empresa ya tiene su panel. */}
+      {!token && (
+        <Enlace to="/empresas" enMenu={enMenu}>
+          Para empresas
+        </Enlace>
+      )}
+
       <Enlace to="/politicas" enMenu={enMenu}>
         Privacidad
       </Enlace>

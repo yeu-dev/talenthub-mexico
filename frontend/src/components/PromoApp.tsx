@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useCambiosDeSesion } from '../lib/sesion';
+import { useMedia } from '../hooks/useMedia';
 
 /** Minimizado en esta visita: en la siguiente vuelve a abrirse grande. */
 const CLAVE = 'th_app_promo_mini';
@@ -81,6 +82,17 @@ export const PromoAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 };
 
 export const usePromoApp = () => useContext(Contexto);
+
+/**
+ * `true` cuando la página deja libre la columna derecha para el aviso abierto
+ * (desde `lg`, ver `Pagina` en App.tsx). Lo usan los fondos a todo lo ancho
+ * para desvanecerse hacia la derecha en lugar de cortarse en seco ahí.
+ */
+export const useColumnaAviso = () => {
+  const { mostrar, mini } = usePromoApp();
+  const desdeLg = useMedia('(min-width: 1024px)');
+  return mostrar && !mini && desdeLg;
+};
 
 /** Oculta el aviso de la app mientras la página que lo llama está montada. */
 export const useSinAvisoApp = () => {
