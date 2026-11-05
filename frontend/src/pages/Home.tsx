@@ -5,7 +5,7 @@ import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, Shiel
 import api from "../services/api";
 import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
-import { rise, riseGlass, stagger, subeResorte } from "../lib/motion";
+import { riseGlass, riseVisible, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
 import { useTitulo } from "../hooks/useTitulo";
 
@@ -144,14 +144,16 @@ const Home: React.FC = () => {
         />
         <div className="relative mx-auto max-w-page px-6 md:px-7">
         <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
+          {/* `riseVisible` y no `rise`: el titular es el LCP de la portada y no
+              puede arrancar invisible. Ver lib/motion.ts. */}
           <motion.h1
-            variants={rise}
+            variants={riseVisible}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
           >
             Empleo en TI con el sueldo a la vista
           </motion.h1>
           {/* Lo que distingue al sitio, en íconos y no en un párrafo. */}
-          <motion.ul variants={rise} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">
+          <motion.ul variants={riseVisible} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">
             {[
               { Icono: Banknote, texto: "Sueldo siempre visible" },
               { Icono: ShieldCheck, texto: "Vacantes revisadas" },

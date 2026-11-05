@@ -47,6 +47,19 @@ export const riseGlass: Variants = {
 };
 
 /**
+ * Entrada para el titular de arriba de la página: sube, pero se ve desde el
+ * primer cuadro. Es la misma curva que `riseGlass` con otra razón de ser.
+ *
+ * El titular de la portada suele ser el elemento del LCP (lo más grande que
+ * se pinta al cargar). Con `rise` arrancaba en `opacity: 0`: el navegador no
+ * lo cuenta como pintado hasta que la animación lo vuelve visible, y si el JS
+ * tarda, el titular se queda invisible. Solo moverlo no tiene ese costo.
+ *
+ * Regla: lo primero que se lee arriba de la página no se desvanece.
+ */
+export const riseVisible: Variants = riseGlass;
+
+/**
  * Entrada de listas: sube con resorte y se asienta con un rebote corto, en
  * vez del fundido de siempre. Sin opacidad a propósito: las tarjetas son de
  * vidrio y un fade aplana el `backdrop-filter` hasta que llega a 1.
