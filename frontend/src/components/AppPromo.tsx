@@ -137,7 +137,7 @@ const AppPromo: React.FC = () => {
       ) : (
         <aside
           aria-label="Descarga la app de TalentHub"
-          className="edge-l fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card bg-[rgba(238,241,255,0.78)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150 lg:block"
+          className="edge-l fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card bg-[rgba(238,241,255,0.94)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150 lg:block"
         >
           <button
             type="button"

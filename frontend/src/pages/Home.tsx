@@ -22,37 +22,37 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   const fecha = haceCuanto(vacante.fecha_publicacion);
 
   return (
-    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline px-2 py-5 transition-colors hover:bg-white/60 md:grid-cols-[minmax(0,1fr)_280px_200px] md:items-center md:px-4">
+    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_280px_200px] md:items-center md:px-4">
       <div className="min-w-0">
-        <h3 className="text-[1.0625rem] font-demi leading-snug text-ink">
+        <h3 className="text-[1.0625rem] font-demi leading-snug text-ink-d">
           {/* El `after` del enlace cubre la fila: toda es clicable, y el lector
               de pantalla anuncia un solo enlace con el nombre del puesto. */}
           <Link
             to={`/vacantes/${vacante.id}`}
-            className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-ui focus-visible:after:ring-2 focus-visible:after:ring-accent"
+            className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-ui focus-visible:after:ring-2 focus-visible:after:ring-accent-on-dark"
           >
             {vacante.titulo}
           </Link>
         </h3>
-        <p className="mt-0.5 truncate text-[0.875rem] text-muted">
+        <p className="mt-0.5 truncate text-[0.875rem] text-muted-d">
           {vacante.empresa_nombre}
-          {techs.length > 0 && <span className="text-ink-2"> · {techs.join(", ")}</span>}
+          {techs.length > 0 && <span className="text-ink-2d"> · {techs.join(", ")}</span>}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-ink-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-ink-2d">
         <span className="flex items-center gap-1">
-          <MapPin size={13} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
+          <MapPin size={13} strokeWidth={1.7} className="text-muted-d" aria-hidden="true" />
           {vacante.ubicacion}
         </span>
-        <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? "neutro"}>{capital(vacante.modalidad)}</Tag>
+        <Tag tone="dark" tono={TONO_MODALIDAD[vacante.modalidad] ?? "neutro"}>{capital(vacante.modalidad)}</Tag>
       </div>
 
       <div className="md:text-right">
-        <p className="tabular text-[1.125rem] font-demi tracking-[-0.01em] text-ink">
+        <p className="tabular text-[1.125rem] font-demi tracking-[-0.01em] text-ink-d">
           {formatoSalario(vacante.salario_min, vacante.salario_max).replace(" MXN", "")}
         </p>
-        <p className="text-[0.8125rem] text-muted">MXN al mes{fecha && ` · ${fecha}`}</p>
+        <p className="text-[0.8125rem] text-muted-d">MXN al mes{fecha && ` · ${fecha}`}</p>
       </div>
     </li>
   );
@@ -102,15 +102,21 @@ const Home: React.FC = () => {
     navigate(rutaBusqueda({ q, lugar }));
   };
 
-  const campo = "flex flex-1 items-center gap-3 rounded-ui px-4 py-3 transition-colors focus-within:bg-white/70";
-  // `ink-2` y no `muted` en el placeholder: el tercio de arriba del panel cae
-  // sobre negro, y ahí `muted` no llega a AA.
-  const input = "w-full bg-transparent text-body text-ink placeholder:text-ink-2 focus:outline-none";
+  const campo = "flex flex-1 items-center gap-3 rounded-ui px-4 py-3 transition-colors focus-within:bg-white/[0.06]";
+  const input = "w-full bg-transparent text-body text-ink-d placeholder:text-muted-d focus:outline-none";
 
+  // El margen negativo va en la raíz y no en el header: la raíz recorta los
+  // halos (`overflow-hidden`) y recortaría también la parte que sube bajo la barra.
   return (
-    <div className="mesh-page">
+    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night text-ink-d">
+      {/* Halos fijos detrás del cuerpo: el vidrio oscuro necesita tono que
+          refractar; sobre negro plano se vería igual que una tarjeta opaca. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-48 top-[420px] h-[640px] w-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.22),transparent_72%)] blur-[24px]" />
+        <div className="absolute -right-40 top-[900px] h-[600px] w-[600px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.14),transparent_72%)] blur-[24px]" />
+      </div>
       {/* ───────────── Banda oscura ───────────── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-40 pt-[calc(var(--nav-flow)+3.5rem)] text-ink-d md:pt-[calc(var(--nav-flow)+4.5rem)]">
+      <header className="relative isolate pb-8 pt-[calc(var(--nav-flow)+3.5rem)] md:pt-[calc(var(--nav-flow)+4.5rem)]">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]"
@@ -138,15 +144,13 @@ const Home: React.FC = () => {
         </motion.div>
       </header>
 
-      {/* ───────────── Buscador en vidrio, a caballo del filo ─────────────
-          El degradado del panel no está pintado: es el vidrio refractando la
-          banda negra arriba y la página clara abajo. */}
+      {/* ───────────── Buscador en vidrio oscuro ───────────── */}
       <section className="flow-root">
         <div className="mx-auto max-w-page px-6 md:px-7">
-          <motion.div variants={riseGlass} initial="hidden" animate="show" className="glass-panel glass-panel-overlap edge-l p-3 md:p-4">
+          <motion.div variants={riseGlass} initial="hidden" animate="show" className="edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-card backdrop-saturate-150 md:p-4">
             <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
               <label className={campo}>
-                <Search size={18} strokeWidth={1.7} className="flex-none text-ink-2" aria-hidden="true" />
+                <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
                 <span className="sr-only">Puesto o tecnología</span>
                 <input
                   value={q}
@@ -155,9 +159,9 @@ const Home: React.FC = () => {
                   className={input}
                 />
               </label>
-              <span className="mx-1 hidden h-8 w-px bg-hairline-strong md:block" aria-hidden="true" />
+              <span className="mx-1 hidden h-8 w-px bg-hairline-d md:block" aria-hidden="true" />
               <label className={campo}>
-                <MapPin size={18} strokeWidth={1.7} className="flex-none text-ink-2" aria-hidden="true" />
+                <MapPin size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
                 <span className="sr-only">Ciudad o remoto</span>
                 <input
                   value={lugar}
@@ -173,12 +177,12 @@ const Home: React.FC = () => {
             </form>
 
             {chips.length > 0 && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline px-2 pt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline-d px-2 pt-3">
                 {chips.map((chip) => (
                   <Link
                     key={chip.etiqueta}
                     to={rutaBusqueda(chip.filtros)}
-                    className="rounded-pill border border-hairline-strong bg-white/50 px-3.5 py-1.5 text-[0.875rem] text-ink-2 transition-colors hover:border-accent/40 hover:text-ink"
+                    className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-colors hover:border-hairline-d-strong hover:text-ink-d"
                   >
                     {chip.etiqueta}
                   </Link>
@@ -191,14 +195,14 @@ const Home: React.FC = () => {
 
       {/* ───────────── Lista de sueldos ───────────── */}
       {estado !== "error" && (
-        <section className="pb-16 pt-14 md:pb-20">
+        <section className="pb-20 pt-14 md:pb-24">
           <div className="mx-auto max-w-page px-6 md:px-7">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
-              <h2 className="font-heading text-[clamp(1.5rem,2.6vw,2rem)] font-demi leading-[1.1] tracking-[-0.015em] text-ink">
+              <h2 className="font-heading text-[clamp(1.5rem,2.6vw,2rem)] font-demi leading-[1.1] tracking-[-0.015em] text-ink-d">
                 Vacantes recientes
               </h2>
               {estado === "listo" && vacantes.length > 0 && (
-                <Link to="/vacantes" className="flex items-center gap-1.5 text-[0.9375rem] font-mid text-accent hover:text-accent-hover">
+                <Link to="/vacantes" className="flex items-center gap-1.5 text-[0.9375rem] font-mid text-accent-on-dark hover:text-ink-d">
                   Ver las {vacantes.length}
                   <ArrowRight size={15} strokeWidth={1.8} />
                 </Link>
@@ -206,15 +210,16 @@ const Home: React.FC = () => {
             </div>
 
             {estado === "cargando" && (
-              <div className="flex flex-col gap-3 border-t border-hairline pt-5">
+              <div className="flex flex-col gap-3 border-t border-hairline-d pt-5">
                 {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} height={56} />
+                  <Skeleton key={i} height={56} className="bg-white/[0.06]" />
                 ))}
               </div>
             )}
 
             {estado === "listo" && recientes.length === 0 && (
               <EmptyState
+                tone="dark"
                 title="Todavía no hay vacantes publicadas"
                 description="Cuando una empresa publique una y se apruebe, aparecerá aquí."
               />
@@ -223,8 +228,8 @@ const Home: React.FC = () => {
             {estado === "listo" && recientes.length > 0 && (
               <>
                 {/* Encabezado de columnas: solo donde hay columnas. */}
-                <div className="glass-panel edge-l overflow-hidden px-2 md:px-3">
-                <div className="hidden grid-cols-[minmax(0,1fr)_280px_200px] gap-x-8 border-b border-hairline px-4 pb-2 pt-4 text-caption uppercase text-muted md:grid">
+                <div className="edge-d overflow-hidden rounded-card bg-white/[0.04] px-2 backdrop-blur-card md:px-3">
+                <div className="hidden grid-cols-[minmax(0,1fr)_280px_200px] gap-x-8 border-b border-hairline-d px-4 pb-2 pt-4 text-caption uppercase text-muted-d md:grid">
                   <span>Puesto</span>
                   <span>Lugar</span>
                   <span className="text-right">Sueldo</span>
@@ -241,7 +246,7 @@ const Home: React.FC = () => {
             {/* Una línea para empresas, no un bloque de venta. */}
             <Link
               to="/planes"
-              className="mt-10 inline-flex items-center gap-2.5 text-[0.9375rem] font-mid text-accent hover:text-accent-hover"
+              className="mt-10 inline-flex items-center gap-2.5 text-[0.9375rem] font-mid text-accent-on-dark hover:text-ink-d"
             >
               <Building2 size={17} strokeWidth={1.7} aria-hidden="true" />
               ¿Contratas? Publica gratis
