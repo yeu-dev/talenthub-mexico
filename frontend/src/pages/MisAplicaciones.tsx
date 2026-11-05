@@ -76,6 +76,7 @@ const MisAplicaciones: React.FC = () => {
   return (
     <div className="min-h-screen mesh-page">
       <PageHeader
+        tono="oscuro"
         migas={migasDeCuenta('Mis postulaciones')}
         titulo="Mis postulaciones"
         pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
@@ -91,7 +92,7 @@ const MisAplicaciones: React.FC = () => {
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resumen: responde la pregunta real, ¿en qué voy? ── */}
         {estado === 'listo' && aplicaciones.length > 0 && (
-          <div className="mt-6 glass-panel edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+          <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {conteos.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
@@ -103,7 +104,7 @@ const MisAplicaciones: React.FC = () => {
           </div>
         )}
 
-        <div className={estado === 'listo' && aplicaciones.length > 0 ? '' : 'pt-6'}>
+        <div className={estado === 'listo' && aplicaciones.length > 0 ? '' : 'glass-panel glass-panel-overlap-sm edge-l p-2'}>
           {estado === 'cargando' && <SkeletonList count={3} />}
 
           {estado === 'error' && (

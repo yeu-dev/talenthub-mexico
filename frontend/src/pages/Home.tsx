@@ -6,6 +6,7 @@ import api from "../services/api";
 import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { rise, riseGlass, stagger } from "../lib/motion";
+import { TarjetaApp } from "../components/AppPromo";
 import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
@@ -70,6 +71,7 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
  */
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const conSesion = Boolean(localStorage.getItem("token"));
   useTitulo();
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
@@ -121,7 +123,8 @@ const Home: React.FC = () => {
           aria-hidden="true"
           className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]"
         />
-        <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="relative mx-auto max-w-page px-6 md:px-7">
+        <div className="relative mx-auto grid max-w-page grid-cols-1 items-center gap-10 px-6 md:px-7 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="min-w-0">
           <motion.h1
             variants={rise}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
@@ -141,57 +144,63 @@ const Home: React.FC = () => {
               </li>
             ))}
           </motion.ul>
+
+          {/* Buscador en vidrio oscuro */}
+            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-card backdrop-saturate-150 md:p-4">
+              <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
+                <label className={campo}>
+                  <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
+                  <span className="sr-only">Puesto o tecnología</span>
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Puesto, empresa o tecnología"
+                    className={input}
+                  />
+                </label>
+                <span className="mx-1 hidden h-8 w-px bg-hairline-d md:block" aria-hidden="true" />
+                <label className={campo}>
+                  <MapPin size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
+                  <span className="sr-only">Ciudad o remoto</span>
+                  <input
+                    value={lugar}
+                    onChange={(e) => setLugar(e.target.value)}
+                    placeholder="Ciudad o remoto"
+                    className={input}
+                  />
+                </label>
+                <Button type="submit" className="md:ml-2">
+                  <Search size={15} strokeWidth={1.8} />
+                  Buscar vacantes
+                </Button>
+              </form>
+
+              {chips.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline-d px-2 pt-3">
+                  {chips.map((chip) => (
+                    <Link
+                      key={chip.etiqueta}
+                      to={rutaBusqueda(chip.filtros)}
+                      className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-colors hover:border-hairline-d-strong hover:text-ink-d"
+                    >
+                      {chip.etiqueta}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </motion.div>
         </motion.div>
+
+        {/* La tarjeta de la app vive en la página y no flota encima: así se ve
+            desde que se entra sin tapar el buscador ni la lista. */}
+        {!conSesion && (
+          <div className="hidden lg:block">
+            <TarjetaApp />
+          </div>
+        )}
+        </div>
       </header>
 
-      {/* ───────────── Buscador en vidrio oscuro ───────────── */}
-      <section className="flow-root">
-        <div className="mx-auto max-w-page px-6 md:px-7">
-          <motion.div variants={riseGlass} initial="hidden" animate="show" className="edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-card backdrop-saturate-150 md:p-4">
-            <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
-              <label className={campo}>
-                <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
-                <span className="sr-only">Puesto o tecnología</span>
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Puesto, empresa o tecnología"
-                  className={input}
-                />
-              </label>
-              <span className="mx-1 hidden h-8 w-px bg-hairline-d md:block" aria-hidden="true" />
-              <label className={campo}>
-                <MapPin size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
-                <span className="sr-only">Ciudad o remoto</span>
-                <input
-                  value={lugar}
-                  onChange={(e) => setLugar(e.target.value)}
-                  placeholder="Ciudad o remoto"
-                  className={input}
-                />
-              </label>
-              <Button type="submit" className="md:ml-2">
-                <Search size={15} strokeWidth={1.8} />
-                Buscar vacantes
-              </Button>
-            </form>
-
-            {chips.length > 0 && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline-d px-2 pt-3">
-                {chips.map((chip) => (
-                  <Link
-                    key={chip.etiqueta}
-                    to={rutaBusqueda(chip.filtros)}
-                    className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-colors hover:border-hairline-d-strong hover:text-ink-d"
-                  >
-                    {chip.etiqueta}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </section>
 
       {/* ───────────── Lista de sueldos ───────────── */}
       {estado !== "error" && (

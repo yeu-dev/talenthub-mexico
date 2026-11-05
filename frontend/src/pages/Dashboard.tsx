@@ -255,6 +255,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen mesh-page">
       <PageHeader
+        tono="oscuro"
         migas={migasDeCuenta('Mis vacantes')}
         titulo="Mis vacantes"
         pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
@@ -268,6 +269,7 @@ const Dashboard: React.FC = () => {
         acciones={
           <Button
             variant={showForm ? 'ghost' : 'primary'}
+            tone="dark"
             onClick={() => (showForm ? cerrarForm() : setShowForm(true))}
           >
             {showForm ? <X size={16} strokeWidth={1.8} /> : <Plus size={16} strokeWidth={1.8} />}
@@ -279,7 +281,7 @@ const Dashboard: React.FC = () => {
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resumen ── */}
         {estado === 'listo' && vacantes.length > 0 && (
-          <div className="mt-6 glass-panel edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+          <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {resumen.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
@@ -291,7 +293,7 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'pt-6'}>
+        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'glass-panel glass-panel-overlap-sm edge-l p-2'}>
           {/* ── Formulario ── */}
           <AnimatePresence initial={false}>
             {showForm && (

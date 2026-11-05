@@ -235,6 +235,7 @@ const DashboardValidador: React.FC = () => {
   return (
     <div className="min-h-screen mesh-page">
       <PageHeader
+        tono="oscuro"
         migas={[{ etiqueta: 'Validación' }, { etiqueta: 'Centro de validación' }]}
         titulo="Centro de validación"
         detalle={
@@ -248,7 +249,7 @@ const DashboardValidador: React.FC = () => {
         }
         acciones={
           <Link to="/vacantes">
-            <Button variant="ghost">
+            <Button variant="ghost" tone="dark">
               <ArrowLeft size={15} strokeWidth={1.8} />
               Muro público
             </Button>
@@ -258,7 +259,7 @@ const DashboardValidador: React.FC = () => {
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Métricas ── */}
-        <div className="mt-6 glass-panel edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+        <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
           {METRICAS.map(({ label, total }) => (
             <div key={label} className="px-6 py-7">
               <span className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">

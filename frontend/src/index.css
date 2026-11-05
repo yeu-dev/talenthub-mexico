@@ -120,9 +120,9 @@
        que refractar, no solo de luminancia, que es la diferencia entre
        vidrio y plástico esmerilado. */
     background-image:
-      radial-gradient(50% 42% at 4% 4%, rgba(255, 170, 92, 0.14), transparent 70%),
-      radial-gradient(46% 40% at 98% 18%, rgba(74, 102, 255, 0.13), transparent 70%),
-      radial-gradient(54% 46% at 82% 96%, rgba(56, 190, 178, 0.11), transparent 72%),
+      radial-gradient(50% 42% at 4% 4%, rgba(255, 170, 92, 0.2), transparent 70%),
+      radial-gradient(46% 40% at 98% 18%, rgba(74, 102, 255, 0.2), transparent 70%),
+      radial-gradient(54% 46% at 82% 96%, rgba(56, 190, 178, 0.16), transparent 72%),
       radial-gradient(58% 50% at 18% 92%, rgba(0, 0, 0, 0.03), transparent 72%);
     background-attachment: fixed;
     background-repeat: no-repeat;

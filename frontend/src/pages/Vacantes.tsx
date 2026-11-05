@@ -79,6 +79,8 @@ const Vacantes: React.FC = () => {
     <div className="min-h-screen mesh-page">
       {/* ── Encabezado claro: es la herramienta de búsqueda, no una portada ── */}
       <PageHeader
+        tono="oscuro"
+        solapa={false}
         titulo="Vacantes"
         detalle={
           estado === 'listo'

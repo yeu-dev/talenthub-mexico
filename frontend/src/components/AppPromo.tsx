@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, ScanLine, X } from 'lucide-react';
 import { PLAY_STORE_URL } from '../lib/app';
+import { cx } from '../lib/cx';
 
 /** Cerrado en esta visita: en la siguiente vuelve a abrirse grande. */
 const CLAVE = 'th_app_promo_mini';
@@ -75,12 +76,52 @@ const Celular: React.FC = () => (
 );
 
 /**
- * Aviso para descargar la app. Insistente a propósito, pero sin bloquear:
- * - Sale en todas las páginas públicas mientras no haya sesión iniciada; al
- *   iniciar sesión desaparece del todo. La web no puede saber si alguien
- *   escaneó el QR (eso pasa en el celular), así que la sesión es la señal.
- * - En escritorio es la tarjeta con QR. Cerrarla la encoge a un botón en la
- *   esquina que la vuelve a abrir; en la siguiente visita sale grande otra vez.
+ * La tarjeta con el QR y el celular. La portada la pone dentro de la página,
+ * junto al título; en las demás páginas flota en la esquina.
+ */
+export const TarjetaApp: React.FC<{ onCerrar?: () => void; className?: string }> = ({ onCerrar, className }) => (
+  <aside
+    aria-label="Descarga la app de TalentHub"
+    className={cx(
+      'edge-l relative w-[300px] overflow-hidden rounded-card bg-[rgba(238,241,255,0.94)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150',
+      className
+    )}
+  >
+    {onCerrar && (
+      <button
+        type="button"
+        onClick={onCerrar}
+        aria-label="Minimizar aviso de la app"
+        className="absolute right-3 top-3 rounded-pill p-1.5 text-ink-2 transition-colors hover:bg-white hover:text-ink"
+      >
+        <X size={18} strokeWidth={1.8} />
+      </button>
+    )}
+
+    <div className="mx-auto w-fit rounded-ui bg-canvas p-3">
+      <QRCodeSVG value={PLAY_STORE_URL} size={120} bgColor="#ffffff" fgColor="#161616" level="M" />
+    </div>
+
+    <h2 className="mt-4 font-heading text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
+      Lleva TalentHub en tu celular
+    </h2>
+    <p className="mt-2 flex items-center justify-center gap-1.5 text-[0.875rem] text-ink-2">
+      <ScanLine size={15} strokeWidth={1.7} aria-hidden="true" />
+      Escanéalo con tu cámara
+    </p>
+    <p className="mt-1 text-[0.75rem] text-muted">Por ahora solo para testers</p>
+
+    <Celular />
+  </aside>
+);
+
+/**
+ * Aviso para descargar la app, en todas las páginas públicas hasta que se
+ * inicia sesión (la web no puede saber si alguien escaneó el QR: eso pasa en
+ * el celular, así que la sesión es la señal).
+ * - En escritorio la tarjeta sale abierta desde que se entra. Cerrarla la
+ *   encoge a un botón que la vuelve a abrir; en la siguiente visita sale
+ *   grande otra vez. En la portada no flota: va dentro de la página.
  * - En celular un QR no sirve (no se escanea la propia pantalla): es una barra
  *   abajo con el botón que abre Google Play. Cerrarla dura lo que la visita.
  */
@@ -88,18 +129,6 @@ const AppPromo: React.FC = () => {
   const { pathname } = useLocation();
   const [mini, setMini] = useState(leer);
   const [listo, setListo] = useState(false);
-  const [bajo, setBajo] = useState(false);
-  // Abierta a mano desde el botón: entonces se muestra aunque se esté arriba.
-  const [forzada, setForzada] = useState(false);
-
-  // Arriba de la página la tarjeta taparía el buscador y los botones del
-  // encabezado: ahí se queda como botón chico, y se abre al empezar a bajar.
-  useEffect(() => {
-    const revisar = () => setBajo(window.scrollY > 320);
-    revisar();
-    window.addEventListener('scroll', revisar, { passive: true });
-    return () => window.removeEventListener('scroll', revisar);
-  }, []);
 
   // Un momento después de cargar, para no competir con lo primero que se lee.
   useEffect(() => {
@@ -111,59 +140,33 @@ const AppPromo: React.FC = () => {
   const cerrada = SIN_AVISO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
   if (!listo || conSesion || cerrada) return null;
 
+  const enPortada = pathname === '/';
+
   const encoger = () => {
     setMini(true);
-    setForzada(false);
     guardar(true);
   };
   const abrir = () => {
     setMini(false);
-    setForzada(true);
     guardar(false);
   };
 
   return (
     <>
-      {/* ── Escritorio ── */}
-      {mini || (!bajo && !forzada) ? (
-        <button
-          type="button"
-          onClick={abrir}
-          className="fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-pill bg-accent px-4 py-3 text-[0.9375rem] font-mid text-white transition-colors hover:bg-accent-hover lg:flex"
-        >
-          <QrCode size={17} strokeWidth={1.8} />
-          Descarga la app
-        </button>
-      ) : (
-        <aside
-          aria-label="Descarga la app de TalentHub"
-          className="edge-l fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card bg-[rgba(238,241,255,0.94)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150 lg:block"
-        >
+      {/* ── Escritorio (la portada ya la trae en la página) ── */}
+      {!enPortada &&
+        (mini ? (
           <button
             type="button"
-            onClick={encoger}
-            aria-label="Minimizar aviso de la app"
-            className="absolute right-3 top-3 rounded-pill p-1.5 text-ink-2 transition-colors hover:bg-white hover:text-ink"
+            onClick={abrir}
+            className="fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-pill bg-accent px-4 py-3 text-[0.9375rem] font-mid text-white transition-colors hover:bg-accent-hover lg:flex"
           >
-            <X size={18} strokeWidth={1.8} />
+            <QrCode size={17} strokeWidth={1.8} />
+            Descarga la app
           </button>
-
-          <div className="mx-auto w-fit rounded-ui bg-canvas p-3">
-            <QRCodeSVG value={PLAY_STORE_URL} size={120} bgColor="#ffffff" fgColor="#161616" level="M" />
-          </div>
-
-          <h2 className="mt-4 font-heading text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
-            Lleva TalentHub en tu celular
-          </h2>
-          <p className="mt-2 flex items-center justify-center gap-1.5 text-[0.875rem] text-ink-2">
-            <ScanLine size={15} strokeWidth={1.7} aria-hidden="true" />
-            Escanéalo con tu cámara
-          </p>
-          <p className="mt-1 text-[0.75rem] text-muted">Por ahora solo para testers</p>
-
-          <Celular />
-        </aside>
-      )}
+        ) : (
+          <TarjetaApp onCerrar={encoger} className="fixed bottom-6 right-6 z-40 hidden lg:block" />
+        ))}
 
       {/* ── Celular ── */}
       {!mini && (

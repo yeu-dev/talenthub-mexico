@@ -135,6 +135,7 @@ const AplicacionesEmpresa: React.FC = () => {
   return (
     <div className="min-h-screen mesh-page">
       <PageHeader
+        tono="oscuro"
         migas={migasDeCuenta('Postulaciones')}
         titulo="Postulaciones recibidas"
         pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
@@ -151,7 +152,7 @@ const AplicacionesEmpresa: React.FC = () => {
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Filtros ── */}
-        <div className="mt-6 glass-panel edge-l mb-8 p-6">
+        <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 p-6">
           <p className="mb-4 text-caption uppercase tracking-[0.06em] text-ink-2">Filtrar</p>
           <div className="flex flex-wrap gap-2">
             {FILTROS.map(({ id, label }) => {

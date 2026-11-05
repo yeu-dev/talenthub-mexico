@@ -33,6 +33,11 @@ interface Props {
    * detalle de vacante. Por defecto, claro.
    */
   tono?: 'claro' | 'oscuro';
+  /**
+   * Solo en oscuro: deja abajo el espacio para que el primer panel de vidrio
+   * se monte sobre el filo. Sin panel que montar (Vacantes), la banda es corta.
+   */
+  solapa?: boolean;
   children?: React.ReactNode;
 }
 
@@ -54,6 +59,7 @@ const PageHeader: React.FC<Props> = ({
   inicio,
   ancho = 'page',
   tono = 'claro',
+  solapa = true,
   children,
 }) => {
   const oscuro = tono === 'oscuro';
@@ -61,7 +67,10 @@ const PageHeader: React.FC<Props> = ({
   <header
     className={cx(
       oscuro
-        ? 'relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[calc(var(--nav-flow)+2.75rem)] text-ink-d'
+        ? cx(
+            'relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pt-[calc(var(--nav-flow)+2.75rem)] text-ink-d',
+            solapa ? 'pb-32' : pestanas ? '' : 'pb-10'
+          )
         : // También sube bajo el nav flotante: así los halos de la página se ven
           // detrás del pill y no queda una franja blanca del <body> arriba.
           cx(
@@ -127,7 +136,10 @@ const PageHeader: React.FC<Props> = ({
       {children}
 
       {pestanas && pestanas.length > 0 && (
-        <nav aria-label="Secciones" className="-mb-px mt-6 flex gap-6 overflow-x-auto">
+        <nav
+          aria-label="Secciones"
+          className={cx('mt-6 flex gap-6 overflow-x-auto', oscuro ? 'border-b border-hairline-d' : '-mb-px')}
+        >
           {pestanas.map((p) => (
             <NavLink
               key={p.to}
@@ -135,7 +147,13 @@ const PageHeader: React.FC<Props> = ({
               className={({ isActive }) =>
                 cx(
                   'whitespace-nowrap border-b-2 pb-3 text-[0.9375rem] font-mid transition-colors',
-                  isActive ? 'border-accent text-ink' : 'border-transparent text-muted hover:text-ink'
+                  isActive
+                    ? oscuro
+                      ? 'border-accent-on-dark text-ink-d'
+                      : 'border-accent text-ink'
+                    : oscuro
+                      ? 'border-transparent text-muted-d hover:text-ink-d'
+                      : 'border-transparent text-muted hover:text-ink'
                 )
               }
             >

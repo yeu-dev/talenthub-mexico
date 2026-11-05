@@ -211,6 +211,7 @@ const PerfilAspirante: React.FC = () => {
   return (
     <div className="min-h-screen mesh-page">
       <PageHeader
+        tono="oscuro"
         ancho="doc"
         migas={migasDeCuenta('Mi perfil')}
         titulo="Mi perfil"
@@ -226,7 +227,7 @@ const PerfilAspirante: React.FC = () => {
         {/* ── Identidad: quién eres, antes que los campos ── */}
         <motion.header
           variants={rise}
-          className="mt-6 glass-panel edge-l mb-8 flex flex-wrap items-center gap-6 p-7"
+          className="glass-panel glass-panel-overlap edge-l mb-8 flex flex-wrap items-center gap-6 p-7"
         >
           <div className="h-20 w-20 flex-none overflow-hidden rounded-pill border border-hairline bg-surface">
             {mostrarFoto ? (

@@ -67,9 +67,9 @@ const Navbar: React.FC = () => {
       "relative text-[0.9375rem] transition-colors duration-200 hover:text-white",
       isActive
         ? "text-white after:absolute after:-bottom-[22px] after:left-0 after:right-0 after:h-[2px] after:rounded-pill after:bg-accent-on-dark max-lg:after:hidden"
-        : "text-white/70"
+        : "text-white/90"
     );
-  const linkPlano = "text-[0.9375rem] text-white/70 transition-colors duration-200 hover:text-white";
+  const linkPlano = "text-[0.9375rem] text-white/90 transition-colors duration-200 hover:text-white";
 
   const navLinks = (
     <>
@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
       <Link
         to="/mis-aplicaciones"
         aria-label={unreadCount > 0 ? `Notificaciones: ${unreadCount} sin leer` : "Notificaciones"}
-        className="relative text-white/60 transition-colors duration-200 hover:text-white"
+        className="relative text-white/90 transition-colors duration-200 hover:text-white"
       >
         <Bell size={20} strokeWidth={1.6} />
         {unreadCount > 0 && (
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
         )}
       </Link>
 
-      <span className="text-[0.9375rem] text-white/70">
+      <span className="text-[0.9375rem] text-white/90">
         Hola, <span className="text-white">{username}</span>
       </span>
 
@@ -156,8 +156,10 @@ const Navbar: React.FC = () => {
     </>
   );
 
+  // 60% de negro, no menos: con el texto al 90% es lo mínimo que pasa AA
+  // (4.62:1) incluso cuando lo que pasa por debajo es blanco puro.
   return (
-    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night/75 shadow-glass-edge-d backdrop-blur-nav backdrop-saturate-150">
+    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night/60 shadow-glass-edge-d backdrop-blur-overlay backdrop-saturate-150">
       <nav className="mx-auto max-w-page px-6 md:px-7">
         <div className="flex h-16 items-center justify-between gap-6">
           <Brand to={rutaLogo} />
@@ -169,7 +171,7 @@ const Navbar: React.FC = () => {
             type="button"
             aria-expanded={isMobileMenuOpen}
             aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            className="text-white/80 transition-colors hover:text-white lg:hidden"
+            className="text-white/90 transition-colors hover:text-white lg:hidden"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
           >
             {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}

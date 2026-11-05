@@ -245,16 +245,17 @@ const Planes: React.FC = () => {
   return (
     <div className="bg-canvas">
       <PageHeader
+        tono="oscuro"
         titulo="Planes"
         detalle="Elige el plan de tu cuenta. Puedes cambiarlo después."
       />
 
       {/* ── Banda clara con los planes ── */}
-      <section className="mesh-light flow-root bg-surface pb-20 pt-2 md:pb-[88px]">
+      <section className="mesh-light flow-root bg-surface pb-20 md:pb-[88px]">
         <div className="relative mx-auto max-w-page px-6 md:px-7">
           {/* Panel a caballo del filo: refracta la banda oscura arriba y la
               página clara abajo. Ese degradado no está pintado. */}
-          <dl className="mt-6 glass-panel edge-l mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
+          <dl className="glass-panel glass-panel-overlap-sm edge-l mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
             {/* Íconos con una etiqueta corta: la explicación larga sobraba. */}
             {GARANTIAS.map(({ titulo, Icono }) => (
               <div key={titulo} className="flex items-center gap-3">
