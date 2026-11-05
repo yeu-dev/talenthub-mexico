@@ -1,5 +1,5 @@
 /** Capa de UI del sistema de diseño. Ver DESIGN.md en la raíz. */
-export { default as Button } from './Button';
+export { default as Button, clasesBoton } from './Button';
 export type { ButtonProps } from './Button';
 
 export { default as Card } from './Card';

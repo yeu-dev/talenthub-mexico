@@ -189,6 +189,11 @@ Weights: `{weight.book}` 460 · `{weight.mid}` 500 · `{weight.demi}` 540.
   detail page reaches 32px and still uses the body face, because it carries
   `tabular-nums` — a typeface with irregular widths undoes exactly what that
   property exists to provide. It is data, not a headline.
+- **One exception to the 52px cap: the "404" on the not-found page.** It is
+  an illustration, not a headline — up to 240px, weight 540, filled with a
+  white-to-transparent gradient and a 1px glass edge, and hidden from screen
+  readers (`aria-hidden`). The real title of that page is its `h1`, which
+  follows the normal scale. Nothing else may borrow this exception.
 
 ### Note on Font Substitutes
 
