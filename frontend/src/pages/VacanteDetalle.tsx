@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, CalendarDays, ArrowRight, Send, LogIn } from 'lucide-react';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
-import { rise, stagger } from '../lib/motion';
+import { formatoSalario } from '../lib/vacantes';
 
 interface Vacante {
   id: number;
   titulo: string;
   empresa_nombre: string;
   descripcion: string;
+  /** Dashboard guarda `{lenguajes, experiencia, otros}`; las viejas pueden traer texto. */
   requisitos: any;
   salario_min: string;
   salario_max: string;
@@ -20,8 +20,6 @@ interface Vacante {
   fecha_publicacion: string;
   activa: boolean;
 }
-
-const MXN = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
 
 /** La ruta de regreso depende del rol: cada uno llegó aquí desde otro lado. */
 const REGRESO: Record<string, { ruta: string; texto: string }> = {
@@ -88,8 +86,8 @@ const VacanteDetalle: React.FC = () => {
 
   if (estado === 'cargando') {
     return (
-      <div className="min-h-screen mesh-page">
-        <div className="mx-auto max-w-4xl px-6 pb-20 pt-10 md:px-7 md:pt-12">
+      <div className="min-h-screen bg-surface">
+        <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <SkeletonCard />
         </div>
       </div>
@@ -98,8 +96,8 @@ const VacanteDetalle: React.FC = () => {
 
   if (estado === 'error' || !vacante) {
     return (
-      <div className="min-h-screen mesh-page">
-        <div className="mx-auto max-w-4xl px-6 pb-20 pt-10 md:px-7 md:pt-12">
+      <div className="min-h-screen bg-surface">
+        <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <EmptyState
             title="No encontramos esta vacante"
             description="Puede que se haya despublicado o que el enlace esté mal."
@@ -119,130 +117,138 @@ const VacanteDetalle: React.FC = () => {
 
   const requisitos = vacante.requisitos;
   const esObjeto = requisitos && typeof requisitos === 'object';
+  const lenguajes: string[] = esObjeto && Array.isArray(requisitos.lenguajes) ? requisitos.lenguajes : [];
+  const experiencia: string = esObjeto && typeof requisitos.experiencia === 'string' ? requisitos.experiencia : '';
+  // `otros` lo guarda el dashboard de empresa y antes no se mostraba en ningún lado.
+  const otros: string = esObjeto && typeof requisitos.otros === 'string' ? requisitos.otros : '';
+  const textoLibre: string = !esObjeto && typeof requisitos === 'string' ? requisitos : '';
+  const hayRequisitos = lenguajes.length > 0 || experiencia || otros || textoLibre;
+
+  const modalidad = vacante.modalidad.charAt(0).toUpperCase() + vacante.modalidad.slice(1);
+  const fecha = new Date(vacante.fecha_publicacion).toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const etiqueta = 'text-[0.8125rem] uppercase tracking-[0.06em] text-muted';
 
   return (
-    <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura: identidad de la vacante ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[130px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-4xl px-6 md:px-7">
+    <div className="min-h-screen bg-surface">
+      {/* ── Franja oscura corta: de qué vacante se trata ── */}
+      <header className="bg-night pb-10 pt-8 text-ink-d md:pt-10">
+        <div className="mx-auto max-w-page px-6 md:px-7">
           <Link
             to={rutaRegreso}
-            className="mb-7 inline-flex items-center gap-2 text-[0.875rem] text-muted-d transition-colors hover:text-ink-d"
+            className="mb-6 inline-flex items-center gap-2 text-[0.875rem] text-muted-d transition-colors hover:text-ink-d"
           >
             <ArrowLeft size={15} strokeWidth={1.8} />
             {textoRegreso}
           </Link>
-
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="font-heading text-[clamp(1.75rem,4vw,2.75rem)] font-mid leading-tight tracking-[-0.03em]">
-                {vacante.titulo}
-              </h1>
-              <p className="mt-2.5 text-sub text-ink-2d">{vacante.empresa_nombre}</p>
-            </div>
-            <Tag tone="dark" tono={TONO_MODALIDAD[vacante.modalidad] ?? 'neutro'}>
-              {vacante.modalidad.charAt(0).toUpperCase() + vacante.modalidad.slice(1)}
-            </Tag>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-2 text-[0.875rem] text-muted-d">
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin size={14} strokeWidth={1.7} />
-              {vacante.ubicacion}
-            </span>
-            <span className="tabular inline-flex items-center gap-1.5">
-              <CalendarDays size={14} strokeWidth={1.7} />
-              {new Date(vacante.fecha_publicacion).toLocaleDateString('es-MX', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
-          </div>
+          <h1 className="max-w-[28ch] font-heading text-[clamp(1.75rem,4vw,2.5rem)] font-mid leading-tight tracking-[-0.02em]">
+            {vacante.titulo}
+          </h1>
+          <p className="mt-2 text-sub text-ink-2d">{vacante.empresa_nombre}</p>
         </div>
       </header>
 
-      <motion.div
-        variants={stagger(0.07)}
-        initial="hidden"
-        animate="show"
-        className="mx-auto max-w-4xl px-6 pb-20 md:px-7"
-      >
-        {/* ── La hoja en glass, montada sobre la banda: el documento ── */}
-        <div className="glass-panel glass-panel-overlap edge-l mb-5 p-7 md:p-9">
-        {/* ── Salario: sin caja de color, el peso lo da la tipografía ── */}
-        <motion.section variants={rise} className="border-b border-hairline pb-8">
-          <p className="text-[0.8125rem] uppercase tracking-[0.06em] text-ink-2">Rango salarial</p>
-          <p className="tabular mt-2.5 text-[clamp(1.5rem,3.4vw,2rem)] font-mid leading-none tracking-[-0.025em] text-ink">
-            ${MXN.format(parseFloat(vacante.salario_min))} – ${MXN.format(parseFloat(vacante.salario_max))}{' '}
-            <span className="ml-1 text-[0.9375rem] font-normal text-muted">MXN mensuales</span>
-          </p>
-        </motion.section>
+      <div className="mx-auto grid max-w-page grid-cols-1 gap-5 px-6 pb-20 pt-6 md:px-7 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="flex flex-col gap-5">
+          {/* ── Resumen: lo que se decide antes de leer lo demás ── */}
+          <Card className="p-7">
+            <p className={etiqueta}>Sueldo mensual</p>
+            <p className="tabular mt-2 text-[clamp(1.5rem,3.4vw,2rem)] font-demi leading-none tracking-[-0.02em] text-ink">
+              {formatoSalario(vacante.salario_min, vacante.salario_max)}
+            </p>
+            <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-hairline pt-5 sm:grid-cols-3">
+              <div>
+                <dt className={etiqueta}>Modalidad</dt>
+                <dd className="mt-1.5 flex items-center gap-2 text-body text-ink">
+                  <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? 'neutro'}>{modalidad}</Tag>
+                </dd>
+              </div>
+              <div>
+                <dt className={etiqueta}>Ubicación</dt>
+                <dd className="mt-1.5 flex items-center gap-2 text-body text-ink">
+                  <MapPin size={15} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
+                  {vacante.ubicacion}
+                </dd>
+              </div>
+              <div>
+                <dt className={etiqueta}>Publicada</dt>
+                <dd className="tabular mt-1.5 flex items-center gap-2 text-body text-ink">
+                  <CalendarDays size={15} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
+                  {fecha}
+                </dd>
+              </div>
+            </dl>
+          </Card>
 
-        {/* ── Descripción ── */}
-        <motion.section variants={rise} className="border-b border-hairline py-8">
-          <h2 className="mb-4 text-h3 font-demi text-ink">Descripción del puesto</h2>
-          <p className="max-w-[68ch] whitespace-pre-line text-[1.0625rem] leading-relaxed text-ink-2">
-            {vacante.descripcion}
-          </p>
-        </motion.section>
-
-        {/* ── Requisitos ── */}
-        <motion.section variants={rise} className="pt-8">
-          <h2 className="mb-5 text-h3 font-demi text-ink">Requisitos</h2>
-
-          {esObjeto ? (
-            <div className="flex flex-col gap-7">
-              {requisitos?.lenguajes?.length > 0 && (
-                <div>
-                  <h3 className="mb-3 text-[0.8125rem] uppercase tracking-[0.06em] text-muted">
-                    Tecnologías
-                  </h3>
-                  <ul className="flex list-none flex-wrap gap-2 p-0">
-                    {requisitos.lenguajes.map((tech: string) => (
-                      <li key={tech}>
-                        <Tag>{tech}</Tag>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {requisitos?.experiencia && (
-                <div>
-                  <h3 className="mb-2 text-[0.8125rem] uppercase tracking-[0.06em] text-muted">
-                    Experiencia
-                  </h3>
-                  <p className="max-w-[68ch] text-[1.0625rem] leading-relaxed text-ink-2">
-                    {requisitos.experiencia}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="max-w-[68ch] text-[1.0625rem] leading-relaxed text-ink-2">{requisitos}</p>
+          {/* ── Requisitos ── */}
+          {hayRequisitos && (
+            <Card className="p-7">
+              <h2 className="text-h3 font-demi text-ink">Requisitos</h2>
+              <div className="mt-5 flex flex-col gap-6">
+                {lenguajes.length > 0 && (
+                  <div>
+                    <h3 className={etiqueta}>Tecnologías</h3>
+                    <ul className="mt-3 flex list-none flex-wrap gap-2 p-0">
+                      {lenguajes.map((tech) => (
+                        <li key={tech} className="rounded-pill bg-surface px-3 py-1 text-[0.875rem] text-ink-2">
+                          {tech}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {experiencia && (
+                  <div>
+                    <h3 className={etiqueta}>Experiencia</h3>
+                    <p className="mt-2 max-w-[68ch] text-body leading-relaxed text-ink-2">{experiencia}</p>
+                  </div>
+                )}
+                {otros && (
+                  <div>
+                    <h3 className={etiqueta}>Además</h3>
+                    <p className="mt-2 max-w-[68ch] whitespace-pre-line text-body leading-relaxed text-ink-2">{otros}</p>
+                  </div>
+                )}
+                {textoLibre && (
+                  <p className="max-w-[68ch] whitespace-pre-line text-body leading-relaxed text-ink-2">{textoLibre}</p>
+                )}
+              </div>
+            </Card>
           )}
-        </motion.section>
 
+          {/* ── Descripción ── */}
+          <Card className="p-7">
+            <h2 className="text-h3 font-demi text-ink">Descripción del puesto</h2>
+            <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[1.0625rem] leading-relaxed text-ink-2">
+              {vacante.descripcion}
+            </p>
+          </Card>
         </div>
 
-        {/* ── Acción según rol: fuera de la hoja, es la decisión no el documento ── */}
-        <motion.section variants={rise}>
+        {/* ── Acción según rol. En escritorio se queda a la vista al bajar. ── */}
+        <aside className="lg:sticky lg:top-[calc(var(--nav-flow)+24px)]">
           {userTipo === 'aspirante' ? (
-            <div>
-              <Button variant="accent" className="w-full" onClick={handleAplicar} disabled={enviando}>
-                <Send size={15} strokeWidth={1.8} />
-                {enviando ? 'Enviando…' : 'Postularme a esta vacante'}
-              </Button>
-              <p className="mt-4 text-center text-[0.875rem] text-muted">
-                Tu perfil y tu CV se envían directamente a {vacante.empresa_nombre}.
+            <Card className="p-6">
+              <p className="tabular text-[1.125rem] font-demi text-ink">
+                {formatoSalario(vacante.salario_min, vacante.salario_max)}
               </p>
-            </div>
+              <p className="mt-0.5 text-[0.875rem] text-muted">
+                {vacante.empresa_nombre} · {modalidad}
+              </p>
+              <Button className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
+                <Send size={15} strokeWidth={1.8} />
+                {enviando ? 'Enviando…' : 'Postularme'}
+              </Button>
+              <p className="mt-3 text-[0.8125rem] leading-relaxed text-muted">
+                Tu perfil y tu CV guardado se envían a {vacante.empresa_nombre}.
+              </p>
+            </Card>
           ) : userTipo === 'empresa' ? (
-            <Card>
+            <Card className="p-6">
               <p className="text-body text-ink">Esta es una vacante publicada en la plataforma.</p>
               <p className="mt-2 text-[0.9375rem] text-ink-2">
                 Puedes gestionar las tuyas desde el{' '}
@@ -253,27 +259,29 @@ const VacanteDetalle: React.FC = () => {
               </p>
             </Card>
           ) : userTipo === 'validador' ? (
-            <Card>
-              <p className="text-[0.8125rem] uppercase tracking-[0.06em] text-muted">Vista de auditoría</p>
+            <Card className="p-6">
+              <p className={etiqueta}>Vista de auditoría</p>
               <p className="mt-2 text-body text-ink">
                 Estás viendo esta vacante como parte de tu revisión de calidad.
               </p>
             </Card>
           ) : (
-            <Card className="text-center">
-              <p className="text-body text-ink-2">Inicia sesión para postularte a esta vacante.</p>
-              <div className="mt-5">
-                <Link to="/login">
-                  <Button variant="accent">
-                    <LogIn size={15} strokeWidth={1.8} />
-                    Iniciar sesión
-                  </Button>
-                </Link>
-              </div>
+            <Card className="p-6">
+              <p className="text-body text-ink">¿Te interesa?</p>
+              <p className="mt-1 text-[0.9375rem] text-ink-2">Inicia sesión o crea tu cuenta para postularte.</p>
+              <Link to="/login" className="mt-5 block">
+                <Button className="w-full">
+                  <LogIn size={15} strokeWidth={1.8} />
+                  Iniciar sesión
+                </Button>
+              </Link>
+              <Link to="/register" className="mt-3 block text-center text-[0.875rem] text-accent hover:underline">
+                Crear cuenta
+              </Link>
             </Card>
           )}
-        </motion.section>
-      </motion.div>
+        </aside>
+      </div>
     </div>
   );
 };
