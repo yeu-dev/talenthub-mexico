@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, Menu, X, LogOut } from "./icons";
 import api from "../services/api";
-import { Button } from "./ui";
+import { Button, clasesBoton } from "./ui";
 import { cx } from "../lib/cx";
 import { EASE, DUR, SPRING } from "../lib/motion";
 import Brand from "./Brand";
@@ -152,10 +152,8 @@ const Navbar: React.FC = () => {
       <Link to="/login" className={linkPlano}>
         Iniciar sesión
       </Link>
-      <Link to="/register">
-        <Button variant="primary" tone="dark" size="sm">
-          Registrarse
-        </Button>
+      <Link to="/register" className={clasesBoton({ variant: 'primary', tone: 'dark', size: 'sm' })}>
+        Registrarse
       </Link>
     </>
   ) : (

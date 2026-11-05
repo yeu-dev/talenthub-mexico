@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ExternalLink, ArrowRight, RotateCcw } from '../components/icons';
 import api from '../services/api';
 import { showError } from '../utils/alerts';
-import { Button, Card, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
+import { Button, clasesBoton, Card, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
 import { stagger, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
@@ -125,11 +125,9 @@ const MisAplicaciones: React.FC = () => {
               title="Todavía no te has postulado"
               description="Explora las vacantes abiertas y postúlate a las que encajen con tu perfil."
               action={
-                <Link to="/vacantes">
-                  <Button variant="accent">
-                    <ArrowRight size={15} strokeWidth={1.8} />
-                    Explorar vacantes
-                  </Button>
+                <Link to="/vacantes" className={clasesBoton({ variant: 'accent' })}>
+                  <ArrowRight size={15} strokeWidth={1.8} />
+                  Explorar vacantes
                 </Link>
               }
             />
@@ -159,11 +157,9 @@ const MisAplicaciones: React.FC = () => {
                           })}
                         </p>
                       </div>
-                      <Link to={`/vacantes/${aplicacion.vacante}`}>
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink size={14} strokeWidth={1.8} />
-                          Ver vacante
-                        </Button>
+                      <Link to={`/vacantes/${aplicacion.vacante}`} className={clasesBoton({ variant: 'ghost', size: 'sm' })}>
+                        <ExternalLink size={14} strokeWidth={1.8} />
+                        Ver vacante
                       </Link>
                     </div>
 
