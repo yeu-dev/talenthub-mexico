@@ -11,3 +11,4 @@ build/
 .agents/
 .codex/
 .playwright/
+skills-lock.json
