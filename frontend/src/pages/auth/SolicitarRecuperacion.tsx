@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Info, Send } from 'lucide-react';
+import { AlertTriangle, Info, Send } from '../../components/icons';
 import api from '../../services/api';
 import { AuthShell, Button, Field, Input } from '../../components/ui';
 import { cx } from '../../lib/cx';
+import { useTitulo } from '../../hooks/useTitulo';
 
 export default function SolicitarRecuperacion() {
+  useTitulo('Recuperar contraseña');
   const [email, setEmail] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);

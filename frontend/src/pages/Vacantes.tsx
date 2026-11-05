@@ -1,37 +1,52 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { SlidersHorizontal, MapPin, ExternalLink, X, RotateCcw } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { MapPin, RotateCcw, Search, X } from '../components/icons';
 import api from '../services/api';
-import { Button, Card, EmptyState, Field, Input, Select, SkeletonList, Tag, TONO_MODALIDAD } from '../components/ui';
-import { rise, stagger } from '../lib/motion';
+import { Button, EmptyState, Input, SkeletonList } from '../components/ui';
+import PageHeader from '../components/PageHeader';
+import VacanteCard from '../components/VacanteCard';
+import { useTitulo } from '../hooks/useTitulo';
+import { motion } from 'framer-motion';
+import { cx } from '../lib/cx';
+import { stagger, subeResorte } from '../lib/motion';
+import { coincide, VacantePublica } from '../lib/vacantes';
 
-interface Vacante {
-  id: number;
-  titulo: string;
-  empresa_nombre: string;
-  descripcion: string;
-  salario_min: string;
-  salario_max: string;
-  modalidad: string;
-  ubicacion: string;
-  fecha_publicacion: string;
-}
+const MODALIDADES = [
+  { valor: '', etiqueta: 'Todas' },
+  { valor: 'remoto', etiqueta: 'Remoto' },
+  { valor: 'hibrido', etiqueta: 'Híbrido' },
+  { valor: 'presencial', etiqueta: 'Presencial' },
+];
 
-const MXN = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
-
+/**
+ * El listado de vacantes. Los filtros viven en la URL (`?q=&lugar=&modalidad=
+ * &salario=`): así el buscador y los chips de la portada llegan ya aplicados,
+ * y una búsqueda se puede compartir o recargar sin perderla.
+ */
 const Vacantes: React.FC = () => {
-  const [vacantes, setVacantes] = useState<Vacante[]>([]);
+  const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
+  const [params, setParams] = useSearchParams();
+  useTitulo('Vacantes');
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [modalidadFiltro, setModalidadFiltro] = useState('');
-  const [salarioMin, setSalarioMin] = useState('');
+  const q = params.get('q') ?? '';
+  const lugar = params.get('lugar') ?? '';
+  const modalidad = params.get('modalidad') ?? '';
+  const salario = params.get('salario') ?? '';
+
+  // `replace`: escribir en el buscador no debe llenar el historial; "atrás"
+  // regresa a la página anterior, no a la letra anterior.
+  const cambiar = (clave: string, valor: string) => {
+    const siguiente = new URLSearchParams(params);
+    if (valor) siguiente.set(clave, valor);
+    else siguiente.delete(clave);
+    setParams(siguiente, { replace: true });
+  };
 
   const fetchVacantes = useCallback(async () => {
     setEstado('cargando');
     try {
-      const response = await api.get('/vacantes/');
+      const response = await api.get<VacantePublica[]>('/vacantes/');
       setVacantes(response.data);
       setEstado('listo');
     } catch (error) {
@@ -46,191 +61,168 @@ const Vacantes: React.FC = () => {
   }, [fetchVacantes]);
 
   const vacantesFiltradas = useMemo(() => {
-    let resultado = vacantes;
+    const minimo = parseFloat(salario);
+    return vacantes.filter(
+      (v) =>
+        coincide(v, { q, lugar, modalidad }) &&
+        // Cuenta el tope del rango: una de $25k–$40k le sirve a quien pide $35k.
+        (!Number.isFinite(minimo) || parseFloat(v.salario_max) >= minimo)
+    );
+  }, [vacantes, q, lugar, modalidad, salario]);
 
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      resultado = resultado.filter(
-        (v) => v.titulo.toLowerCase().includes(q) || v.empresa_nombre.toLowerCase().includes(q)
-      );
-    }
-    if (modalidadFiltro) {
-      resultado = resultado.filter((v) => v.modalidad === modalidadFiltro);
-    }
-    if (salarioMin) {
-      resultado = resultado.filter((v) => parseFloat(v.salario_max) >= parseFloat(salarioMin));
-    }
-    return resultado;
-  }, [vacantes, searchTerm, modalidadFiltro, salarioMin]);
+  const hayFiltros = Boolean(q || lugar || modalidad || salario);
+  const limpiarFiltros = () => setParams(new URLSearchParams(), { replace: true });
 
-  const hayFiltros = Boolean(searchTerm || modalidadFiltro || salarioMin);
-
-  const limpiarFiltros = () => {
-    setSearchTerm('');
-    setModalidadFiltro('');
-    setSalarioMin('');
-  };
+  const campo =
+    'flex flex-1 items-center gap-2.5 rounded-ui border border-hairline bg-white/[0.04] px-3.5 py-2.5 transition-colors focus-within:border-accent focus-within:shadow-focus-accent';
+  const input = 'w-full bg-transparent text-body text-ink placeholder:text-muted focus:outline-none';
 
   return (
     <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura: el ancla que le faltaba a la página, y el sustrato del glass ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-page px-6 md:px-7">
-          <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-            Vacantes
-          </h1>
-          <p className="tabular mt-3 text-sub text-ink-2d">
-            {estado === 'listo'
-              ? hayFiltros
-                ? `${vacantesFiltradas.length} de ${vacantes.length} oportunidades`
-                : `${vacantes.length} oportunidades abiertas`
-              : 'Buscando oportunidades…'}
-          </p>
-        </div>
-      </header>
+      {/* ── Encabezado claro: es la herramienta de búsqueda, no una portada ── */}
+      <PageHeader
+        tono="oscuro"
+        solapa={false}
+        titulo="Vacantes"
+        detalle={
+          estado === 'listo'
+            ? hayFiltros
+              ? `${vacantesFiltradas.length} de ${vacantes.length} vacantes`
+              : `${vacantes.length} ${vacantes.length === 1 ? 'vacante abierta' : 'vacantes abiertas'}`
+            : 'Cargando vacantes…'
+        }
+      />
 
-      <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Filtros en glass, a caballo entre la banda oscura y el cuerpo claro.
-             El fondo cambia a través del panel: ahí es donde el glass se ve. ── */}
-        <div className="glass-panel glass-panel-overlap edge-l mb-8 p-7">
-          <div className="mb-5 flex items-center gap-2.5">
-            <SlidersHorizontal size={16} strokeWidth={1.7} className="text-muted" />
-            <h2 className="text-[0.9375rem] font-mid text-ink">Filtrar resultados</h2>
+      {/* ── Barra de búsqueda y filtros, en vidrio: se queda pegada bajo la navegación
+           y las tarjetas se ven pasar desenfocadas por debajo ── */}
+      <div className="sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-night/70 backdrop-blur-nav backdrop-saturate-150">
+        <div className="mx-auto flex max-w-page flex-col gap-3 px-6 py-4 md:px-7 lg:flex-row lg:items-center">
+          <div role="search" className="flex flex-1 flex-col gap-2 sm:flex-row">
+            <label className={campo}>
+              <Search size={17} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+              <span className="sr-only">Puesto, empresa o tecnología</span>
+              <input
+                value={q}
+                onChange={(e) => cambiar('q', e.target.value)}
+                placeholder="Puesto, empresa o tecnología"
+                className={input}
+              />
+            </label>
+            <label className={cx(campo, 'sm:max-w-[260px]')}>
+              <MapPin size={17} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+              <span className="sr-only">Ciudad o remoto</span>
+              <input
+                value={lugar}
+                onChange={(e) => cambiar('lugar', e.target.value)}
+                placeholder="Ciudad o remoto"
+                className={input}
+              />
+            </label>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Field label="Buscar" htmlFor="f-buscar">
-              <Input
-                id="f-buscar"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Título o empresa…"
-              />
-            </Field>
-
-            <Field label="Modalidad" htmlFor="f-modalidad">
-              <Select
-                id="f-modalidad"
-                value={modalidadFiltro}
-                onChange={(e) => setModalidadFiltro(e.target.value)}
-              >
-                <option value="">Todas</option>
-                <option value="remoto">Remoto</option>
-                <option value="presencial">Presencial</option>
-                <option value="hibrido">Híbrido</option>
-              </Select>
-            </Field>
-
-            <Field label="Salario mínimo" htmlFor="f-salario" hint="En pesos mexicanos">
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="radiogroup" aria-label="Modalidad" className="flex flex-wrap gap-1.5">
+              {MODALIDADES.map(({ valor, etiqueta }) => {
+                const activo = modalidad === valor;
+                return (
+                  <button
+                    key={etiqueta}
+                    type="button"
+                    role="radio"
+                    aria-checked={activo}
+                    onClick={() => cambiar('modalidad', valor)}
+                    className={cx(
+                      'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-[color,border-color,background-color,transform] duration-200 active:scale-95',
+                      activo
+                        ? 'border-accent bg-accent/[0.08] text-accent-on-dark'
+                        : 'border-hairline bg-white/[0.04] text-ink-2 hover:border-hairline-strong hover:text-ink'
+                    )}
+                  >
+                    {etiqueta}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="w-[150px]">
+              <label htmlFor="f-salario" className="sr-only">
+                Sueldo mínimo
+              </label>
               <Input
                 id="f-salario"
                 type="number"
-                value={salarioMin}
-                onChange={(e) => setSalarioMin(e.target.value)}
-                placeholder="30000"
+                inputMode="numeric"
+                min={0}
+                step={1000}
+                value={salario}
+                onChange={(e) => cambiar('salario', e.target.value)}
+                placeholder="Sueldo mín."
               />
-            </Field>
-
-            <div className="flex items-start md:pt-[26px]">
-              <Button variant="ghost" className="w-full" onClick={limpiarFiltros} disabled={!hayFiltros}>
-                <X size={14} strokeWidth={1.8} />
-                Limpiar filtros
-              </Button>
             </div>
+            {hayFiltros && (
+              <Button variant="ghost" size="sm" onClick={limpiarFiltros}>
+                <X size={14} strokeWidth={1.8} />
+                Limpiar
+              </Button>
+            )}
           </div>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resultados ── */}
-        {estado === 'cargando' && <SkeletonList count={4} />}
+        <div className="pt-6">
+          {estado === 'cargando' && <SkeletonList count={4} />}
 
-        {estado === 'error' && (
-          <EmptyState
-            title="No pudimos cargar las vacantes"
-            description="El servidor no respondió. Puede ser una caída momentánea o tu conexión."
-            action={
-              <Button variant="ghost" onClick={fetchVacantes}>
-                <RotateCcw size={14} strokeWidth={1.8} />
-                Reintentar
-              </Button>
-            }
-          />
-        )}
-
-        {estado === 'listo' && vacantesFiltradas.length === 0 && (
-          <EmptyState
-            title={hayFiltros ? 'Ninguna vacante coincide' : 'Todavía no hay vacantes publicadas'}
-            description={
-              hayFiltros
-                ? 'Prueba con otros términos o amplía el rango salarial.'
-                : 'En cuanto las empresas publiquen, aparecerán aquí.'
-            }
-            action={
-              hayFiltros ? (
-                <Button variant="ghost" onClick={limpiarFiltros}>
-                  <X size={14} strokeWidth={1.8} />
-                  Limpiar filtros
+          {estado === 'error' && (
+            <EmptyState
+              title="No pudimos cargar las vacantes"
+              description="El servidor no respondió. Puede ser una caída momentánea o tu conexión."
+              action={
+                <Button variant="ghost" onClick={fetchVacantes}>
+                  <RotateCcw size={14} strokeWidth={1.8} />
+                  Reintentar
                 </Button>
-              ) : undefined
-            }
-          />
-        )}
+              }
+            />
+          )}
 
-        {estado === 'listo' && vacantesFiltradas.length > 0 && (
-          <motion.ul
-            variants={stagger(0.06)}
-            initial="hidden"
-            animate="show"
-            className="flex list-none flex-col gap-3.5 p-0"
-          >
-            {vacantesFiltradas.map((vacante) => (
-              <motion.li key={vacante.id} variants={rise}>
-                <Card as="article" glass interactive>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <h3 className="text-[1.3125rem] font-demi tracking-[-0.012em] text-ink">
-                        {vacante.titulo}
-                      </h3>
-                      <p className="mt-1 text-[0.875rem] text-muted">{vacante.empresa_nombre}</p>
-                    </div>
-                    <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? 'neutro'}>
-                      {vacante.modalidad.charAt(0).toUpperCase() + vacante.modalidad.slice(1)}
-                    </Tag>
-                  </div>
+          {estado === 'listo' && vacantesFiltradas.length === 0 && (
+            <EmptyState
+              title={hayFiltros ? 'Ninguna vacante coincide' : 'Todavía no hay vacantes publicadas'}
+              description={
+                hayFiltros
+                  ? 'Prueba con otros términos, otra ciudad o un sueldo mínimo más bajo.'
+                  : 'En cuanto las empresas publiquen y se aprueben, aparecerán aquí.'
+              }
+              action={
+                hayFiltros ? (
+                  <Button variant="ghost" onClick={limpiarFiltros}>
+                    <X size={14} strokeWidth={1.8} />
+                    Limpiar filtros
+                  </Button>
+                ) : undefined
+              }
+            />
+          )}
 
-                  <p className="mb-[18px] mt-3.5 max-w-[66ch] text-[0.90625rem] leading-relaxed text-ink-2">
-                    {vacante.descripcion.length > 180
-                      ? `${vacante.descripcion.slice(0, 180).trimEnd()}…`
-                      : vacante.descripcion}
-                  </p>
-
-                  <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                      <p className="tabular text-[1.03125rem] text-ink">
-                        ${MXN.format(parseFloat(vacante.salario_min))} – $
-                        {MXN.format(parseFloat(vacante.salario_max))} MXN
-                      </p>
-                      <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-muted">
-                        <MapPin size={13} strokeWidth={1.7} />
-                        {vacante.ubicacion}
-                      </p>
-                    </div>
-                    <Link to={`/vacantes/${vacante.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink size={14} strokeWidth={1.8} />
-                        Ver detalles
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </motion.li>
-            ))}
-          </motion.ul>
-        )}
+          {estado === 'listo' && vacantesFiltradas.length > 0 && (
+            <motion.ul
+              // La llave cambia con los filtros: así cada búsqueda vuelve a
+              // entrar escalonada en vez de que las tarjetas solo cambien.
+              key={`${q}|${lugar}|${modalidad}|${salario}`}
+              variants={stagger(0.05)}
+              initial="hidden"
+              animate="show"
+              className="grid list-none grid-cols-1 gap-4 p-0 lg:grid-cols-2"
+            >
+              {vacantesFiltradas.map((vacante) => (
+                <motion.li key={vacante.id} variants={subeResorte}>
+                  <VacanteCard vacante={vacante} conDescripcion />
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
+        </div>
       </div>
     </div>
   );

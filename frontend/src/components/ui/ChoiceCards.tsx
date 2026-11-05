@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Check } from '../icons';
+import type { LucideIcon } from '../icons';
 import { cx } from '../../lib/cx';
 import { SPRING, SPRING_SOFT } from '../../lib/motion';
 
@@ -118,7 +118,7 @@ export default function ChoiceCards({
                     className={cx(
                       'transition-colors duration-200',
                       activo
-                        ? oscuro ? 'text-accent-on-dark' : 'text-accent'
+                        ? oscuro ? 'text-accent-on-dark' : 'text-accent-on-dark'
                         : oscuro ? 'text-muted-d' : 'text-muted'
                     )}
                   />

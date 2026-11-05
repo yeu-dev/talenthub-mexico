@@ -21,12 +21,6 @@ export const SPRING_SOFT: Transition = { type: 'spring', stiffness: 260, damping
 
 export const DUR = { fast: 0.18, base: 0.42, slow: 0.75 } as const;
 
-/** ¿El sistema operativo pide menos movimiento? Se consulta en runtime, no al importar. */
-export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || !window.matchMedia) return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 /** Entrada estándar: sube y aparece. */
 export const rise: Variants = {
   hidden: { opacity: 0, y: 16 },
@@ -52,6 +46,16 @@ export const riseGlass: Variants = {
   show: { y: 0, transition: { duration: DUR.slow, ease: EASE } },
 };
 
+/**
+ * Entrada de listas: sube con resorte y se asienta con un rebote corto, en
+ * vez del fundido de siempre. Sin opacidad a propósito: las tarjetas son de
+ * vidrio y un fade aplana el `backdrop-filter` hasta que llega a 1.
+ */
+export const subeResorte: Variants = {
+  hidden: { y: 28, scale: 0.975 },
+  show: { y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 22, mass: 0.9 } },
+};
+
 /** Contenedor que escalona a sus hijos. La orquestación es la firma, no el efecto suelto. */
 export const stagger = (gap = 0.09, delay = 0): Variants => ({
   hidden: {},
@@ -65,13 +69,3 @@ export const revealViewport = {
   viewport: { once: true, amount: 0.18 },
   variants: rise,
 };
-
-/** Transición entre rutas. Sutil a propósito: es tránsito, no espectáculo. */
-export const pageTransition: Variants = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: DUR.base, ease: EASE } },
-  exit: { opacity: 0, y: -6, transition: { duration: DUR.fast, ease: EASE } },
-};
-
-/** Press de botón. El lift de cards va por CSS (borde y fondo), nunca por sombra. */
-export const press = { whileTap: { scale: 0.96 }, transition: SPRING };

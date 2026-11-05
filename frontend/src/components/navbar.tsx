@@ -1,27 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Menu, X, LogOut } from "lucide-react";
+import { Bell, Menu, X, LogOut } from "./icons";
 import api from "../services/api";
 import { Button } from "./ui";
 import { cx } from "../lib/cx";
-import { EASE, DUR } from "../lib/motion";
+import { EASE, DUR, SPRING } from "../lib/motion";
+import Brand from "./Brand";
+
+// La sección actual: texto blanco y una línea azul en el borde de la barra
+// que se DESLIZA de un link al otro al cambiar de página (layoutId), en vez
+// de apagarse en uno y prenderse en otro.
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  cx(
+    "relative text-[0.9375rem] transition-colors duration-200 hover:text-white",
+    isActive ? "text-white" : "text-white/90"
+  );
+
+const Enlace: React.FC<{ to: string; enMenu: boolean; className?: string; children: React.ReactNode }> = ({
+  to,
+  enMenu,
+  className,
+  children,
+}) => (
+  <NavLink to={to} className={(estado) => cx(linkClass(estado), className)}>
+    {({ isActive }) => (
+      <>
+        {children}
+        {isActive && !enMenu && (
+          <motion.span
+            layoutId="nav-activo"
+            transition={SPRING}
+            className="absolute -bottom-[22px] left-0 right-0 h-[2px] rounded-pill bg-accent-on-dark"
+          />
+        )}
+      </>
+    )}
+  </NavLink>
+);
 
 /**
- * Nav flotante oscuro sobre contenido claro.
+ * Barra de vidrio oscuro de ancho completo, pegada arriba, con el logo.
  *
- * Es el componente firma del sistema: en vez de una barra blanca pegada al
- * borde, un pill oscuro translúcido que flota separado del viewport. Sobre el
- * hero oscuro se funde; sobre el contenido claro contrasta. Ese cruce es lo
- * que distingue al sitio de cualquier otro portal claro.
- *
- * La lógica de roles, el contador de notificaciones y el menú móvil son los
- * de siempre — aquí solo cambió la forma.
+ * Translúcida con desenfoque: sobre las bandas oscuras se funde, y sobre el
+ * contenido claro se ve pasar la página por debajo. La sección actual se
+ * marca con una línea azul en el borde inferior de la barra.
  */
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const isHome = location.pathname === "/";
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  // Las pantallas de acceso usan AuthShell, que trae su propio logo y ocupa
+  // toda la pantalla: ahi la barra sobra.
+  const isAuthPage = ["/login", "/register", "/olvide-password", "/restablecer-password"].some(
+    (ruta) => location.pathname === ruta || location.pathname.startsWith(`${ruta}/`)
+  );
 
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("user_username");
@@ -60,59 +91,61 @@ const Navbar: React.FC = () => {
     rutaLogo = tipo === "empresa" ? "/dashboard" : "/vacantes";
   }
 
-  const linkClass = "text-[0.9375rem] text-white/70 transition-colors duration-200 hover:text-white";
+  // La sección actual se marca: texto blanco y una línea azul debajo. Antes
+  // todos los links se veían igual y no se sabía en qué página se estaba.
+  const linkPlano = "text-[0.9375rem] text-white/90 transition-colors duration-200 hover:text-white";
 
-  const navLinks = (
+  const navLinks = (enMenu: boolean) => (
     <>
-      {!isHome && tipo !== "empresa" && tipo !== "validador" && (
-        <Link to="/vacantes" className={linkClass}>
+      {tipo !== "empresa" && tipo !== "validador" && (
+        <Enlace to="/vacantes" enMenu={enMenu}>
           Vacantes
-        </Link>
+        </Enlace>
       )}
 
       {tipo === "aspirante" && (
         <>
-          <Link to="/mi-perfil" className={linkClass}>
+          <Enlace to="/mi-perfil" enMenu={enMenu}>
             Mi perfil
-          </Link>
-          <Link to="/mis-aplicaciones" className={linkClass}>
+          </Enlace>
+          <Enlace to="/mis-aplicaciones" enMenu={enMenu}>
             Mis postulaciones
-          </Link>
+          </Enlace>
         </>
       )}
 
       {tipo === "empresa" && (
         <>
-          <Link to="/dashboard" className={linkClass}>
-            Dashboard
-          </Link>
-          <Link to="/aplicaciones-empresa" className={linkClass}>
+          <Enlace to="/dashboard" enMenu={enMenu}>
+            Mis vacantes
+          </Enlace>
+          <Enlace to="/aplicaciones-empresa" enMenu={enMenu}>
             Postulaciones
-          </Link>
+          </Enlace>
         </>
       )}
 
       {tipo === "validador" && (
-        <Link to="/validador" className={cx(linkClass, "text-accent-on-dark hover:text-accent-on-dark")}>
+        <Enlace to="/validador" enMenu={enMenu} className="text-accent-on-dark hover:text-accent-on-dark">
           Panel de auditoría
-        </Link>
+        </Enlace>
       )}
 
-      {!isHome && tipo !== "validador" && (
-        <Link to="/planes" className={linkClass}>
+      {tipo !== "validador" && (
+        <Enlace to="/planes" enMenu={enMenu}>
           Planes
-        </Link>
+        </Enlace>
       )}
 
-      <Link to="/politicas" className={linkClass}>
+      <Enlace to="/politicas" enMenu={enMenu}>
         Privacidad
-      </Link>
+      </Enlace>
     </>
   );
 
   const sessionControls = !token ? (
     <>
-      <Link to="/login" className={linkClass}>
+      <Link to="/login" className={linkPlano}>
         Iniciar sesión
       </Link>
       <Link to="/register">
@@ -126,7 +159,7 @@ const Navbar: React.FC = () => {
       <Link
         to="/mis-aplicaciones"
         aria-label={unreadCount > 0 ? `Notificaciones: ${unreadCount} sin leer` : "Notificaciones"}
-        className="relative text-white/60 transition-colors duration-200 hover:text-white"
+        className="relative text-white/90 transition-colors duration-200 hover:text-white"
       >
         <Bell size={20} strokeWidth={1.6} />
         {unreadCount > 0 && (
@@ -136,7 +169,7 @@ const Navbar: React.FC = () => {
         )}
       </Link>
 
-      <span className="text-[0.9375rem] text-white/70">
+      <span className="text-[0.9375rem] text-white/90">
         Hola, <span className="text-white">{username}</span>
       </span>
 
@@ -147,28 +180,22 @@ const Navbar: React.FC = () => {
     </>
   );
 
+  // 60% de negro, no menos: con el texto al 90% es lo mínimo que pasa AA
+  // (4.62:1) incluso cuando lo que pasa por debajo es blanco puro.
   return (
-    <div className="pointer-events-none sticky top-0 z-50 px-4 pt-4 md:px-7 md:pt-5">
-      <nav
-        className={cx(
-          "pointer-events-auto mx-auto max-w-[940px]",
-          "rounded-nav border border-hairline-d bg-elevated/80 shadow-glass-edge-d",
-          "backdrop-blur-nav backdrop-saturate-150"
-        )}
-      >
-        <div className="flex items-center justify-between gap-6 py-2 pl-5 pr-2">
-          <Link to={rutaLogo} className="whitespace-nowrap text-[1rem] font-mid tracking-[-0.015em] text-white">
-            TalentHub
-          </Link>
+    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night/60 shadow-glass-edge-d backdrop-blur-overlay backdrop-saturate-150">
+      <nav className="mx-auto max-w-page px-6 md:px-7">
+        <div className="flex h-16 items-center justify-between gap-6">
+          <Brand to={rutaLogo} />
 
-          <div className="hidden items-center gap-6 lg:flex">{navLinks}</div>
+          <div className="hidden items-center gap-6 lg:flex">{navLinks(false)}</div>
           <div className="hidden items-center gap-5 lg:flex">{sessionControls}</div>
 
           <button
             type="button"
             aria-expanded={isMobileMenuOpen}
             aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            className="text-white/80 transition-colors hover:text-white lg:hidden"
+            className="text-white/90 transition-colors hover:text-white lg:hidden"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
           >
             {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -185,8 +212,8 @@ const Navbar: React.FC = () => {
               transition={{ duration: DUR.base, ease: EASE }}
               className="overflow-hidden lg:hidden"
             >
-              <div className="flex flex-col gap-5 border-t border-hairline-d px-5 py-5">
-                {navLinks}
+              <div className="flex flex-col gap-5 border-t border-hairline-d py-5">
+                {navLinks(true)}
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline-d pt-5">
                   {sessionControls}
                 </div>

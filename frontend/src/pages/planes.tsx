@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, RotateCcw, X } from "lucide-react";
+import { Check, ArrowRight, CreditCard, RotateCcw, Unlock, X, Zap } from "../components/icons";
 import api from "../services/api";
 import { showSuccess, showError, showConfirm } from "../utils/alerts";
 import { Button, Card, EmptyState, SkeletonList } from "../components/ui";
 import { cx } from "../lib/cx";
 import { rise, stagger, revealViewport } from "../lib/motion";
+import PageHeader from "../components/PageHeader";
+import { useTitulo } from "../hooks/useTitulo";
 
 interface Plan {
   id: number;
@@ -34,12 +36,13 @@ const DESCRIPCIONES: Record<string, string> = {
 
 /** Lo que ya promete la página, dicho donde se toma la decisión. */
 const GARANTIAS = [
-  { titulo: "Sin permanencia", detalle: "Cancelas cuando quieras, desde tu propio panel." },
-  { titulo: "El cambio aplica al momento", detalle: "Subes o bajas de plan y toma efecto de inmediato." },
-  { titulo: "Cobro por PayPal", detalle: "TalentHub nunca ve los datos de tu tarjeta." },
+  { titulo: "Sin permanencia", Icono: Unlock },
+  { titulo: "Cambio al momento", Icono: Zap },
+  { titulo: "Pago con PayPal", Icono: CreditCard },
 ];
 
 const Planes: React.FC = () => {
+  useTitulo("Planes");
   const navigate = useNavigate();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [miSuscripcion, setMiSuscripcion] = useState<MiSuscripcion | null>(null);
@@ -113,7 +116,6 @@ const Planes: React.FC = () => {
     if (plan.max_postulaciones_dia) items.push(`${plan.max_postulaciones_dia} postulaciones por día`);
     if (plan.max_candidatos) items.push(`Hasta ${plan.max_candidatos} candidatos por vacante`);
     items.push("Acceso completo al catálogo de TI");
-    items.push("Soporte y plataforma verificada");
     return items;
   };
 
@@ -147,7 +149,7 @@ const Planes: React.FC = () => {
                     <span
                       className={cx(
                         "whitespace-nowrap rounded-pill border px-2.5 py-1 text-[0.6875rem] uppercase tracking-[0.06em]",
-                        destacado ? "border-hairline-d text-accent-on-dark" : "border-hairline text-accent"
+                        destacado ? "border-hairline-d text-accent-on-dark" : "border-hairline text-accent-on-dark"
                       )}
                     >
                       Tu plan
@@ -184,7 +186,7 @@ const Planes: React.FC = () => {
                       <Check
                         size={15}
                         strokeWidth={2}
-                        className={cx("mt-[3px] flex-none", destacado ? "text-accent-on-dark" : "text-accent")}
+                        className={cx("mt-[3px] flex-none", destacado ? "text-accent-on-dark" : "text-accent-on-dark")}
                       />
                       <span className={cx("text-[0.875rem]", destacado ? "text-ink-2d" : "text-ink-2")}>
                         {item}
@@ -241,33 +243,12 @@ const Planes: React.FC = () => {
     ) : null;
 
   return (
-    <div className="bg-canvas">
-      {/* ── Hero oscuro ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[150px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[620px] w-[980px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),transparent_74%)] blur-[6px]"
-        />
-        <motion.div
-          variants={stagger(0.1, 0.05)}
-          initial="hidden"
-          animate="show"
-          className="relative mx-auto max-w-page px-6 md:px-7"
-        >
-          <motion.p variants={rise} className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">
-            Planes
-          </motion.p>
-          <motion.h1
-            variants={rise}
-            className="mb-5 max-w-[16ch] font-heading text-[clamp(2rem,5vw,3.5rem)] font-mid leading-none tracking-[-0.035em]"
-          >
-            Elige cómo quieres crecer
-          </motion.h1>
-          <motion.p variants={rise} className="max-w-[46ch] text-sub text-ink-2d">
-            Sin permanencia y sin cargos ocultos. Cambias o cancelas cuando quieras.
-          </motion.p>
-        </motion.div>
-      </header>
+    <div className="mesh-page">
+      <PageHeader
+        tono="oscuro"
+        titulo="Planes"
+        detalle="Elige el plan de tu cuenta. Puedes cambiarlo después."
+      />
 
       {/* ── Banda clara con los planes ── */}
       <section className="mesh-light flow-root bg-surface pb-20 md:pb-[88px]">
@@ -275,10 +256,14 @@ const Planes: React.FC = () => {
           {/* Panel a caballo del filo: refracta la banda oscura arriba y la
               página clara abajo. Ese degradado no está pintado. */}
           <dl className="glass-panel glass-panel-overlap-sm edge-l mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
-            {GARANTIAS.map(({ titulo, detalle }) => (
-              <div key={titulo}>
-                <dt className="font-mid text-[0.9375rem] text-ink">{titulo}</dt>
-                <dd className="mt-1.5 text-[0.875rem] leading-relaxed text-muted">{detalle}</dd>
+            {/* Íconos con una etiqueta corta: la explicación larga sobraba. */}
+            {GARANTIAS.map(({ titulo, Icono }) => (
+              <div key={titulo} className="flex items-center gap-3">
+                <dt className="sr-only">{titulo}</dt>
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill bg-accent/[0.08]">
+                  <Icono size={18} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
+                </span>
+                <dd className="font-mid text-[0.9375rem] text-ink">{titulo}</dd>
               </div>
             ))}
           </dl>

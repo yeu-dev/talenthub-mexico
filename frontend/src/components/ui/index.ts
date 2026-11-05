@@ -5,7 +5,6 @@ export type { ButtonProps } from './Button';
 export { default as Card } from './Card';
 export { default as Tag, TONO_MODALIDAD } from './Tag';
 export type { TagTono } from './Tag';
-export { default as CountUp } from './CountUp';
 
 export { Field, Input, Select, Textarea } from './Field';
 export { default as ChoiceCards } from './ChoiceCards';

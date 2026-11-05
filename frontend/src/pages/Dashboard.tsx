@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, X, Pencil, EyeOff, RotateCcw, ExternalLink, Trash2, Check } from 'lucide-react';
+import { Plus, X, Pencil, EyeOff, RotateCcw, ExternalLink, Trash2, Check } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import { Button, Card, EmptyState, Field, Input, Select, Textarea, SkeletonList, Tag } from '../components/ui';
 import type { TagTono } from '../components/ui';
-import { rise, stagger, EASE, DUR } from '../lib/motion';
+import { stagger, EASE, DUR, subeResorte } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface Vacante {
   id: number;
@@ -44,6 +47,7 @@ const estadoDe = (v: Vacante): { label: string; tono: TagTono } => {
 };
 
 const Dashboard: React.FC = () => {
+  useTitulo('Mis vacantes');
   const navigate = useNavigate();
   const [vacantes, setVacantes] = useState<Vacante[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
@@ -250,27 +254,19 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto flex max-w-page flex-wrap items-end justify-between gap-6 px-6 md:px-7">
-          <div>
-            <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Empresa</p>
-            <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-              Mis vacantes
-            </h1>
-            <p className="tabular mt-3 text-sub text-ink-2d">
-              {estado === 'listo'
-                ? vacantes.length === 1
-                  ? '1 vacante publicada'
-                  : `${vacantes.length} vacantes publicadas`
-                : 'Cargando tus vacantes…'}
-            </p>
-          </div>
-
+      <PageHeader
+        tono="oscuro"
+        migas={migasDeCuenta('Mis vacantes')}
+        titulo="Mis vacantes"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+        detalle={
+          estado === 'listo'
+            ? vacantes.length === 1
+              ? '1 vacante publicada'
+              : `${vacantes.length} vacantes publicadas`
+            : 'Cargando tus vacantes…'
+        }
+        acciones={
           <Button
             variant={showForm ? 'ghost' : 'primary'}
             tone="dark"
@@ -279,11 +275,11 @@ const Dashboard: React.FC = () => {
             {showForm ? <X size={16} strokeWidth={1.8} /> : <Plus size={16} strokeWidth={1.8} />}
             {showForm ? 'Cancelar' : 'Nueva vacante'}
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Resumen en glass, montado sobre la banda ── */}
+        {/* ── Resumen ── */}
         {estado === 'listo' && vacantes.length > 0 && (
           <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {resumen.map(({ label, total }) => (
@@ -297,7 +293,7 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'relative z-10 -mt-24'}>
+        <div className={estado === 'listo' && vacantes.length > 0 ? '' : 'glass-panel glass-panel-overlap-sm edge-l p-2'}>
           {/* ── Formulario ── */}
           <AnimatePresence initial={false}>
             {showForm && (
@@ -464,7 +460,7 @@ const Dashboard: React.FC = () => {
                 const pendiente = vacante.estado_validacion === 'pendiente';
 
                 return (
-                  <motion.li key={vacante.id} variants={rise}>
+                  <motion.li key={vacante.id} variants={subeResorte}>
                     <Card as="article" glass>
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
@@ -497,7 +493,7 @@ const Dashboard: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="!text-accent hover:border-accent/40"
+                          className="!text-accent-on-dark hover:border-accent/40"
                           onClick={() => handleEdit(vacante)}
                           disabled={rechazada}
                         >

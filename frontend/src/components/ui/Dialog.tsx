@@ -86,7 +86,7 @@ export const Dialog: React.FC<DialogProps> = ({
         ref={panelRef}
         className={cx(
           'w-full max-w-[430px] rounded-card p-7',
-          'edge-l bg-white/[0.88]',
+          'edge-l bg-elevated/[0.92]',
           'backdrop-blur-overlay'
         )}
       >
@@ -102,7 +102,7 @@ export const Dialog: React.FC<DialogProps> = ({
           <Button ref={cancelRef} variant="ghost" size="sm" onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button variant={destructive ? 'primary' : 'accent'} size="sm" onClick={onConfirm}>
+          <Button variant={destructive ? 'danger' : 'primary'} size="sm" onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

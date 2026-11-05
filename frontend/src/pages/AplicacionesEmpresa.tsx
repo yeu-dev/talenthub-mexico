@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ExternalLink, FileText, Lock, RotateCcw, Search, X } from 'lucide-react';
+import { Check, ExternalLink, FileText, Lock, RotateCcw, Search, X } from '../components/icons';
 import api, { getMediaUrl } from '../services/api';
 import { showError, showSuccess } from '../utils/alerts';
 import {
@@ -13,7 +13,10 @@ import {
 } from '../components/ui';
 import type { EstadoPostulacion } from '../components/ui';
 import { cx } from '../lib/cx';
-import { DUR, EASE, rise, stagger } from '../lib/motion';
+import { DUR, EASE, stagger, subeResorte } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface Aplicacion {
   id: number;
@@ -46,6 +49,7 @@ const FILTROS: Array<{ id: string; label: string }> = [
 ];
 
 const AplicacionesEmpresa: React.FC = () => {
+  useTitulo('Postulaciones recibidas');
   const navigate = useNavigate();
   const [aplicaciones, setAplicaciones] = useState<Aplicacion[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
@@ -129,32 +133,25 @@ const AplicacionesEmpresa: React.FC = () => {
   const visibles = filtro ? aplicaciones.filter((a) => a.estado === filtro) : aplicaciones;
 
   return (
-    <div className="mesh-page min-h-screen">
-      {/* ───────────── Banda oscura ───────────── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-page px-6 md:px-7">
-          <p className="mb-4 text-caption uppercase tracking-[0.06em] text-muted-d">Empresa</p>
-          <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-            Postulaciones recibidas
-          </h1>
-          <p className="tabular mt-3 text-sub text-ink-2d">
-            {estado === 'cargando'
-              ? 'Cargando candidaturas…'
-              : aplicaciones.length === 0
-                ? 'Todavía no llega ninguna'
-                : aplicaciones.length === 1
-                  ? '1 persona ha aplicado a tus vacantes'
-                  : `${aplicaciones.length} personas han aplicado a tus vacantes`}
-          </p>
-        </div>
-      </header>
+    <div className="min-h-screen mesh-page">
+      <PageHeader
+        tono="oscuro"
+        migas={migasDeCuenta('Postulaciones')}
+        titulo="Postulaciones recibidas"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+        detalle={
+          estado === 'cargando'
+            ? 'Cargando candidaturas…'
+            : aplicaciones.length === 0
+              ? 'Todavía no llega ninguna'
+              : aplicaciones.length === 1
+                ? '1 persona ha aplicado a tus vacantes'
+                : `${aplicaciones.length} personas han aplicado a tus vacantes`
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Filtros en glass, montados sobre la banda ── */}
+        {/* ── Filtros ── */}
         <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 p-6">
           <p className="mb-4 text-caption uppercase tracking-[0.06em] text-ink-2">Filtrar</p>
           <div className="flex flex-wrap gap-2">
@@ -175,7 +172,7 @@ const AplicacionesEmpresa: React.FC = () => {
                     'transition-colors duration-200 ease-base',
                     activo
                       ? 'border-accent bg-accent text-white'
-                      : 'border-hairline text-ink-2 hover:border-hairline-strong hover:bg-black/[0.02]',
+                      : 'border-hairline text-ink-2 hover:border-hairline-strong hover:bg-white/[0.04]',
                     total === 0 && !activo && 'opacity-45'
                   )}
                 >
@@ -230,7 +227,7 @@ const AplicacionesEmpresa: React.FC = () => {
                 const ocupada = enCurso === a.id;
 
                 return (
-                  <motion.div key={a.id} layout variants={rise} exit={{ opacity: 0, scale: 0.98 }}>
+                  <motion.div key={a.id} layout variants={subeResorte} exit={{ opacity: 0, scale: 0.98 }}>
                     <Card className="flex flex-col gap-5">
                       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
                         <div>
@@ -241,7 +238,7 @@ const AplicacionesEmpresa: React.FC = () => {
                             Aplicó a{' '}
                             <Link
                               to={`/vacantes/${a.vacante}`}
-                              className="text-accent transition-opacity hover:opacity-70"
+                              className="text-accent-on-dark transition-opacity hover:opacity-70"
                             >
                               {a.vacante_titulo}
                             </Link>
@@ -263,7 +260,7 @@ const AplicacionesEmpresa: React.FC = () => {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2.5 rounded-ui border border-hairline px-4 py-3 text-[0.9375rem] text-ink transition-colors duration-200 hover:border-accent/40 hover:bg-accent/[0.03]"
                           >
-                            <FileText size={16} strokeWidth={1.7} className="flex-none text-accent" />
+                            <FileText size={16} strokeWidth={1.7} className="flex-none text-accent-on-dark" />
                             Ver currículum
                             <ExternalLink size={13} strokeWidth={1.8} className="ml-auto flex-none text-muted" />
                           </a>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from '../icons';
 import { cx } from '../../lib/cx';
 import { SPRING_SOFT } from '../../lib/motion';
 

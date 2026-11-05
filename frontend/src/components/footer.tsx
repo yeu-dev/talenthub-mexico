@@ -1,4 +1,5 @@
 import React from 'react';
+import Brand from './Brand';
 import { Link, useLocation } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import { RESPONSABLE, hayContacto } from '../lib/responsable';
@@ -45,12 +46,7 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-page px-6 py-16 md:px-7">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="col-span-2 lg:col-span-1">
-            <Link
-              to="/"
-              className="text-[1.0625rem] font-mid tracking-[-0.015em] text-ink-d transition-opacity hover:opacity-80"
-            >
-              TalentHub
-            </Link>
+            <Brand />
             <p className="mt-3 max-w-[34ch] text-[0.9375rem] leading-relaxed text-muted-d">
               Vacantes de TI en México con el rango salarial a la vista desde el primer día.
             </p>

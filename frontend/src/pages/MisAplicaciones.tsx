@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ExternalLink, ArrowRight, RotateCcw } from 'lucide-react';
+import { ExternalLink, ArrowRight, RotateCcw } from '../components/icons';
 import api from '../services/api';
 import { showError } from '../utils/alerts';
 import { Button, Card, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
-import { rise, stagger } from '../lib/motion';
+import { stagger, subeResorte } from '../lib/motion';
+import PageHeader from '../components/PageHeader';
+import { useTitulo } from '../hooks/useTitulo';
+import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
 
 interface Aplicacion {
   id: number;
@@ -24,6 +27,7 @@ const RESUMEN: Array<{ estado: string; label: string }> = [
 ];
 
 const MisAplicaciones: React.FC = () => {
+  useTitulo('Mis postulaciones');
   const navigate = useNavigate();
   const [aplicaciones, setAplicaciones] = useState<Aplicacion[]>([]);
   const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
@@ -71,29 +75,22 @@ const MisAplicaciones: React.FC = () => {
 
   return (
     <div className="min-h-screen mesh-page">
-      {/* ── Banda oscura ── */}
-      <header className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-32 pt-[140px] text-ink-d">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)] blur-[6px]"
-        />
-        <div className="relative mx-auto max-w-page px-6 md:px-7">
-          <h1 className="font-heading text-[clamp(2rem,4.4vw,3rem)] font-mid leading-none tracking-[-0.035em]">
-            Mis postulaciones
-          </h1>
-          <p className="tabular mt-3 text-sub text-ink-2d">
-            {estado === 'listo'
-              ? aplicaciones.length === 1
-                ? '1 postulación enviada'
-                : `${aplicaciones.length} postulaciones enviadas`
-              : 'Cargando tu historial…'}
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        tono="oscuro"
+        migas={migasDeCuenta('Mis postulaciones')}
+        titulo="Mis postulaciones"
+        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
+        detalle={
+          estado === 'listo'
+            ? aplicaciones.length === 1
+              ? '1 postulación enviada'
+              : `${aplicaciones.length} postulaciones enviadas`
+            : 'Cargando tu historial…'
+        }
+      />
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
-        {/* ── Resumen en glass, a caballo entre la banda y el cuerpo.
-             El panel existe porque responde la pregunta real: ¿en qué voy? ── */}
+        {/* ── Resumen: responde la pregunta real, ¿en qué voy? ── */}
         {estado === 'listo' && aplicaciones.length > 0 && (
           <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {conteos.map(({ label, total }) => (
@@ -107,7 +104,7 @@ const MisAplicaciones: React.FC = () => {
           </div>
         )}
 
-        <div className={estado === 'listo' && aplicaciones.length > 0 ? '' : 'relative z-10 -mt-24'}>
+        <div className={estado === 'listo' && aplicaciones.length > 0 ? '' : 'glass-panel glass-panel-overlap-sm edge-l p-2'}>
           {estado === 'cargando' && <SkeletonList count={3} />}
 
           {estado === 'error' && (
@@ -146,7 +143,7 @@ const MisAplicaciones: React.FC = () => {
               className="flex list-none flex-col gap-3.5 p-0"
             >
               {aplicaciones.map((aplicacion) => (
-                <motion.li key={aplicacion.id} variants={rise}>
+                <motion.li key={aplicacion.id} variants={subeResorte}>
                   <Card as="article" glass interactive>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">

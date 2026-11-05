@@ -12,7 +12,7 @@ export const Skeleton: React.FC<Props> = ({ className, height }) => (
   <div
     aria-hidden="true"
     style={height ? { height } : undefined}
-    className={cx('animate-pulse rounded-ui bg-black/[0.06]', !height && 'h-4', className)}
+    className={cx('animate-pulse rounded-ui bg-white/[0.06]', !height && 'h-4', className)}
   />
 );
 

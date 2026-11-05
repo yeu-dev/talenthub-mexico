@@ -29,7 +29,7 @@ const ESTILO: Record<TagTono, { claro: string; oscuro: string }> = {
   curso: { claro: 'border-hairline-strong text-ink', oscuro: 'border-hairline-d-strong text-ink-d' },
   bien: { claro: 'border-ok/35 text-ok', oscuro: 'border-ok-d/35 text-ok-d' },
   mal: { claro: 'border-danger/35 text-danger', oscuro: 'border-danger-d/35 text-danger-d' },
-  marca: { claro: 'border-accent/35 text-accent', oscuro: 'border-accent-on-dark/35 text-accent-on-dark' },
+  marca: { claro: 'border-accent/35 text-accent-on-dark', oscuro: 'border-accent-on-dark/35 text-accent-on-dark' },
 };
 
 /**

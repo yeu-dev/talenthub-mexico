@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cx } from '../../lib/cx';
 import { rise, riseGlass, stagger } from '../../lib/motion';
+import Brand from '../Brand';
 
 interface Props {
   title: string;
@@ -19,29 +19,18 @@ interface Props {
 /**
  * Envoltorio de las cuatro pantallas de autenticación.
  *
- * La tarjeta vive en registro OSCURO. Antes era una placa blanca al 72% con un
- * anillo `border-white/60` encima: sobre `#0a0a0a` ese anillo no se leía como
- * filo de vidrio sino como un recorte blanco: 60% de blanco contra negro es
- * casi el máximo contraste posible en la pantalla, y el ojo lo lee primero que
- * al contenido. El vidrio oscuro no tiene ese problema porque su filo nace del
- * mismo fondo que lo rodea.
- *
- * El borde es un degradado de 1px, no un `border`: brilla arriba (donde la luz
- * del aurora pegaría) y se disuelve hacia abajo. Un `border` uniforme dibuja
- * el rectángulo; este solo insinúa que hay un canto.
+ * Registro oscuro de pantalla completa con una tarjeta de vidrio oscuro sobre
+ * auroras que derivan despacio. El vidrio es una lente: sobre negro plano no
+ * refractaría nada, por eso las auroras.
  */
 const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = false, aside }) => {
   const reduced = useReducedMotion();
 
-  // `mt-[calc(var(--nav-flow)*-1)]` con su pt compensatorio: el nav flota pero SIGUE ocupando
-  // 72px de flujo, y sin esta correccion esos 72px los pinta el <body>, que es
-  // blanco. Quedaba una franja clara arriba de la banda oscura. Las otras diez
-  // paginas ya lo hacian; auth y checkout se habian quedado fuera.
-  // El min-height se queda en 100vh: como el margen negativo ya sube la caja
-  // hasta y=0, sumarle la altura del nav contaba el hueco dos veces y dejaba
-  // 75px de scroll sobrante en una pantalla que deberia caber justa.
+  // La barra de navegacion no se pinta en login y registro, asi que aqui no
+  // hay margen negativo que la compense: con el, la pantalla subia 64px y
+  // dejaba una franja blanca abajo.
   return (
-    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] flex min-h-screen flex-col justify-center overflow-hidden bg-night px-6 pb-20 pt-[152px] text-ink-d">
+    <div className="relative isolate flex min-h-screen flex-col justify-center overflow-hidden bg-night px-6 py-16 text-ink-d">
       {/* ── Aurora ──
           El glass es una lente. Sobre un negro plano no refracta nada y la
           tarjeta se ve igual de translúcida que de opaca; estas manchas le dan
@@ -87,18 +76,12 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
           animate="show"
           className={cx('w-full', wide ? 'max-w-[520px]' : 'max-w-[430px]', Boolean(aside) && 'lg:flex-none')}
         >
-          {/* Con panel lateral el wordmark ya vive allá; repetirlo sería eco. */}
-          <motion.div variants={rise} className={cx('mb-8 text-center', Boolean(aside) && 'lg:hidden')}>
-            <Link
-              to="/"
-              className="text-[1.0625rem] font-mid tracking-[-0.015em] text-ink-d transition-opacity hover:opacity-80"
-            >
-              TalentHub
-            </Link>
+          <motion.div variants={rise} className="mb-8 flex justify-center">
+            <Brand />
           </motion.div>
 
           {/* `edge-d`: filo degradado de 1px que se apaga hacia abajo, no un
-              rectángulo trazado. Mismo mecanismo que las cards oscuras. */}
+              rectángulo trazado. `riseGlass`: un fade aplanaría el vidrio. */}
           <motion.div
             variants={riseGlass}
             className="edge-d rounded-card bg-white/[0.045] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9"

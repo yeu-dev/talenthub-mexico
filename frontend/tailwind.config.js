@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 // Sistema de diseño TalentHub — ver DESIGN.md en la raíz del proyecto.
-// Claro por defecto, oscuro como banda de acento. Un solo acento cromático.
+// Todo el sitio en oscuro, con vidrio como firma. El azul es la marca y la
+// acción.
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -8,12 +9,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ── Registro claro (por defecto) ──
-        canvas: '#ffffff',
-        surface: '#f5f6f8',
-        ink: '#161616',          // 18.1:1 sobre canvas · AAA
-        'ink-2': '#3f4045',
-        muted: '#6b6b6b',        // 5.33:1 · AA
+        // ── Registro base: OSCURO en todo el sitio ──
+        // Estos nombres eran el registro claro. Al pasar todo el sitio a
+        // oscuro se les cambió el valor y no el nombre: así cada página se
+        // volteó sin reescribir sus clases. `canvas` es la superficie de
+        // tarjetas y campos; `surface`, la de fondos alternos.
+        canvas: '#141416',
+        surface: '#0f0f11',
+        ink: '#ededed',          // 15.6:1 sobre canvas · AAA
+        'ink-2': '#c2c2c2',      // 10.2:1 · AAA
+        muted: '#8f8f8f',        // 5.4:1 sobre canvas · AA
 
         // ── Registro oscuro (hero, cierre, nav, footer) ──
         night: '#0a0a0a',
@@ -38,28 +43,29 @@ module.exports = {
         accent: '#3355ff',           // 5.41:1 con blanco encima · AA
         'accent-hover': '#2544e6',   // 6.89:1 · AA
         'accent-on-dark': '#9db0ff', // 9.51:1 sobre night · AAA
-        'accent-wash': '#4a66ff',    // solo halos y gradientes, nunca texto
 
         // ── Hairlines: sustituyen a toda sombra de elevación ──
-        hairline: 'rgba(0,0,0,0.10)',
-        'hairline-strong': 'rgba(0,0,0,0.20)',
+        hairline: 'rgba(255,255,255,0.10)',
+        'hairline-strong': 'rgba(255,255,255,0.18)',
         'hairline-d': 'rgba(255,255,255,0.10)',
         'hairline-d-strong': 'rgba(255,255,255,0.18)',
 
         // ── Colores de ESTADO ──
-        // Nunca visten un control clicable: solo informan. Los tres pasan AA
-        // sobre blanco (verificado: 5.47 / 5.18 / 5.94).
+        // Nunca visten un control clicable: solo informan. Son colores de
+        // texto y borde sobre oscuro, no rellenos: sobre canvas miden
+        // 12.44 (ok) / 6.65 (danger) / 12.76 (warn), y blanco sobre #f87171
+        // da 2.77, así que el botón destructivo rellena con #dc2626 (4.83).
         // Solo hay DOS colores de estado, y marcan resolución:
         // teal = resuelto a favor, rojo = resuelto en contra. Lo que está en
         // curso no lleva color, lleva tinta plena.
         // Ámbar quedó fuera a propósito: a 19° de matiz del rojo, es
         // indistinguible con daltonismo rojo-verde, y aquí significaban lo
         // contrario. La posición en el track comunica el avance mejor que un tono.
-        ok: '#0f766e',       // teal — aceptada, publicada, remoto
+        ok: '#5eead4',       // teal — aceptada, publicada, remoto (versión para oscuro)
         'ok-d': '#5eead4',
-        danger: '#dc2626',   // rojo — rechazada, error, destructivo
+        danger: '#f87171',   // rojo — rechazada, error, destructivo (versión para oscuro)
         'danger-d': '#f87171',
-        warn: '#a16207',     // ocre — reservado a avisos de formulario, nunca a estados
+        warn: '#fcd34d',     // ocre — reservado a avisos de formulario, nunca a estados
         'warn-d': '#fcd34d',
       },
 
@@ -78,7 +84,9 @@ module.exports = {
 
       // Escala propia; no pisa las de Tailwind
       fontSize: {
-        display:  ['4.5rem',   { lineHeight: '1',    letterSpacing: '-0.035em' }], // 72
+        // El display bajó de 72 a 52: el titular gigante con tracking muy
+        // cerrado era uno de los rasgos de landing generada.
+        display:  ['3.25rem',  { lineHeight: '1.05', letterSpacing: '-0.02em'  }], // 52
         'h1':     ['3rem',     { lineHeight: '1',    letterSpacing: '-0.02em'  }], // 48
         'h2':     ['2.25rem',  { lineHeight: '1.11', letterSpacing: '-0.015em' }], // 36
         'h3':     ['1.5rem',   { lineHeight: '1.33', letterSpacing: '-0.01em'  }], // 24
@@ -105,8 +113,8 @@ module.exports = {
         pill: '9999px',
       },
 
-      // Única sombra permitida: el filo inset del glass.
-      // La spec original de Dimension definía exactamente esto y nada más.
+      // Sin sombras de elevación. Las únicas: el filo inset del vidrio y el
+      // halo de foco.
       boxShadow: {
         'glass-edge': 'inset 0 1px 0 rgba(255,255,255,0.85)',
         'glass-edge-d': 'inset 0 1px 0 rgba(255,255,255,0.14)',
@@ -130,6 +138,25 @@ module.exports = {
       // donde framer-motion lo aplica solo a lo que tiene física.
       transitionTimingFunction: {
         base: 'cubic-bezier(0.22,0.61,0.36,1)',
+      },
+
+      // Movimientos lentos y en bucle, solo para el aviso de la app: el
+      // celular flota y el ícono de TalentHub late. Ambos se apagan con
+      // `prefers-reduced-motion` (ver index.css).
+      keyframes: {
+        flotar: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        latido: {
+          '0%': { boxShadow: '0 0 0 0 rgba(51,85,255,0.45)' },
+          '70%': { boxShadow: '0 0 0 9px rgba(51,85,255,0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(51,85,255,0)' },
+        },
+      },
+      animation: {
+        flotar: 'flotar 4.5s ease-in-out infinite',
+        latido: 'latido 2.4s ease-out infinite',
       },
 
       maxWidth: {
