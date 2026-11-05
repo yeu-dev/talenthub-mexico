@@ -17,13 +17,19 @@ const vacante = (id: number, lenguajes: string[]): VacantePublica => ({
 });
 
 describe('palabrasDelTitular', () => {
-  it('arranca en TI y sigue con las tecnologías más pedidas, sin relleno ni repetir TI', () => {
+  it('arranca en TI y sigue con el stack curado que piden las vacantes, de lo más pedido a lo menos', () => {
     const lista = [
       vacante(1, ['Python', 'React', 'etc.']),
-      vacante(2, ['React', 'TI']),
-      vacante(3, ['react', 'Docker']),
+      vacante(2, ['React', 'Docker']),
+      vacante(3, ['react', 'SQL y OWASP']),
     ];
-    expect(palabrasDelTitular(lista)).toEqual(['TI', 'React', 'Docker', 'Python']);
+    // Docker no está en la lista curada; "SQL y OWASP" sale con su nombre limpio.
+    expect(palabrasDelTitular(lista)).toEqual(['TI', 'React', 'Python', 'SQL']);
+  });
+
+  it('no pasa de 8 palabras además de TI', () => {
+    const todo = ['Java', 'JavaScript', 'TypeScript', 'Python', 'PHP', 'C#', 'Go', 'Kotlin', 'SQL', 'MySQL'];
+    expect(palabrasDelTitular([vacante(1, todo)])).toHaveLength(9);
   });
 
   it('sin vacantes se queda en TI', () => {

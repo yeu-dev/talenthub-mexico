@@ -1,4 +1,15 @@
-import { chipsPopulares, coincide, formatoSalario, haceCuanto, normalizar, partesSalario, rutaBusqueda, VacantePublica } from './vacantes';
+import {
+  chipsPopulares,
+  coincide,
+  formatoSalario,
+  haceCuanto,
+  mencionaPalabra,
+  normalizar,
+  partesSalario,
+  rutaBusqueda,
+  stackPresente,
+  VacantePublica,
+} from './vacantes';
 
 const vacante = (over: Partial<VacantePublica>): VacantePublica => ({
   id: 1,
@@ -105,5 +116,35 @@ describe('partesSalario', () => {
 
   test('sin monto no hay moneda que poner', () => {
     expect(partesSalario('0', '0')).toEqual({ cifra: 'Salario por definir', conMoneda: false });
+  });
+});
+
+describe('mencionaPalabra', () => {
+  it('busca la palabra completa, no un pedazo de otra', () => {
+    expect(mencionaPalabra('javascript y css', 'java')).toBe(false);
+    expect(mencionaPalabra('backend en java 17', 'java')).toBe(true);
+    expect(mencionaPalabra('trabajo en google', 'go')).toBe(false);
+    expect(mencionaPalabra('postgresql', 'sql')).toBe(false);
+    expect(mencionaPalabra('sql y owasp', 'sql')).toBe(true);
+    expect(mencionaPalabra('apis con node.js', 'node.js')).toBe(true);
+    expect(mencionaPalabra('c# y .net', 'c#')).toBe(true);
+  });
+});
+
+describe('stackPresente', () => {
+  it('solo da lo que piden las vacantes, con su nombre limpio y sin importar acentos ni mayúsculas', () => {
+    const lista = [
+      vacante({ id: 1, titulo: 'Backend Python', requisitos: { lenguajes: ['PostgreSQL'] } }),
+      vacante({ id: 2, descripcion: 'Buscamos experiencia con PYTHON y Node', requisitos: { lenguajes: [] } }),
+      vacante({ id: 3, requisitos: { lenguajes: ['JavaScript', 'SQL y OWASP'] } }),
+    ];
+    // Python en 2 vacantes va primero; los empates van en el orden de la lista.
+    // Ninguna pide Java: "JavaScript" no cuenta como Java.
+    expect(stackPresente(lista)).toEqual(['Python', 'JavaScript', 'SQL', 'PostgreSQL', 'Node.js']);
+  });
+
+  it('sin vacantes no da nada y respeta el máximo', () => {
+    expect(stackPresente([])).toEqual([]);
+    expect(stackPresente([vacante({})], 1)).toEqual(['TypeScript']);
   });
 });

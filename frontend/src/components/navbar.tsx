@@ -8,6 +8,7 @@ import { cx } from "../lib/cx";
 import { EASE, DUR, SPRING } from "../lib/motion";
 import Brand from "./Brand";
 import { useCambiosDeSesion } from "../lib/sesion";
+import { useChispas } from "../hooks/useChispas";
 
 // La sección actual: texto blanco y una línea azul en el borde de la barra
 // que se DESLIZA de un link al otro al cambiar de página (layoutId), en vez
@@ -47,6 +48,26 @@ const Enlace: React.FC<{ to: string; enMenu: boolean; className?: string; childr
  * contenido claro se ve pasar la página por debajo. La sección actual se
  * marca con una línea azul en el borde inferior de la barra.
  */
+/**
+ * "Registrarse", la llamada a la acción de la barra: es un enlace con forma de
+ * botón destacado (borde de luz al pasar el cursor y chispas al hacer clic,
+ * ver `Button`). Componente propio porque la barra lo pinta dos veces, en
+ * escritorio y en el menú del celular, y cada una necesita su propio lienzo.
+ */
+const EnlaceRegistro: React.FC = () => {
+  const { lienzo, disparar } = useChispas();
+  return (
+    <Link
+      to="/register"
+      onClick={disparar}
+      className={clasesBoton({ variant: 'primary', tone: 'dark', size: 'sm', destacado: true })}
+    >
+      Registrarse
+      {lienzo}
+    </Link>
+  );
+};
+
 const Navbar: React.FC = () => {
   const location = useLocation();
   // Las pantallas de acceso usan AuthShell, que trae su propio logo y ocupa
@@ -152,9 +173,7 @@ const Navbar: React.FC = () => {
       <Link to="/login" className={linkPlano}>
         Iniciar sesión
       </Link>
-      <Link to="/register" className={clasesBoton({ variant: 'primary', tone: 'dark', size: 'sm' })}>
-        Registrarse
-      </Link>
+      <EnlaceRegistro />
     </>
   ) : (
     <>

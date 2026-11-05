@@ -29,7 +29,8 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
   const salario = partesSalario(vacante.salario_min, vacante.salario_max);
 
   return (
-    <Card as="article" glass interactive className="relative flex h-full flex-col gap-4 p-6">
+    // `reflejo`: una franja de luz cruza la tarjeta al pasar el cursor (index.css).
+    <Card as="article" glass interactive className="reflejo relative flex h-full flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
         <Iniciales nombre={vacante.empresa_nombre} />
         <div className="min-w-0 flex-1">

@@ -376,13 +376,44 @@ minimal, the silhouette became the thing carrying the system's identity.
   and fades around the app icon. The CSS ones animate `transform` and
   `opacity` only, never `box-shadow`, which repaints on every frame.
 - The home headline reads "Tu siguiente empleo en ___ ya trae el sueldo". The
-  gap starts on "TI" and then cycles every 2.8s through the most requested
-  technologies in the published vacancies, never a hand-written list; without
-  the API it stays on "TI". It sits on its own middle line, so only that line
+  gap starts on "TI" and then cycles every 2.8s through languages, databases
+  and web stack (up to 8). The names come from a curated list in
+  `lib/vacantes.ts`, so they read clean ("SQL", not a raw "SQL y OWASP"), but a
+  name only shows if at least one published vacancy mentions it as a whole
+  word in its title, description or technologies (`stackPresente`): the
+  headline never promises jobs that are not there. Without the API it stays
+  on "TI". It sits on its own middle line, so only that line
   changes width. Letters slide up through an `overflow-hidden` window and are
   never faded: the headline is the LCP and must be readable from the first
   frame. Screen readers hear the full sentence once; the rotating part is
   `aria-hidden`. It pauses in a hidden tab.
+
+### Micro-interactions
+
+Three small effects, adapted from React Bits and rebuilt without new
+dependencies. None of them follows the cursor, none uses a shadow, and none
+loops: each one runs once per hover or per click.
+
+- **Glare (`.reflejo`, `index.css`):** a faint white band (10%) crosses a
+  vacancy card or a home row once when the cursor enters, in 0.85s. It snaps
+  back off-element on leave, ready for the next pass. Used on `VacanteCard`
+  and the home salary rows only.
+- **Light border (`.borde-luz`, `index.css`):** an `accent-on-dark` light runs
+  once around the pill on hover. It lives in the button's own `::before`,
+  masked to a 2px ring outside the edge, so the button keeps its size and its
+  focus ring. The rotating angle is a registered `@property --giro`.
+- **Sparks (`hooks/useChispas.tsx`):** eight short `accent-on-dark` strokes
+  burst from the click point and fade in 0.42s. A keyboard click bursts from
+  the centre. The canvas only draws while sparks are alive.
+
+The light border and the sparks come together as `Button destacado` (or
+`clasesBoton({ destacado: true })` plus `useChispas` on a link). They are
+reserved for the main call to action of a screen: today "Buscar vacantes" on
+the home page and "Registrarse" in the nav bar. Every other button stays
+plain; if all of them sparkled, none would read as the main one.
+
+Glare and the light border only exist on devices with a cursor
+(`@media (hover: hover)`): on touch, a tap would fire them out of place.
 
 ### Reduced motion
 
@@ -396,6 +427,8 @@ minimal, the silhouette became the thing carrying the system's identity.
 - **CSS (`index.css`):**
   - the loops (`flotar`, `latido`) and the skeleton pulse stop;
   - hover lifts and press scales are cancelled;
+  - the glare and the light border are removed (the hover still shows through
+    the background and the button tone), and `useChispas` draws no sparks;
   - smooth scrolling is turned off;
   - colour, border and opacity transitions stay, shortened to 0.12s;
   - loading spinners keep turning, because they are the only signal that
