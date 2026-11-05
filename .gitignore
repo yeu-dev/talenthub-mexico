@@ -4,8 +4,11 @@ __pycache__/
 .env 
 db.sqlite3 
 node_modules/ 
-build/ 
-.DS_Store 
+build/
+.DS_Store
+
+# Archivos subidos en desarrollo local (en producción viven en Supabase Storage)
+media/
 
 # Local agent tooling — installed per developer, not part of the app
 .agents/
