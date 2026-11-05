@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 // Sistema de diseño TalentHub — ver DESIGN.md en la raíz del proyecto.
-// Claro por defecto, bandas oscuras donde la página lo pide, vidrio como firma.
-// El azul es la marca y la acción.
+// Todo el sitio en oscuro, con vidrio como firma. El azul es la marca y la
+// acción.
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -51,8 +51,10 @@ module.exports = {
         'hairline-d-strong': 'rgba(255,255,255,0.18)',
 
         // ── Colores de ESTADO ──
-        // Nunca visten un control clicable: solo informan. Los tres pasan AA
-        // sobre blanco (verificado: 5.47 / 5.18 / 5.94).
+        // Nunca visten un control clicable: solo informan. Son colores de
+        // texto y borde sobre oscuro, no rellenos: sobre canvas miden
+        // 12.44 (ok) / 6.65 (danger) / 12.76 (warn), y blanco sobre #f87171
+        // da 2.77, así que el botón destructivo rellena con #dc2626 (4.83).
         // Solo hay DOS colores de estado, y marcan resolución:
         // teal = resuelto a favor, rojo = resuelto en contra. Lo que está en
         // curso no lleva color, lleva tinta plena.

@@ -31,8 +31,9 @@ interface Props {
   ancho?: 'page' | 'doc';
   /**
    * `oscuro`: banda negra bajo el nav, con espacio abajo para que un panel de
-   * vidrio se monte sobre el filo (`glass-panel-overlap`). Es el membrete del
-   * detalle de vacante. Por defecto, claro.
+   * vidrio se monte sobre el filo (`glass-panel-overlap`). Es el que usan hoy
+   * todas las páginas. `claro` queda del registro anterior y ya no se usa;
+   * se conserva como valor por defecto para no romper llamadas viejas.
    */
   tono?: 'claro' | 'oscuro';
   /**
@@ -48,9 +49,9 @@ interface Props {
  *
  * Si todas las páginas abren con la misma franja oscura y un título, no se
  * distingue una de otra. Lo que orienta aquí es la ruta de migas, las
- * pestañas entre secciones hermanas y el título. El claro es translúcido para
- * que se asomen los halos de `mesh-page`; el oscuro es para el membrete del
- * detalle, donde el panel de vidrio cruza el filo.
+ * pestañas entre secciones hermanas y el título, y lo que cruza el filo de la
+ * banda oscura: el panel de vidrio del detalle, el resumen de una cuenta o
+ * nada, en Vacantes, donde la banda es corta.
  */
 const PageHeader: React.FC<Props> = ({
   titulo,

@@ -1,8 +1,8 @@
 # TalentHub México — Style Reference
 
-> Design language for a job board in the Mexican IT sector. Light by default,
-> a short dark band at the top of every page, one brand colour that is also
-> the action colour, and solid surfaces.
+> Design language for a job board in the Mexican IT sector. **Dark across the
+> whole site, with glass as the signature**, one brand colour that is also the
+> action colour, and no elevation shadows.
 >
 > Tokens map one-to-one to `frontend/tailwind.config.js`. A reference written
 > as `{colors.accent}` is the Tailwind key `accent`; `{typography.h2}` is the
@@ -12,33 +12,37 @@
 
 ## Overview
 
-TalentHub is a **light-first job board**. The dark register is reserved for
-three places: the navigation bar, the home page hero (which carries the
-search) and the closed screens (sign-in, registration, checkout), plus the
-footer. Every other page opens with a light header. When every page started
-with the same dark band and a title, pages could not be told apart.
+TalentHub is a **dark-first job board**. Every page sits on near-black with
+soft colour halos behind it, and the content lives on translucent glass panels
+that let those halos through. The dark register is no longer an accent
+reserved for a few places: it is the whole site, because it is what people
+recognised and liked.
 
-> **What changed in phase 7.** The glass stays: it is the signature people
-> recognise. What made the site read as generated was elsewhere: a
-> hand-written sample job card, invented figures, no logo, the brand blue
-> hidden behind a black/white primary button, no search on the home page, and
-> every page opening the same way. Those are fixed; the glass now sits on
-> pages that each have their own header.
+> **What changed in phase 8.** The site went fully dark. Phase 7 had already
+> fixed what made it read as generated (a hand-written sample job card,
+> invented figures, no logo, the brand blue hidden behind a black/white
+> primary button, no search on the home page, every page opening the same
+> way). Phase 8 kept those fixes and moved the whole canvas to dark glass.
+
+**Token names were kept when the register flipped.** `canvas`, `surface` and
+`ink` used to be the light values; their *values* changed and their *names*
+did not, so every page turned dark without rewriting its classes. Read
+`canvas` as "the surface of cards and fields", not as white.
 
 **Key Characteristics:**
-- Light canvas. Dark only for the nav, the home hero, the closed screens and
-  the footer.
+- Near-black page (`{colors.night}`) with fixed colour halos (`mesh-page`).
 - Each page is recognisable on its own: the nav marks the current section,
   the browser tab names the page, and the header changes with the job of the
   page (see *Band Architecture*).
 - **Ultramarine `{colors.accent}` (#3355ff) is both the brand and the action
-  colour.** Primary buttons, links and focus rings, nowhere else.
+  colour.** Primary buttons and focus, nowhere else. On dark it is a *fill*
+  with white text; as text it always resolves to `{colors.accent-on-dark}`.
 - The "th" monogram (the same icon as the mobile app, Play Store and the
   favicon) next to the name in the navigation, the footer and the sign-in
   screens.
 - **Glass as the signature:** translucent panels with blur and saturation
-  over the `mesh-page` halos, mounted across the dark/light seam where a page
-  has a dark band. No elevation shadows.
+  over the halos, mounted across the edge of the dark band under the nav. No
+  elevation shadows.
 - **Icons over explanations:** a short label with an icon instead of a
   paragraph wherever the idea fits in three words.
 - State colour marks **resolution, not activity**: teal for resolved in
@@ -54,59 +58,69 @@ with the same dark band and a title, pages could not be told apart.
 
 ## Colors
 
-> Contrast figures below were measured, not estimated. Every pairing meets
-> WCAG AA at minimum; the ratio is stated where it constrains use.
+> Contrast figures below were measured with the WCAG relative-luminance
+> formula, not estimated. Glass backgrounds were measured at their effective
+> colour: `rgba(255,255,255,0.06)` over `{colors.night}` paints #191919, and
+> the 9% hover paints #1f1f1f.
 
 ### Brand & Accent
 
 - **Ultramarine** (`{colors.accent}` — #3355ff): The single interactive
-  colour. Fills primary actions, colours links on light surfaces, and drives
-  the focus ring. **5.41:1 with white on top.** Deliberately not Tailwind's
-  #2563EB, which sits at 221° and 83% saturation and is the default blue of
-  half the web; this one is 230° at 100% and reads as pigment rather than
-  hyperlink.
+  colour. Fills primary actions and drives the focus border of fields.
+  **5.41:1 with white on top.** As a 1px focus border it reaches 3.40:1 on
+  `{colors.canvas}`, above the 3:1 that non-text indicators need. **Never as
+  text on dark:** it measures 3.25–3.66:1 and fails AA. Deliberately not
+  Tailwind's #2563EB, which sits at 221° and 83% saturation and is the default
+  blue of half the web; this one is 230° at 100% and reads as pigment rather
+  than hyperlink.
 - **Ultramarine Pressed** (`{colors.accent-hover}` — #2544e6): Hover and
   active fill. 6.89:1 with white.
-- **Ultramarine on Dark** (`{colors.accent-on-dark}` — #9db0ff): The same
-  accent resolved for dark bands. **9.51:1 on `{colors.night}`.** The accent
-  needs two resolutions: #3355ff as text on black gives 3.4:1 and fails,
-  #9db0ff on white gives 2.0:1 and fails. One semantic token, two values,
-  never the other register's.
+- **Ultramarine on Dark** (`{colors.accent-on-dark}` — #9db0ff): The accent
+  whenever it is text, an icon tint or a focus ring. **9.51:1 on
+  `{colors.night}`, 8.45:1 on glass.**
+
 ### Surface
 
-- **Canvas** (`{colors.canvas}` — #ffffff): Content ground. The base plane of
-  the light register.
-- **Surface** (`{colors.surface}` — #f5f6f8): Off-white with a cool bias.
-  Alternating bands, table row hover, segmented control troughs.
-- **Night** (`{colors.night}` — #0a0a0a): Dark bands — hero, closing section,
-  authentication, checkout. Not pure black; #0a0a0a keeps the glare down.
-- **Elevated** (`{colors.elevated}` — #161616): Floating navigation and opaque
-  cards sitting on a dark band.
+| Token | Value | Use |
+|---|---|---|
+| `{colors.night}` | #0a0a0a | The page. Every body sits on it, with `mesh-page` halos on top. Not pure black; #0a0a0a keeps the glare down |
+| `{colors.canvas}` | #141416 | Opaque cards, fields, tables |
+| `{colors.surface}` | #0f0f11 | Alternate bands, segmented control troughs, disabled fields |
+| `{colors.elevated}` | #161616 | Opaque cards inside a dark band |
+| glass | `rgba(255,255,255,0.06)` | Glass panels and cards (effective #191919) |
 
-There is no page substrate any more. Bodies sit on `{colors.canvas}` or
-`{colors.surface}`; alternating them is how sections separate.
+`mesh-page` is the page substrate: `{colors.night}` plus four fixed radial
+halos (blue, teal and a very low warm tone). Glass is a lens; without
+something behind it, a translucent card looks identical to an opaque one.
 
 ### Text
 
-| Token | Value | Contrast | Use |
-|---|---|---|---|
-| `{colors.ink}` | #161616 | 18.1:1 on canvas · AAA | Primary text, light register |
-| `{colors.ink-2}` | #3f4045 | AAA | Supporting text |
-| `{colors.muted}` | #6b6b6b | 5.33:1 · AA | Metadata, hints, timestamps |
-| `{colors.ink-d}` | #ededed | 16.9:1 on night · AAA | Primary text on dark. **Never pure white** — it cuts glare |
-| `{colors.ink-2d}` | #c2c2c2 | AAA | Supporting text on dark |
-| `{colors.muted-d}` | #8a8a8a | 5.4:1 · AA | Metadata on dark |
+| Token | Value | canvas | night | glass 6% | glass hover 9% | Use |
+|---|---|---|---|---|---|---|
+| `{colors.ink}` | #ededed | 15.72 | 16.91 | 15.02 | 13.92 | Primary text. **Never pure white** — it cuts glare |
+| `{colors.ink-2}` | #c2c2c2 | 10.33 | 11.11 | 9.87 | 9.15 | Supporting text |
+| `{colors.muted}` | #8f8f8f | 5.69 | 6.12 | 5.44 | 5.04 | Metadata, hints, timestamps, placeholders |
+| `{colors.ink-d}` | #ededed | 15.72 | 16.91 | 15.02 | 13.92 | Same as `ink`; kept for components with a `tone="dark"` prop |
+| `{colors.ink-2d}` | #c2c2c2 | 10.33 | 11.11 | 9.87 | 9.15 | Same as `ink-2` |
+| `{colors.muted-d}` | #8a8a8a | 5.33 | 5.73 | 5.09 | 4.72 | Metadata inside dark bands |
+
+Every text token passes AA on every surface, glass hover included. The old
+rule "no `muted` in the dark third of a glass panel" belonged to the light
+register and no longer applies.
 
 ### State
 
 **Colour marks resolution, not activity.** There are exactly two.
 
-- **Resolved in favour** (`{colors.ok}` — #0f766e, `{colors.ok-d}` — #5eead4):
-  Accepted, published, remote, active account.
-- **Resolved against** (`{colors.danger}` — #dc2626, `{colors.danger-d}` —
-  #f87171): Rejected, error, destructive action.
-- **Form warning** (`{colors.warn}` — #a16207, `{colors.warn-d}` — #fcd34d):
-  Reserved for form-level notices. **Never dresses a state.**
+| Token | Value | canvas | glass 6% | Use |
+|---|---|---|---|---|
+| `{colors.ok}` · `ok-d` | #5eead4 | 12.44 | 11.89 | Resolved in favour: accepted, published, remote, active account |
+| `{colors.danger}` · `danger-d` | #f87171 | 6.65 | 6.36 | Resolved against: rejected, error, destructive action |
+| `{colors.warn}` · `warn-d` | #fcd34d | 12.76 | 12.19 | Form-level notices only. **Never dresses a state** |
+
+These are text and border colours for dark surfaces. **They are not fills:**
+white on #f87171 measures 2.77:1 and fails. The destructive button fill is
+#dc2626, which gives 4.83:1 with white.
 
 Anything still in progress carries full `{colors.ink}` and a reinforced
 hairline instead of a hue; anything inactive goes grey.
@@ -121,10 +135,14 @@ hairline instead of a hue; anything inactive goes grey.
 
 ### Hairlines & Borders
 
-- `{colors.hairline}` — rgba(0,0,0,0.10): 1px border on light.
-- `{colors.hairline-strong}` — rgba(0,0,0,0.20): hover, emphasised dividers.
-- `{colors.hairline-d}` — rgba(255,255,255,0.10): 1px border on dark.
-- `{colors.hairline-d-strong}` — rgba(255,255,255,0.18): hover on dark.
+All hairlines are white at low alpha, because every surface is dark.
+
+- `{colors.hairline}` · `hairline-d` — rgba(255,255,255,0.10): 1px border.
+- `{colors.hairline-strong}` · `hairline-d-strong` — rgba(255,255,255,0.18):
+  hover, emphasised dividers.
+- Glass edge (`edge-l` / `edge-d`, the same rule) — a 1px border at 8% plus a
+  1px inner light line at the top (`inset 0 1px 0 rgba(255,255,255,0.14)`). An
+  even border traces the whole rectangle and is read before the content.
 
 ---
 
@@ -213,32 +231,39 @@ Base 4px. Scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80`.
 - **Page width**: `{layout.page}` — 1200px max, 24px gutters, 28px from `md`.
 - **Document width**: 4xl (896px) on reading-heavy screens — profile, job
   detail, privacy notice.
-- **Navigation width**: 940px. At 1200px on a 1280px viewport it left 40px
-  margins and read as a bar rather than a floating pill.
-- **Nav flow height**: `--nav-flow` — 58px on mobile, 75px from `md`. Dark
+- **Navigation**: full-width bar; its content follows the 1200px page width.
+- **Nav flow height**: `--nav-flow` — 64px (`h-16`) at every breakpoint. Dark
   bands mount under the navigation with a negative margin of exactly this
-  value. It is a CSS variable rather than a literal precisely because a fixed
-  number is wrong at one breakpoint or the other.
+  value, so the page is seen passing beneath the glass bar. It is a CSS
+  variable so that the bar and every band read the same number.
+- **App notice column**: while the app notice card is open on desktop
+  (`lg`), the page reserves a 340px right column for it and reflows with a
+  padding transition when it is minimised.
 
 ### Band Architecture
 
-Each kind of page has its own header, so moving between them is legible:
+Every page opens with a dark band under the nav (`PageHeader` with
+`tono="oscuro"`), and what changes from page to page is what that band
+carries and what crosses its edge:
 
-- **Home** — dark hero under the nav with one headline, the search and quick
-  searches derived from real data; below it, the salary list.
-- **Listing (`/vacantes`)** — light `page-header` with title and count, then a
-  search-and-filter toolbar that sticks under the nav while scrolling.
-- **Job detail** — light letterhead: company initials tile, title, company,
-  and the salary on the right. Body on `{colors.surface}` with solid cards
-  and a sticky action card.
+- **Home** — the tallest band, with one headline, three icon claims and the
+  search on a glass panel; quick searches derived from real data. Below it,
+  the salary list on a glass container.
+- **Listing (`/vacantes`)** — short band (`solapa={false}`) with title and
+  count, then a search-and-filter toolbar on dark glass that sticks under the
+  nav while scrolling.
+- **Job detail** — letterhead band with the company initials tile, title,
+  company and salary; the summary and the sticky action card are glass panels
+  mounted across the band's edge (`glass-panel-overlap`).
 - **Account pages** (profile, applications, company and validator panels) —
-  light `page-header` with breadcrumbs ("Mi cuenta › …") and tabs between
-  sibling sections.
-- **Closed screens** — full dark register with a single solid card.
+  band with breadcrumbs ("Mi cuenta › …") and tabs between sibling sections.
+- **Closed screens** (sign-in, registration, password recovery) — `AuthShell`:
+  a single dark glass card over slowly drifting auroras, with no nav and no
+  footer.
 
 The navigation marks the current section (white text and a 2px
-`{colors.accent-on-dark}` underline) and every page sets the browser tab title
-(`useTitulo`).
+`{colors.accent-on-dark}` line on the bar's bottom edge that slides between
+items) and every page sets the browser tab title (`useTitulo`).
 
 ---
 
@@ -246,20 +271,24 @@ The navigation marks the current section (white text and a 2px
 
 **There is no elevation shadow in this system.** Depth is built from:
 
-1. Surface contrast (`{colors.canvas}` → `{colors.surface}`,
-   `{colors.night}` → `{colors.elevated}`)
-2. A 1px edge — `{colors.hairline}`, or `edge-l` / `edge-d` on glass
-3. Translucency plus `backdrop-filter` over the `mesh-page` halos
-4. Overlap: panels mount ~96px over the dark band above them
+1. Translucency plus `backdrop-filter` over the `mesh-page` halos
+2. Surface steps (`{colors.night}` → glass → `{colors.canvas}`)
+3. A 1px edge — `{colors.hairline}`, or `edge-l` / `edge-d` on glass
+4. Overlap: panels mount ~96px (`glass-panel-overlap`) or ~52px
+   (`glass-panel-overlap-sm`) over the dark band above them
 
 The only shadows are the glass inset edge and the focus halos
 (`{shadow.focus-accent}` / `{shadow.focus-accent-d}`).
 
-**Glass rules that still hold:** panels crossing the seam use `glass-panel`
-(68% white) because `{colors.muted}` fails AA over the dark third — secondary
-text there uses `{colors.ink-2}`; glass animates position only (`riseGlass`);
-no ancestor of a straddling panel may clip (`overflow: hidden`); a section that
-contains one needs `flow-root`; tables stay opaque.
+**Glass rules:**
+- `glass-panel` is `rgba(255,255,255,0.06)` with `blur(22px) saturate(1.6)`.
+- Glass animates **position only** (`riseGlass`, `subeResorte`). A
+  `backdrop-filter` element, or any ancestor of it, with `opacity < 1`
+  becomes a backdrop root: the filter loses the page behind it and paints
+  flat until the fade ends. See `lib/motion.ts`.
+- No ancestor of a straddling panel may clip (`overflow: hidden`); a section
+  that contains one needs `flow-root`.
+- No `backdrop-filter` on table rows; tables stay opaque.
 
 ---
 
@@ -276,8 +305,8 @@ contains one needs `flow-root`; tables stay opaque.
 | `{rounded.cardlg}` | 40px | Large cards, mockups |
 | `{rounded.panel}` | 42px | Full-width containers |
 
-The full pill is not a style choice among others. Once the palette went light
-and minimal, the silhouette became the thing carrying the system's identity.
+The full pill is not a style choice among others. Once the palette went
+minimal, the silhouette became the thing carrying the system's identity.
 
 ---
 
@@ -302,8 +331,6 @@ and minimal, the silhouette became the thing carrying the system's identity.
 - Entrances stagger from a parent container rather than firing independently.
 - Scroll reveals fire **once**. Repeating them is nauseating.
 - Card hover lifts by border, background and translation — **never shadow**.
-- Everything sits behind `prefers-reduced-motion`. This is not optional.
-
 - Lists enter with `subeResorte`: a short spring rise with a small settle,
   staggered — not a fade (glass panels must not animate opacity).
 - Active indicators slide: the nav underline and the tab underline use a
@@ -312,7 +339,26 @@ and minimal, the silhouette became the thing carrying the system's identity.
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
 - Only two loops exist, both in the app notice (the phone floats, the app icon
-  pulses), and both stop under `prefers-reduced-motion`.
+  pulses).
+
+### Reduced motion
+
+`prefers-reduced-motion` is honoured in both layers, and it removes
+**displacement**, not feedback:
+
+- **framer-motion:** the app is wrapped in `<MotionConfig reducedMotion="user">`,
+  so springs, rises, `layoutId` slides and `whileTap` stop moving while
+  opacity and colour changes remain.
+- **CSS (`index.css`):**
+  - the loops (`flotar`, `latido`) and the skeleton pulse stop;
+  - hover lifts and press scales are cancelled;
+  - smooth scrolling is turned off;
+  - colour, border and opacity transitions stay, shortened to 0.12s;
+  - loading spinners keep turning, because they are the only signal that
+    work is still in progress.
+
+A global `0.01ms` cut is deliberately not used: it also erased the cue that a
+state had changed.
 
 ---
 
@@ -320,19 +366,17 @@ and minimal, the silhouette became the thing carrying the system's identity.
 
 ### Buttons
 
-**`button-primary`** — Fill `{colors.accent}`, white text (5.41:1), in both
-registers. `{rounded.pill}`, padding 11px × 22px, `{weight.mid}`. **One per
-section.** `accent` is kept as an alias of `primary` so older call sites keep
-working.
+**`button-primary`** — Fill `{colors.accent}`, white text (5.41:1).
+`{rounded.pill}`, padding 11px × 22px, `{weight.mid}`. **One per section.**
+`accent` is kept as an alias of `primary` so older call sites keep working.
 
-**`button-danger`** — Fill `{colors.danger}`, white text. Only to confirm a
+**`button-danger`** — Fill #dc2626, white text (4.83:1). Only to confirm a
 destructive action in a dialog.
 
-**`button-ghost`** — Transparent, 1px `{colors.hairline}` (or
-`{colors.hairline-d}`), `{rounded.pill}`. Secondary actions. The only button
-allowed coloured text — `!text-ok`, `!text-danger` — because there the colour
-describes the *effect*, not the fact that it is clickable; the silhouette
-already says that.
+**`button-ghost`** — Transparent, 1px `{colors.hairline}`, `{rounded.pill}`.
+Secondary actions. The only button allowed coloured text — `!text-ok`,
+`!text-danger` — because there the colour describes the *effect*, not the
+fact that it is clickable; the silhouette already says that.
 
 **Sizes**: `sm` 14px text, padding 8px × 18px · `md` 15px text, padding
 11px × 22px. Press state `scale(0.96)`.
@@ -358,6 +402,9 @@ a vocabulary.
 | `Ban` | Suspend an account |
 | `LogIn` · `LogOut` · `UserPlus` | Session |
 
+The names are the ones exported by `frontend/src/components/icons.tsx`, which
+maps them to Phosphor duotone glyphs.
+
 **Intentionally without an icon:** "Cancel" in forms and dialogs, and the nav
 CTA. Cancel must be the quiet exit — a glyph puts it at the same visual weight
 as the action it is avoiding.
@@ -367,36 +414,46 @@ as the action it is avoiding.
 
 ### Cards & Surfaces
 
-**`card`** — `{rounded.card}`, 28px padding, no shadow. With `glass`:
-translucent plus `backdrop-blur` and `backdrop-saturate`. `interactive` lifts
-by border, background and translation — never shadow.
+**`card`** — `{rounded.card}`, 28px padding, no shadow. Opaque by default
+(`{colors.canvas}` with a hairline); with `glass`: `rgba(255,255,255,0.06)`
+plus `backdrop-blur` and `backdrop-saturate`, with the glass edge.
+`interactive` lifts by border, background and translation — never shadow.
 
-**`glass-panel`** — the signature panel, 68% white, mounted across the seam
-between a dark band and the light body (home search, job detail summary and
-action card). On light-only pages it sits on `mesh-page` without the overlap.
+**`glass-panel`** — the signature panel, mounted across the edge of the dark
+band (home search, job detail summary and action card) or loose on
+`mesh-page`.
 
-**`vacante-card`** — the job card on the listing: glass card with the salary
-as the main figure (`tabular-nums`), modality, location, up to three
-technologies and a relative date.
+**`vacante-card`** — the job card on the listing: glass card with the
+company initials, the salary as the main figure (`tabular-nums`), modality,
+location, up to three technologies and a relative date. The title link's
+`after` covers the whole card, so a screen reader announces a single link,
+and its focus ring outlines the whole card.
+
+**`iniciales`** — the company tile: up to two initials on a low tint chosen
+from the company name, so the same company always gets the same tone.
 
 ### Inputs & Forms
 
 **`input`** — 1px `{colors.hairline}` (**not 2px**), `{rounded.ui}`, padding
-10px × 14px. Focus: `{colors.accent}` border plus `{shadow.focus-accent}`.
-Accepts `tone="dark"` for the authentication register, which swaps surface,
-text and focus halo.
+10px × 14px, on `{colors.canvas}`. Focus: `{colors.accent}` border plus
+`{shadow.focus-accent}`. `tone="dark"` (inside dark bands and the
+authentication screens) uses a 4% white fill and focuses with
+`{colors.accent-on-dark}` at 55% plus `{shadow.focus-accent-d}`.
 
 **Placeholder in `{colors.muted}`, never `{colors.ink-2}`** — it must be
 distinguishable from a real value.
+
+**Search fields without a border** (home search) mark focus on the whole
+field: the same border and halo as `input` in dark tone, appearing on
+`focus-within`.
 
 **`field`** — label plus control plus help. Errors are announced with
 `role="alert"`, not merely painted.
 
 **`choice-cards`** — Replaces a native `<select>` when there are two or three
-mutually exclusive options. The native dropdown is drawn by the operating
-system and no amount of CSS gives it the dark register everywhere; more
-importantly, with two options a select hides half the decision behind a click,
-and when that decision **branches the form** it deserves to be visible.
+mutually exclusive options. With two options a select hides half the
+decision behind a click, and when that decision **branches the form** it
+deserves to be visible.
 
 It remains a real `radiogroup` with `sr-only` radios, so arrow-key navigation
 comes free and the form serialises as usual. **The selection frame travels**
@@ -406,15 +463,16 @@ object changing place, which is what makes the exclusivity legible.
 ### Navigation
 
 **`navbar`** — Full-width dark glass bar, 64px tall (`--nav-flow`), sticky,
-`bg-night/75` with blur and saturation and a 1px `{colors.hairline-d}` bottom
-edge. Pages slide under it with a negative margin of `--nav-flow`, so the page
-is seen passing beneath. The current section is marked with a 2px
-`{colors.accent-on-dark}` line on the bar's bottom edge.
+`bg-night/60` with `blur(28px)` and saturation and a 1px `{colors.hairline-d}`
+bottom edge. 60% black is the floor: with links at 90% white it is the least
+opacity that still passes AA (4.61:1) even when pure white passes beneath.
+The current section is marked with a 2px `{colors.accent-on-dark}` line on the
+bar's bottom edge.
 
 **`brand`** — The "th" monogram (32px, 9px radius, hairline edge) plus
 "TalentHub". The same mark as the app icon, Play Store and favicon.
 
-**`footer`** — Dark closing band. Brand block plus role-aware link columns.
+**`footer`** — Closing band. Brand block plus role-aware link columns.
 Hidden on closed surfaces — sign-in, registration, password recovery,
 checkout — where the only useful exit is the one the page itself provides.
 
@@ -442,12 +500,17 @@ move between tabs.
 
 ### Signature Components
 
-**`auth-shell`** — The four session screens. Dark register throughout, with a
-dark glass card (`edge-d`) over slowly drifting auroras — glass over flat
-black refracts nothing — and the brand above it. Adds
-`[color-scheme:dark]` on selects so the native dropdown is not white, and a
-Chrome autofill patch without which the dark card breaks exactly where the
-browser tries to help.
+**`auth-shell`** — The session screens. Dark glass card (`edge-d`) over slowly
+drifting auroras — glass over flat black refracts nothing — and the brand
+above it. The auroras stop under reduced motion. The whole document declares
+`color-scheme: dark`, so native selects and date pickers open dark, and a
+Chrome autofill patch keeps the dark field intact exactly where the browser
+tries to help.
+
+**`app-promo`** — The app notice, visible until the visitor signs in. On
+desktop a floating card with a QR code and a drawn phone that turns into a
+"Descarga la app" button when minimised; on mobile a bottom bar with
+"Descargar".
 
 ---
 
@@ -455,10 +518,12 @@ browser tries to help.
 
 ### Do
 
-- Cut the dark band and the light body at a hard edge, always.
-- Keep the dark band short: title, count, and on the home page the search.
+- Open every page with its dark band and let glass cross its edge.
+- Keep the dark band short: title, count, breadcrumbs and tabs, and on the
+  home page the search.
 - Give every executing or navigating button an icon from the vocabulary above.
 - Use `{colors.accent}` for the brand and for interaction, and nothing else.
+- Use `{colors.accent-on-dark}` whenever the accent is text or an icon tint.
 - Reserve colour for resolution; leave work-in-progress in full ink.
 - Give every list a loading state, an empty state and an error state with a
   retry action.
@@ -466,11 +531,15 @@ browser tries to help.
   there is none.
 - State the consequence in a confirmation dialog instead of asking "are you
   sure?".
+- Measure every new colour pair against WCAG AA on the surface where it is
+  painted, glass included.
 
 ### Don't
 
 - No `box-shadow` for elevation. Ever.
-- No `{colors.muted}` in the dark third of a glass panel.
+- No `{colors.accent}` (#3355ff) as text on dark: 3.4:1 fails.
+- No state colour as a button fill with white text (#f87171 gives 2.77:1).
+- No opacity animation on glass or on any ancestor of glass.
 - No `backdrop-filter` on table rows.
 - No parallax, cursor-following glows or count-up numbers.
 - No `font-bold` in a headline; nothing above 540, nothing above 52px.
@@ -488,9 +557,9 @@ browser tries to help.
 
 | Breakpoint | Behaviour |
 |---|---|
-| **< 640px** | Single column. Navigation collapses to a menu button. Optional side panels are hidden rather than stacked. |
+| **< 640px** | Single column. Navigation collapses to a menu button. Optional side panels are hidden rather than stacked. The app notice is a bottom bar. |
 | **640–1024px** | Two-column grids. Tables scroll horizontally inside their own container; the page body never scrolls sideways. |
-| **≥ 1024px** | Full composition: multi-column listings, side panels visible, sticky in-page indexes. |
+| **≥ 1024px** | Full composition: multi-column listings, side panels visible, sticky in-page indexes. The app notice floats in its own 340px column. |
 | **≥ 1440px** | Content stops at 1200px; bands stay full-bleed. |
 
 Headlines use `clamp()` throughout, so the display tier scales continuously
@@ -504,13 +573,19 @@ Traps found while building this. Each cost real debugging time and none is
 obvious from the rendered result.
 
 **Chrome autofill ignores `background-color`.** On a dark input the only
-override it honours is an inset `box-shadow`. Without the patch the dark band
-breaks precisely when the browser is being helpful.
+override it honours is an inset `box-shadow` (`.input-dark` in `index.css`).
+Without the patch the field turns pale yellow precisely when the browser is
+being helpful.
 
 **Native `<select>` dropdowns are drawn by the OS.** Without
-`[color-scheme:dark]` the option list renders white over a dark card.
+`color-scheme: dark` the option list renders white over a dark card.
+
+**Opacity flattens glass.** An element with `opacity < 1`, or any of its
+ancestors, becomes a backdrop root and the `backdrop-filter` paints flat until
+the fade reaches 1. That was the "the card takes a few seconds to pick up the
+gradient" bug; entrances on glass animate position only.
 
 **Measuring layout is not the same as seeing it.** `getBoundingClientRect`
-reports where an element *is*, not what is *painted* there. Both the overflow
-and margin-collapse bugs above passed every positional check while being
-completely invisible on screen.
+reports where an element *is*, not what is *painted* there. Clipped glass
+panels and collapsed margins passed every positional check while being
+visibly wrong on screen.

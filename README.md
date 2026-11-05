@@ -73,9 +73,10 @@ con la medición que la respalda.
 
 Las reglas que lo definen:
 
-- **Claro por defecto, oscuro de acento.** El contenido vive en claro; el
-  oscuro queda para hero, cierre, nav y las pantallas de sesión, siempre a
-  filo y nunca en degradado.
+- **Todo en oscuro, con vidrio como firma.** El sitio vive sobre casi negro
+  con halos de color detrás, y el contenido va en paneles translúcidos que
+  dejan pasar esos halos. Cada página abre con su banda oscura bajo la barra,
+  y el vidrio se monta sobre el filo.
 - **Un solo color de interacción.** Azul ultramar `#3355ff` marca lo que se
   puede tocar, y nada más. Los colores de estado nunca visten un control
   clicable, así que nadie tiene que preguntarse qué color significa
@@ -94,19 +95,19 @@ Las reglas que lo definen:
 
 | | Token | Valor | Uso |
 | --- | --- | --- | --- |
-| ![](https://img.shields.io/badge/-3355ff-3355ff?style=flat-square) | `accent` | `#3355ff` | Lo único que marca "esto se puede tocar" |
-| ![](https://img.shields.io/badge/-9db0ff-9db0ff?style=flat-square) | `accent-on-dark` | `#9db0ff` | El mismo acento, sobre banda oscura |
-| ![](https://img.shields.io/badge/-0f766e-0f766e?style=flat-square) | `ok` | `#0f766e` | Resuelto a favor: aceptada, publicada |
-| ![](https://img.shields.io/badge/-dc2626-dc2626?style=flat-square) | `danger` | `#dc2626` | Resuelto en contra: rechazada, error |
-| ![](https://img.shields.io/badge/-161616-161616?style=flat-square) | `ink` | `#161616` | Texto principal · 18.1:1 sobre blanco |
-| ![](https://img.shields.io/badge/-0a0a0a-0a0a0a?style=flat-square) | `night` | `#0a0a0a` | Bandas oscuras |
+| ![](https://img.shields.io/badge/-3355ff-3355ff?style=flat-square) | `accent` | `#3355ff` | Lo único que marca "esto se puede tocar": relleno con texto blanco · 5.41:1 |
+| ![](https://img.shields.io/badge/-9db0ff-9db0ff?style=flat-square) | `accent-on-dark` | `#9db0ff` | El mismo acento cuando es texto, ícono o anillo de foco · 9.51:1 sobre negro |
+| ![](https://img.shields.io/badge/-5eead4-5eead4?style=flat-square) | `ok` | `#5eead4` | Resuelto a favor: aceptada, publicada |
+| ![](https://img.shields.io/badge/-f87171-f87171?style=flat-square) | `danger` | `#f87171` | Resuelto en contra: rechazada, error |
+| ![](https://img.shields.io/badge/-ededed-ededed?style=flat-square) | `ink` | `#ededed` | Texto principal · 15.7:1 sobre tarjeta, 15.0:1 sobre vidrio |
+| ![](https://img.shields.io/badge/-0a0a0a-0a0a0a?style=flat-square) | `night` | `#0a0a0a` | El fondo de todo el sitio |
 
 Cada par de contraste está verificado contra WCAG AA, incluidos los textos que
 caen sobre paneles translúcidos, donde el fondo efectivo cambia según el punto
 de la página en que se pinten.
 
-> **12 componentes compartidos** en `frontend/src/components/ui`
-> y **13 páginas** construidas sobre ellos.
+> **11 componentes compartidos** en `frontend/src/components/ui`
+> y **15 páginas** construidas sobre ellos.
 
 ---
 
@@ -114,7 +115,7 @@ de la página en que se pinten.
 
 | Capa | Tecnologías |
 | --- | --- |
-| **Frontend** | React 19, TypeScript, Tailwind CSS 3.4, react-router-dom 7, framer-motion, lucide-react, sileo |
+| **Frontend** | React 19, TypeScript, Tailwind CSS 3.4, react-router-dom 7, framer-motion, Phosphor Icons (duotono), qrcode.react, sileo |
 | **Backend** | Django 6, Django REST Framework 3.16, autenticación por token, SDK de PayPal, Anymail |
 | **Datos** | PostgreSQL alojado en Supabase; SQLite para desarrollo local |
 | **Infraestructura** | Vercel (frontend), Render (backend), Azure para documentación y recursos del proyecto |
