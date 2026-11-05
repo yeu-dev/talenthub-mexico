@@ -9,6 +9,5 @@ build/
 
 # Local agent tooling — installed per developer, not part of the app
 .agents/
-.claude/
 .codex/
 .playwright/
