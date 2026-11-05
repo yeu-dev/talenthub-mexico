@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
@@ -25,6 +25,7 @@ import SolicitarRecuperacion from './pages/auth/SolicitarRecuperacion';
 import RestablecerPassword from './pages/auth/RestablecerPassword';
 import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
 import NoEncontrada from './pages/NoEncontrada';
+import FondoVivo from './components/fondos/FondoVivo';
 
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
@@ -45,6 +46,16 @@ const Pagina: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+/**
+ * El velo vivo de la portada, a todo el ancho de la ventana. Vive aquí y no en
+ * `Home` porque `Pagina` reserva la columna del aviso de la app: dentro de ella
+ * el velo se cortaba en seco a la altura de esa columna.
+ */
+const FondoPortada: React.FC = () => {
+  const { pathname } = useLocation();
+  return pathname === '/' ? <FondoVivo /> : null;
+};
+
 function App() {
   // `reducedMotion="user"`: framer-motion lee la preferencia del sistema. Si
   // está activa, apaga desplazamientos, escalas y `layoutId` (las líneas que
@@ -54,6 +65,7 @@ function App() {
     <MotionConfig reducedMotion="user">
     <Router>
       <PromoAppProvider>
+      <FondoPortada />
       <Navbar />
       <Pagina>
       <Routes>

@@ -132,7 +132,9 @@ const Home: React.FC = () => {
   // El margen negativo va en la raíz y no en el header: la raíz recorta los
   // halos (`overflow-hidden`) y recortaría también la parte que sube bajo la barra.
   return (
-    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night text-ink-d">
+    // Sin `bg-night` propio: el body ya es negro, y un fondo aquí taparía el velo
+    // vivo que `App` monta detrás de toda la portada.
+    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden text-ink-d">
       {/* Halos fijos detrás del cuerpo: el vidrio oscuro necesita tono que
           refractar; sobre negro plano se vería igual que una tarjeta opaca.
           Sin `blur()`: el degradado radial ya se desvanece solo, y un filtro
@@ -172,7 +174,7 @@ const Home: React.FC = () => {
           </motion.ul>
 
           {/* Buscador en vidrio oscuro */}
-            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md md:backdrop-blur-card backdrop-saturate-150 md:p-4">
+            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md backdrop-saturate-150 md:bg-[rgba(16,16,18,0.5)] md:p-4 md:backdrop-blur-card">
               <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
                 <label className={campo}>
                   <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
