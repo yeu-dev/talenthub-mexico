@@ -178,12 +178,12 @@ const PerfilAspirante: React.FC = () => {
           'transition-colors duration-200',
           seleccionado
             ? 'border-accent bg-accent/[0.06]'
-            : 'border-hairline hover:border-hairline-strong hover:bg-black/[0.015]'
+            : 'border-hairline hover:border-hairline-strong hover:bg-white/[0.03]'
         )}
       >
         {seleccionado ? (
           <>
-            <Check size={18} strokeWidth={1.8} className="mb-2 text-accent" />
+            <Check size={18} strokeWidth={1.8} className="mb-2 text-accent-on-dark" />
             <span className="max-w-full truncate text-[0.875rem] text-ink">{seleccionado.name}</span>
             <span className="mt-1 text-[0.8125rem] text-muted">Se subirá al guardar</span>
           </>

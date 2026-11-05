@@ -61,7 +61,7 @@ interface Props {
 const ProcessTrack: React.FC<Props> = ({ estado, tone = 'light', className }) => {
   const step = STEPS[estado as EstadoPostulacion] ?? STEPS.pendiente;
   const oscuro = tone === 'dark';
-  const empty = oscuro ? 'bg-white/[0.14]' : 'bg-black/[0.13]';
+  const empty = oscuro ? 'bg-white/[0.14]' : 'bg-white/[0.14]';
   const neutro = oscuro ? COLOR.neutro.oscuro : COLOR.neutro.claro;
   const final = oscuro ? COLOR[step.tono].oscuro : COLOR[step.tono].claro;
 

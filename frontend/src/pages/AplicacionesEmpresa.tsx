@@ -172,7 +172,7 @@ const AplicacionesEmpresa: React.FC = () => {
                     'transition-colors duration-200 ease-base',
                     activo
                       ? 'border-accent bg-accent text-white'
-                      : 'border-hairline text-ink-2 hover:border-hairline-strong hover:bg-black/[0.02]',
+                      : 'border-hairline text-ink-2 hover:border-hairline-strong hover:bg-white/[0.04]',
                     total === 0 && !activo && 'opacity-45'
                   )}
                 >
@@ -238,7 +238,7 @@ const AplicacionesEmpresa: React.FC = () => {
                             Aplicó a{' '}
                             <Link
                               to={`/vacantes/${a.vacante}`}
-                              className="text-accent transition-opacity hover:opacity-70"
+                              className="text-accent-on-dark transition-opacity hover:opacity-70"
                             >
                               {a.vacante_titulo}
                             </Link>
@@ -260,7 +260,7 @@ const AplicacionesEmpresa: React.FC = () => {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2.5 rounded-ui border border-hairline px-4 py-3 text-[0.9375rem] text-ink transition-colors duration-200 hover:border-accent/40 hover:bg-accent/[0.03]"
                           >
-                            <FileText size={16} strokeWidth={1.7} className="flex-none text-accent" />
+                            <FileText size={16} strokeWidth={1.7} className="flex-none text-accent-on-dark" />
                             Ver currículum
                             <ExternalLink size={13} strokeWidth={1.8} className="ml-auto flex-none text-muted" />
                           </a>

@@ -35,10 +35,9 @@ const Card: React.FC<CardProps> = ({
       // `edge-d` en vez de `border`: el borde parejo al 16% trazaba el
       // rectángulo entero y se leía antes que el contenido. Ver index.css.
       ? 'bg-white/[0.07] backdrop-blur-card backdrop-saturate-150 edge-d'
-      // Blanco con un susurro de azul: la card no es neutra, pertenece al
-      // sistema. A 0.46 de alfa el tinte es imperceptible como color y
-      // perceptible como temperatura.
-      : 'bg-[rgba(250,251,255,0.46)] backdrop-blur-card backdrop-saturate-[1.8] edge-l'
+      // El sitio es oscuro en todas partes: el vidrio "claro" es el mismo
+      // vidrio oscuro, un poco más denso porque suele llevar texto largo.
+      : 'bg-white/[0.06] backdrop-blur-card backdrop-saturate-150 edge-d'
     : tone === 'dark'
       ? 'bg-elevated border border-hairline-d'
       : 'bg-canvas border border-hairline';
@@ -47,7 +46,7 @@ const Card: React.FC<CardProps> = ({
     ? glass
       ? tone === 'dark'
         ? 'hover:-translate-y-1 hover:bg-white/[0.10] edge-d-hot'
-        : 'hover:-translate-y-1 hover:bg-white/[0.74] edge-l-hot'
+        : 'hover:-translate-y-1 hover:bg-white/[0.09] edge-d-hot'
       : tone === 'dark'
         ? 'hover:-translate-y-0.5 hover:border-hairline-d-strong'
         : 'hover:-translate-y-0.5 hover:border-hairline-strong'

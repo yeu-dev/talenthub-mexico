@@ -40,7 +40,7 @@ export default function PasswordValidator({
   }, [score, onValidationChange]);
 
   const colorSegmento = (i: number) => {
-    if (i >= score) return oscuro ? 'bg-white/[0.13]' : 'bg-black/[0.10]';
+    if (i >= score) return oscuro ? 'bg-white/[0.13]' : 'bg-white/[0.12]';
     if (score === 4) return oscuro ? 'bg-ok-d' : 'bg-ok';
     if (score === 3) return oscuro ? 'bg-accent-on-dark' : 'bg-accent';
     return oscuro ? 'bg-danger-d' : 'bg-danger';

@@ -74,7 +74,7 @@ const PageHeader: React.FC<Props> = ({
         : // También sube bajo el nav flotante: así los halos de la página se ven
           // detrás del pill y no queda una franja blanca del <body> arriba.
           cx(
-            'mt-[calc(var(--nav-flow)*-1)] border-b border-hairline bg-white/60 pt-[calc(var(--nav-flow)+1.75rem)]',
+            'mt-[calc(var(--nav-flow)*-1)] border-b border-hairline pt-[calc(var(--nav-flow)+1.75rem)]',
             pestanas ? '' : 'pb-7 md:pb-8'
           )
     )}

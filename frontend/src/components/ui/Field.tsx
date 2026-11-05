@@ -10,7 +10,9 @@ const BASE =
 
 const TONES: Record<Tone, string> = {
   light:
-    'border-hairline bg-canvas text-ink placeholder:text-muted ' +
+    // Con el sitio en oscuro, el registro "claro" también es oscuro: lleva el
+    // mismo parche de autofill.
+    'input-dark border-hairline bg-canvas text-ink placeholder:text-muted ' +
     'hover:border-hairline-strong ' +
     'focus:border-accent focus:shadow-focus-accent disabled:bg-surface',
   // `input-dark` no es decorativa: lleva el parche de autofill de index.css.

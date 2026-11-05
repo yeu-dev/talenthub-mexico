@@ -149,7 +149,7 @@ const Planes: React.FC = () => {
                     <span
                       className={cx(
                         "whitespace-nowrap rounded-pill border px-2.5 py-1 text-[0.6875rem] uppercase tracking-[0.06em]",
-                        destacado ? "border-hairline-d text-accent-on-dark" : "border-hairline text-accent"
+                        destacado ? "border-hairline-d text-accent-on-dark" : "border-hairline text-accent-on-dark"
                       )}
                     >
                       Tu plan
@@ -186,7 +186,7 @@ const Planes: React.FC = () => {
                       <Check
                         size={15}
                         strokeWidth={2}
-                        className={cx("mt-[3px] flex-none", destacado ? "text-accent-on-dark" : "text-accent")}
+                        className={cx("mt-[3px] flex-none", destacado ? "text-accent-on-dark" : "text-accent-on-dark")}
                       />
                       <span className={cx("text-[0.875rem]", destacado ? "text-ink-2d" : "text-ink-2")}>
                         {item}
@@ -243,7 +243,7 @@ const Planes: React.FC = () => {
     ) : null;
 
   return (
-    <div className="bg-canvas">
+    <div className="mesh-page">
       <PageHeader
         tono="oscuro"
         titulo="Planes"
@@ -261,7 +261,7 @@ const Planes: React.FC = () => {
               <div key={titulo} className="flex items-center gap-3">
                 <dt className="sr-only">{titulo}</dt>
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill bg-accent/[0.08]">
-                  <Icono size={18} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                  <Icono size={18} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
                 </span>
                 <dd className="font-mid text-[0.9375rem] text-ink">{titulo}</dd>
               </div>

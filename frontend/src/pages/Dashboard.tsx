@@ -493,7 +493,7 @@ const Dashboard: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="!text-accent hover:border-accent/40"
+                          className="!text-accent-on-dark hover:border-accent/40"
                           onClick={() => handleEdit(vacante)}
                           disabled={rechazada}
                         >

@@ -118,7 +118,7 @@ export default function ChoiceCards({
                     className={cx(
                       'transition-colors duration-200',
                       activo
-                        ? oscuro ? 'text-accent-on-dark' : 'text-accent'
+                        ? oscuro ? 'text-accent-on-dark' : 'text-accent-on-dark'
                         : oscuro ? 'text-muted-d' : 'text-muted'
                     )}
                   />

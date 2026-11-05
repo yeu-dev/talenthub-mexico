@@ -210,12 +210,12 @@ const VacanteDetalle: React.FC = () => {
                 {lenguajes.length > 0 && (
                   <div>
                     <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
-                      <Code2 size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      <Code2 size={16} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
                       Tecnologías
                     </h3>
                     <ul className="mt-3 flex list-none flex-wrap gap-2 p-0">
                       {lenguajes.map((tech) => (
-                        <li key={tech} className="rounded-pill bg-white/70 px-3 py-1 text-[0.875rem] text-ink-2">
+                        <li key={tech} className="rounded-pill bg-white/[0.06] px-3 py-1 text-[0.875rem] text-ink-2">
                           {tech}
                         </li>
                       ))}
@@ -225,7 +225,7 @@ const VacanteDetalle: React.FC = () => {
                 {experiencia && (
                   <div>
                     <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
-                      <Briefcase size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      <Briefcase size={16} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
                       Experiencia
                     </h3>
                     <p className="mt-2 max-w-[68ch] text-body leading-relaxed text-ink-2">{experiencia}</p>
@@ -234,7 +234,7 @@ const VacanteDetalle: React.FC = () => {
                 {otros && (
                   <div>
                     <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
-                      <ListPlus size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      <ListPlus size={16} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
                       Además
                     </h3>
                     <p className="mt-2 max-w-[68ch] whitespace-pre-line text-body leading-relaxed text-ink-2">{otros}</p>
@@ -280,7 +280,7 @@ const VacanteDetalle: React.FC = () => {
               <p className="text-body text-ink">Esta es una vacante publicada en la plataforma.</p>
               <p className="mt-2 text-[0.9375rem] text-ink-2">
                 Puedes gestionar las tuyas desde{' '}
-                <Link to="/dashboard" className="text-accent hover:underline">
+                <Link to="/dashboard" className="text-accent-on-dark hover:underline">
                   Mis vacantes
                 </Link>
                 .
@@ -302,7 +302,7 @@ const VacanteDetalle: React.FC = () => {
                   Iniciar sesión
                 </Button>
               </Link>
-              <Link to="/register" className="mt-3 block text-center text-[0.875rem] text-accent hover:underline">
+              <Link to="/register" className="mt-3 block text-center text-[0.875rem] text-accent-on-dark hover:underline">
                 Crear cuenta
               </Link>
             </div>

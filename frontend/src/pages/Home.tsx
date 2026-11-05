@@ -6,7 +6,7 @@ import api from "../services/api";
 import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { rise, riseGlass, stagger } from "../lib/motion";
-import { TarjetaApp } from "../components/AppPromo";
+import { cx } from "../lib/cx";
 import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
@@ -23,7 +23,7 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   const fecha = haceCuanto(vacante.fecha_publicacion);
 
   return (
-    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_280px_200px] md:items-center md:px-4">
+    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4">
       <div className="min-w-0">
         <h3 className="text-[1.0625rem] font-demi leading-snug text-ink-d">
           {/* El `after` del enlace cubre la fila: toda es clicable, y el lector
@@ -123,8 +123,10 @@ const Home: React.FC = () => {
           aria-hidden="true"
           className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]"
         />
-        <div className="relative mx-auto grid max-w-page grid-cols-1 items-center gap-10 px-6 md:px-7 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="min-w-0">
+        {/* Sin sesión, la tarjeta flotante de la app ocupa la esquina derecha: la
+            portada le deja esa columna libre para no tapar buscador ni lista. */}
+        <div className={cx("relative mx-auto max-w-page px-6 md:px-7", !conSesion && "lg:pr-[340px]")}>
+        <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
           <motion.h1
             variants={rise}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
@@ -191,13 +193,6 @@ const Home: React.FC = () => {
             </motion.div>
         </motion.div>
 
-        {/* La tarjeta de la app vive en la página y no flota encima: así se ve
-            desde que se entra sin tapar el buscador ni la lista. */}
-        {!conSesion && (
-          <div className="hidden lg:block">
-            <TarjetaApp />
-          </div>
-        )}
         </div>
       </header>
 
@@ -205,7 +200,7 @@ const Home: React.FC = () => {
       {/* ───────────── Lista de sueldos ───────────── */}
       {estado !== "error" && (
         <section className="pb-20 pt-14 md:pb-24">
-          <div className="mx-auto max-w-page px-6 md:px-7">
+          <div className={cx("mx-auto max-w-page px-6 md:px-7", !conSesion && "lg:pr-[340px]")}>
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
               <h2 className="font-heading text-[clamp(1.5rem,2.6vw,2rem)] font-demi leading-[1.1] tracking-[-0.015em] text-ink-d">
                 Vacantes recientes
@@ -238,7 +233,7 @@ const Home: React.FC = () => {
               <>
                 {/* Encabezado de columnas: solo donde hay columnas. */}
                 <div className="edge-d overflow-hidden rounded-card bg-white/[0.04] px-2 backdrop-blur-card md:px-3">
-                <div className="hidden grid-cols-[minmax(0,1fr)_280px_200px] gap-x-8 border-b border-hairline-d px-4 pb-2 pt-4 text-caption uppercase text-muted-d md:grid">
+                <div className="hidden grid-cols-[minmax(0,1fr)_220px_180px] gap-x-8 border-b border-hairline-d px-4 pb-2 pt-4 text-caption uppercase text-muted-d md:grid">
                   <span>Puesto</span>
                   <span>Lugar</span>
                   <span className="text-right">Sueldo</span>

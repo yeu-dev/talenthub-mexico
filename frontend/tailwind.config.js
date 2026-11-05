@@ -9,12 +9,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // ── Registro claro (por defecto) ──
-        canvas: '#ffffff',
-        surface: '#f5f6f8',
-        ink: '#161616',          // 18.1:1 sobre canvas · AAA
-        'ink-2': '#3f4045',
-        muted: '#6b6b6b',        // 5.33:1 · AA
+        // ── Registro base: OSCURO en todo el sitio ──
+        // Estos nombres eran el registro claro. Al pasar todo el sitio a
+        // oscuro se les cambió el valor y no el nombre: así cada página se
+        // volteó sin reescribir sus clases. `canvas` es la superficie de
+        // tarjetas y campos; `surface`, la de fondos alternos.
+        canvas: '#141416',
+        surface: '#0f0f11',
+        ink: '#ededed',          // 15.6:1 sobre canvas · AAA
+        'ink-2': '#c2c2c2',      // 10.2:1 · AAA
+        muted: '#8f8f8f',        // 5.4:1 sobre canvas · AA
 
         // ── Registro oscuro (hero, cierre, nav, footer) ──
         night: '#0a0a0a',
@@ -41,8 +45,8 @@ module.exports = {
         'accent-on-dark': '#9db0ff', // 9.51:1 sobre night · AAA
 
         // ── Hairlines: sustituyen a toda sombra de elevación ──
-        hairline: 'rgba(0,0,0,0.10)',
-        'hairline-strong': 'rgba(0,0,0,0.20)',
+        hairline: 'rgba(255,255,255,0.10)',
+        'hairline-strong': 'rgba(255,255,255,0.18)',
         'hairline-d': 'rgba(255,255,255,0.10)',
         'hairline-d-strong': 'rgba(255,255,255,0.18)',
 
@@ -55,11 +59,11 @@ module.exports = {
         // Ámbar quedó fuera a propósito: a 19° de matiz del rojo, es
         // indistinguible con daltonismo rojo-verde, y aquí significaban lo
         // contrario. La posición en el track comunica el avance mejor que un tono.
-        ok: '#0f766e',       // teal — aceptada, publicada, remoto
+        ok: '#5eead4',       // teal — aceptada, publicada, remoto (versión para oscuro)
         'ok-d': '#5eead4',
-        danger: '#dc2626',   // rojo — rechazada, error, destructivo
+        danger: '#f87171',   // rojo — rechazada, error, destructivo (versión para oscuro)
         'danger-d': '#f87171',
-        warn: '#a16207',     // ocre — reservado a avisos de formulario, nunca a estados
+        warn: '#fcd34d',     // ocre — reservado a avisos de formulario, nunca a estados
         'warn-d': '#fcd34d',
       },
 

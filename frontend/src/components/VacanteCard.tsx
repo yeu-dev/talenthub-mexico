@@ -55,7 +55,7 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
       <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {techs.map((tech) => (
-            <span key={tech} className="rounded-pill bg-white/70 px-2.5 py-1 text-[0.8125rem] text-ink-2">
+            <span key={tech} className="rounded-pill bg-white/[0.06] px-2.5 py-1 text-[0.8125rem] text-ink-2">
               {tech}
             </span>
           ))}

@@ -86,7 +86,7 @@ export const Dialog: React.FC<DialogProps> = ({
         ref={panelRef}
         className={cx(
           'w-full max-w-[430px] rounded-card p-7',
-          'edge-l bg-white/[0.88]',
+          'edge-l bg-elevated/[0.92]',
           'backdrop-blur-overlay'
         )}
       >
