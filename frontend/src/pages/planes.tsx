@@ -27,12 +27,25 @@ interface MiSuscripcion {
 /** Los planes destacados invierten a superficie oscura sobre la banda clara. */
 const DESTACADOS = ["PREMIUM", "PRO"];
 
-const DESCRIPCIONES: Record<string, string> = {
-  GRATIS: "Empieza a explorar oportunidades tecnológicas",
-  PREMIUM: "Maximiza tus oportunidades laborales",
-  PRO: "Encuentra talento más rápido",
-  ENTERPRISE: "La solución completa para reclutamiento",
+/**
+ * La descripción va por tipo de cuenta Y nombre. Antes la llave era solo el
+ * nombre, y el GRATIS de empresa mostraba la frase del aspirante ("Empieza a
+ * explorar oportunidades tecnológicas"): los dos planes se llaman igual.
+ */
+const DESCRIPCIONES: Record<string, Record<string, string>> = {
+  aspirante: {
+    GRATIS: "Empieza a explorar oportunidades tecnológicas",
+    PREMIUM: "Maximiza tus oportunidades laborales",
+  },
+  empresa: {
+    GRATIS: "Publica tus primeras vacantes sin costo",
+    PRO: "Encuentra talento más rápido",
+    ENTERPRISE: "La solución completa para reclutamiento",
+  },
 };
+
+const descripcion = (plan: Plan) =>
+  DESCRIPCIONES[plan.tipo_usuario]?.[plan.nombre.toUpperCase()] ?? "Plan ideal para comenzar";
 
 /** Lo que ya promete la página, dicho donde se toma la decisión. */
 const GARANTIAS = [
@@ -114,8 +127,11 @@ const Planes: React.FC = () => {
       items.push("Postulaciones ilimitadas");
     }
     if (plan.max_postulaciones_dia) items.push(`${plan.max_postulaciones_dia} postulaciones por día`);
+    // El backend ya aplica este límite (`plan_vigente` en empleos/views.py):
+    // al llegar a N, la vacante deja de recibir postulaciones.
     if (plan.max_candidatos) items.push(`Hasta ${plan.max_candidatos} candidatos por vacante`);
-    items.push("Acceso completo al catálogo de TI");
+    // El catálogo es lo que usa quien busca; a una empresa no le aplica.
+    if (plan.tipo_usuario === "aspirante") items.push("Acceso completo al catálogo de TI");
     return items;
   };
 
@@ -159,7 +175,7 @@ const Planes: React.FC = () => {
                 </div>
 
                 <p className={cx("text-[0.90625rem]", destacado ? "text-ink-2d" : "text-ink-2")}>
-                  {DESCRIPCIONES[nombre] ?? "Plan ideal para comenzar"}
+                  {descripcion(plan)}
                 </p>
 
                 <p className="mt-6 flex items-baseline gap-2">

@@ -1,10 +1,12 @@
 import shutil
 import tempfile
+from datetime import timedelta
 from decimal import Decimal
 from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -298,6 +300,94 @@ class AplicacionTests(PermisosBase):
         self.assertEqual(self.client.delete(f'/api/aplicaciones/{aplicacion.id}/').status_code, 403)
         self.como(self.aspirante)
         self.assertEqual(self.client.delete(f'/api/aplicaciones/{aplicacion.id}/').status_code, 204)
+
+
+class LimitesDePlanTests(PermisosBase):
+    """Los limites de los planes se aplican de verdad, no solo se muestran."""
+
+    def setUp(self):
+        super().setUp()
+        # El segundo aspirante tambien necesita CV para poder postularse.
+        Aspirante.objects.create(
+            usuario=self.aspirante2,
+            profesion='Backend',
+            habilidades=['Python'],
+            cv=SimpleUploadedFile('cv2.pdf', b'%PDF-1.4', content_type='application/pdf'),
+        )
+
+    def postularse(self, usuario, vacante=None):
+        self.como(usuario)
+        return self.client.post('/api/aplicaciones/', {'vacante': (vacante or self.publicada).id}, format='json')
+
+    def suscribir(self, usuario, plan, **extra):
+        return Suscripcion.objects.create(usuario=usuario, plan=plan, activa=True, **extra)
+
+    def test_la_vacante_se_llena_al_llegar_al_limite_de_candidatos_del_plan_de_la_empresa(self):
+        plan = Plan.objects.create(nombre='Mini', tipo_usuario='empresa', precio=Decimal('99.00'), max_candidatos=1)
+        self.suscribir(self.usuario_empresa, plan)
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        respuesta = self.postularse(self.aspirante2)
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(respuesta.data['error'], 'VACANTE_LLENA')
+
+    def test_las_rechazadas_siguen_contando_para_el_limite(self):
+        plan = Plan.objects.create(nombre='Mini', tipo_usuario='empresa', precio=Decimal('99.00'), max_candidatos=1)
+        self.suscribir(self.usuario_empresa, plan)
+        Aplicacion.objects.create(vacante=self.publicada, usuario=self.aspirante, estado='rechazado')
+
+        respuesta = self.postularse(self.aspirante2)
+        self.assertEqual(respuesta.data['error'], 'VACANTE_LLENA')
+
+    def test_sin_limite_si_el_plan_no_lo_define(self):
+        plan = Plan.objects.create(nombre='Abierto', tipo_usuario='empresa', precio=Decimal('0'), max_candidatos=None)
+        self.suscribir(self.usuario_empresa, plan)
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.postularse(self.aspirante2).status_code, status.HTTP_201_CREATED)
+
+    def test_sin_suscripcion_aplica_el_plan_gratis_de_empresa(self):
+        Plan.objects.create(nombre='GRATIS', tipo_usuario='empresa', precio=Decimal('0'), max_candidatos=1)
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.postularse(self.aspirante2).data['error'], 'VACANTE_LLENA')
+
+    def test_sin_suscripcion_ni_plan_gratis_no_hay_limite(self):
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.postularse(self.aspirante2).status_code, status.HTTP_201_CREATED)
+
+    def test_una_suscripcion_vencida_cae_al_plan_gratis(self):
+        Plan.objects.create(nombre='GRATIS', tipo_usuario='empresa', precio=Decimal('0'), max_candidatos=1)
+        pro = Plan.objects.create(nombre='PRO', tipo_usuario='empresa', precio=Decimal('399.00'), max_candidatos=100)
+        self.suscribir(self.usuario_empresa, pro, fecha_fin=timezone.now() - timedelta(days=1))
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.postularse(self.aspirante2).data['error'], 'VACANTE_LLENA')
+
+    def test_el_limite_de_una_vacante_no_toca_las_de_otra_empresa(self):
+        plan = Plan.objects.create(nombre='Mini', tipo_usuario='empresa', precio=Decimal('99.00'), max_candidatos=1)
+        self.suscribir(self.usuario_empresa, plan)
+        de_orbit = self.crear_vacante('De Orbit', empresa=self.otra_empresa, activa=True, estado_validacion='aprobada')
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.postularse(self.aspirante2, de_orbit).status_code, status.HTTP_201_CREATED)
+
+    def test_el_limite_diario_del_aspirante_sigue_aplicando(self):
+        plan = Plan.objects.create(nombre='GRATIS', tipo_usuario='aspirante', precio=Decimal('0'), max_postulaciones_dia=1)
+        self.suscribir(self.aspirante, plan)
+        otra = self.crear_vacante('Otra', activa=True, estado_validacion='aprobada')
+
+        self.assertEqual(self.postularse(self.aspirante).status_code, status.HTTP_201_CREATED)
+        respuesta = self.postularse(self.aspirante, otra)
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('límite de postulaciones diarias', respuesta.data['detail'])
+
+    def test_mi_suscripcion_no_muestra_un_plan_vencido(self):
+        pro = Plan.objects.create(nombre='PRO', tipo_usuario='empresa', precio=Decimal('399.00'))
+        self.suscribir(self.usuario_empresa, pro, fecha_fin=timezone.now() - timedelta(days=1))
+        self.como(self.usuario_empresa)
+
+        self.assertEqual(self.client.get('/api/suscripcion/actual/').data['plan'], 'GRATIS')
 
 
 class SuscripcionYNotificacionTests(PermisosBase):
