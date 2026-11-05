@@ -1,55 +1,49 @@
 # TalentHub México — Style Reference
 
 > Design language for a job board in the Mexican IT sector. Light by default,
-> dark as an accent band, one interaction colour, and glass used as a lens
-> rather than a texture.
+> a short dark band at the top of every page, one brand colour that is also
+> the action colour, and solid surfaces.
 >
 > Tokens map one-to-one to `frontend/tailwind.config.js`. A reference written
 > as `{colors.accent}` is the Tailwind key `accent`; `{typography.h2}` is the
-> `fontSize` key `h2`. The system is portable to any Tailwind project and to
-> NativeWind with the exception noted under *Elevation & Depth*.
+> `fontSize` key `h2`.
 
 ---
 
 ## Overview
 
-TalentHub is a **light-first product interrupted by deliberate dark bands**.
-Content lives on white; the dark register appears at the top of every page, at
-the closing call to action, in the floating navigation, and across the entire
-authentication flow. The transition between the two is always a hard edge —
-never a gradient — and that edge is load-bearing: the signature surface of the
-system is a translucent panel mounted across it, refracting black above and
-page below in a single pane.
+TalentHub is a **light-first job board** with a short dark band at the top of
+every page. The band carries the navigation, the page title and, on the home
+page, the search; everything else lives on white or `{colors.surface}`. The
+band and the light body meet at a hard edge, never a gradient.
 
-Restraint carries the character, because the palette no longer can. A light,
-minimal job board is the most crowded visual territory that exists, so what
-distinguishes this one is discipline: every control is a full pill, elevation
-shadows are forbidden, display type never exceeds weight 540 while the rest of
-the web pushes 700, and exactly one colour means "you can touch this."
-
-Density shifts by surface. Marketing pages breathe at 64–80px between
-sections with display type up to 72px; application screens compact to 32–40px
-and cap headings at 36px. Same tokens, different tempo.
+> **Why this changed (phase 7).** The first version of this system was built
+> around frosted glass panels mounted across the dark/light seam, colour halos
+> behind the page, a cursor-following glow, parallax, animated auroras and
+> count-up numbers. Together they made the site read as a generated landing
+> page rather than a product, and the brand blue barely appeared because the
+> primary button was black or white. All of that is gone. What stays is what
+> was doing real work: the type, the pill silhouette, the contrast-checked
+> palette and the state rules.
 
 **Key Characteristics:**
-- Light canvas punctuated by full-bleed dark bands at hard edges; the colour
-  change is itself the section divider.
-- One interaction colour — ultramarine `{colors.accent}` (#3355ff) — on
-  buttons, links and focus rings, and nowhere else.
-- State colour marks **resolution, not activity**: two colours only, teal for
-  resolved-in-favour and red for resolved-against. Work in progress carries
-  full ink, never a hue.
-- Glass panels straddle the light/dark seam. The gradient across them is not
-  painted; it is one pane refracting two backgrounds.
-- No elevation shadows anywhere. Depth comes from translucency, 1px hairlines
-  and surface contrast.
-- Full pill (`{rounded.pill}`) on every control — the silhouette that holds
-  the system together.
-- Display type at weight 500–540 with negative tracking; body at 460.
+- Light canvas with a short dark band at the top; the colour change is the
+  divider.
+- **Ultramarine `{colors.accent}` (#3355ff) is both the brand and the action
+  colour.** Primary buttons, links and focus rings, nowhere else.
+- The "th" monogram (the same icon as the mobile app, Play Store and the
+  favicon) next to the name in the navigation, the footer and the sign-in
+  screens.
+- **Solid surfaces only:** cards are `{colors.canvas}` or `{colors.elevated}`
+  with a 1px hairline. No translucency, no blur, no elevation shadows.
+- State colour marks **resolution, not activity**: teal for resolved in
+  favour, red for resolved against. Work in progress carries full ink.
+- Full pill (`{rounded.pill}`) on every control.
+- Display type at weight 500–540, capped at 52px.
 - Every button that executes or navigates carries an icon; the ones that
-  cancel do not. Identity through form, which survives colour blindness.
-- Motion is orchestrated from one module, not scattered per component, and
-  every effect degrades under `prefers-reduced-motion`.
+  cancel do not.
+- **Only real data.** No sample cards, invented figures or claims the product
+  cannot back. If a number is small, it is not shown off.
 
 ---
 
@@ -73,9 +67,6 @@ and cap headings at 36px. Same tokens, different tempo.
   needs two resolutions: #3355ff as text on black gives 3.4:1 and fails,
   #9db0ff on white gives 2.0:1 and fails. One semantic token, two values,
   never the other register's.
-- **Wash** (`{colors.accent-wash}` — #4a66ff): Halos and gradients only.
-  **Never text.**
-
 ### Surface
 
 - **Canvas** (`{colors.canvas}` — #ffffff): Content ground. The base plane of
@@ -87,20 +78,15 @@ and cap headings at 36px. Same tokens, different tempo.
 - **Elevated** (`{colors.elevated}` — #161616): Floating navigation and opaque
   cards sitting on a dark band.
 
-**The substrate is not decoration.** `mesh-page` paints four minimum-saturation
-halos behind the page — warm at top-left, cool at top-right, teal at bottom.
-Without it glass refracts nothing and a translucent card looks identical to an
-opaque one. The halos supply variation in **hue**, not merely in light, which
-is the difference between glass and frosted plastic. It uses
-`background-attachment: fixed` so the halo stays put while content scrolls, at
-no repaint cost.
+There is no page substrate any more. Bodies sit on `{colors.canvas}` or
+`{colors.surface}`; alternating them is how sections separate.
 
 ### Text
 
 | Token | Value | Contrast | Use |
 |---|---|---|---|
 | `{colors.ink}` | #161616 | 18.1:1 on canvas · AAA | Primary text, light register |
-| `{colors.ink-2}` | #3f4045 | AAA | Supporting text; anything over the dark half of a glass panel |
+| `{colors.ink-2}` | #3f4045 | AAA | Supporting text |
 | `{colors.muted}` | #6b6b6b | 5.33:1 · AA | Metadata, hints, timestamps |
 | `{colors.ink-d}` | #ededed | 16.9:1 on night · AAA | Primary text on dark. **Never pure white** — it cuts glare |
 | `{colors.ink-2d}` | #c2c2c2 | AAA | Supporting text on dark |
@@ -135,10 +121,6 @@ hairline instead of a hue; anything inactive goes grey.
 - `{colors.hairline-d}` — rgba(255,255,255,0.10): 1px border on dark.
 - `{colors.hairline-d-strong}` — rgba(255,255,255,0.18): hover on dark.
 
-**Glass never takes a plain `border`.** In either register it uses
-`{component.edge-l}` / `{component.edge-d}`. An even ring traces the whole
-rectangle, and at these contrasts the eye reads the outline before the content.
-
 ---
 
 ## Typography
@@ -159,7 +141,7 @@ rectangle, and at these contrasts the eye reads the outline before the content.
 
 | Token | Size | Line Height | Letter Spacing | Face | Use |
 |---|---|---|---|---|---|
-| `{typography.display}` | 72px | 1.0 | −0.035em | Display | Hero headline |
+| `{typography.display}` | 52px | 1.05 | −0.02em | Display | Hero headline |
 | `{typography.h1}` | 48px | 1.0 | −0.02em | Display | Page title |
 | `{typography.h2}` | 36px | 1.11 | −0.015em | Display | Section title |
 | `{typography.h3}` | 24px | 1.33 | −0.01em | Body | Card and panel headings |
@@ -235,47 +217,32 @@ Base 4px. Scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80`.
 
 ### Band Architecture
 
-Every page is a stack of full-bleed bands cut at hard edges.
+Every page starts with a **short dark band** directly under the navigation, in
+the same `{colors.night}`, so bar and band read as one piece. The band holds
+the eyebrow (optional), the page title and a count or one line of context; on
+the home page it also holds the search. It is short: 40–64px of padding below
+the content, not a stage.
 
-**Marketing** runs in acts: dark hero → light body → dark closing band. The
-section heading that introduces a group of glass panels lives at the *end* of
-the dark band, so the panels below it can straddle the seam.
-
-**Application screens** share one composition: dark band carrying the eyebrow,
-title and count → glass summary panel mounted ~96px over the seam → body on
-`mesh-page`. Repeating it is not laziness; it is what makes the company
-dashboard and the validator panel feel like one product.
+Below the band the page continues on light surfaces. Summary panels, filters
+and metrics are ordinary solid cards placed **below** the band with normal
+spacing; nothing is mounted across the edge.
 
 ---
 
 ## Elevation & Depth
 
-**There is no elevation shadow in this system.** Depth is built from:
+**There is no elevation shadow in this system, and no translucency.** Depth
+comes from:
 
 1. Surface contrast (`{colors.canvas}` → `{colors.surface}`,
    `{colors.night}` → `{colors.elevated}`)
-2. A 1px edge — `{colors.hairline}`, or `{component.edge-l}` /
-   `{component.edge-d}` on glass
-3. Translucency plus `backdrop-filter`
-4. Overlap: summary panels mount ~96px over the dark band above them
+2. A 1px `{colors.hairline}` / `{colors.hairline-d}` edge
 
-The only two shadows in the system are the focus halos
-(`{shadow.focus-accent}` — `0 0 0 3px rgba(51,85,255,0.22)` and
-`{shadow.focus-accent-d}` — `0 0 0 3px rgba(157,176,255,0.24)`). They signal
-state, not elevation.
+The only two shadows are the focus halos (`{shadow.focus-accent}` —
+`0 0 0 3px rgba(51,85,255,0.22)` and `{shadow.focus-accent-d}` —
+`0 0 0 3px rgba(157,176,255,0.24)`). They signal state, not elevation.
 
-### Decorative Depth
-
-Dark bands carry a white radial halo bleeding from off-canvas, at 12–17%
-opacity with a 6–10px blur. The authentication screens add a slow drifting
-aurora — white, ultramarine and teal blobs on 34/38/42-second cycles, phase
-offset so the pattern never repeats — because glass over flat black refracts
-nothing.
-
-> **Porting note.** The glass panel depends on `backdrop-filter`, which React
-> Native has no equivalent for. `expo-blur` provides a `BlurView` that blurs
-> what is behind it but cannot refract a seam between two bands. On native,
-> substitute opaque surfaces and contrast; keep every other token.
+No radial halos inside the dark band, no drifting auroras, no parallax.
 
 ---
 
@@ -288,8 +255,7 @@ nothing.
 | `{rounded.pill}` | 9999px | Every button, tag, chip and avatar |
 | `{rounded.ui}` | 10px | Inputs, selects, textareas, inline notices |
 | `{rounded.icon}` | 4px | Icon containers |
-| `{rounded.nav}` | 19px | Floating navigation |
-| `{rounded.card}` | 24px | Cards and glass panels |
+| `{rounded.card}` | 24px | Cards and panels |
 | `{rounded.cardlg}` | 40px | Large cards, mockups |
 | `{rounded.panel}` | 42px | Full-width containers |
 
@@ -320,7 +286,6 @@ and minimal, the silhouette became the thing carrying the system's identity.
 - Scroll reveals fire **once**. Repeating them is nauseating.
 - Card hover lifts by border, background and translation — **never shadow**.
 - Everything sits behind `prefers-reduced-motion`. This is not optional.
-- **Glass surfaces animate position only.** See *Implementation Notes*.
 
 ---
 
@@ -328,12 +293,13 @@ and minimal, the silhouette became the thing carrying the system's identity.
 
 ### Buttons
 
-**`button-primary`** — Always inverts its band: solid `{colors.ink}` with white
-text on light, solid white with `{colors.ink}` text on dark.
-`{rounded.pill}`, padding 11px × 22px, `{weight.mid}`. **One per section.**
+**`button-primary`** — Fill `{colors.accent}`, white text (5.41:1), in both
+registers. `{rounded.pill}`, padding 11px × 22px, `{weight.mid}`. **One per
+section.** `accent` is kept as an alias of `primary` so older call sites keep
+working.
 
-**`button-accent`** — Fill `{colors.accent}`, text white, same geometry. The
-committing action in a form: sign in, create account, pay, add.
+**`button-danger`** — Fill `{colors.danger}`, white text. Only to confirm a
+destructive action in a dialog.
 
 **`button-ghost`** — Transparent, 1px `{colors.hairline}` (or
 `{colors.hairline-d}`), `{rounded.pill}`. Secondary actions. The only button
@@ -374,49 +340,14 @@ as the action it is avoiding.
 
 ### Cards & Surfaces
 
-**`card`** — `{rounded.card}`, 28px padding, no shadow. With `glass`:
-translucent plus `backdrop-blur` **and `backdrop-saturate`**. The saturation is
-not optional; it is what separates glass from frosted plastic, because it
-saturates the hue passing through the panel instead of merely diffusing it.
+**`card`** — `{rounded.card}`, 28px padding, solid `{colors.canvas}` (light) or
+`{colors.elevated}` (dark), 1px hairline, no shadow. `interactive` cards change
+only the border on hover (`{colors.accent}` at 40% on light); they do not lift.
+The old `glass` prop is accepted and ignored while the pages are cleaned up.
 
-**`card-solid`** — `{colors.canvas}` or `{colors.elevated}`, 1px hairline. For
-dense surfaces where blur would cost performance — tables above all.
-
-**`glass-panel`** — **The signature component.** A translucent panel mounted
-across the seam between the dark band and the light body.
-
-The gradient visible across it is **not painted**. It is one pane refracting
-two different backgrounds: its upper portion sits over `{colors.night}`, its
-lower over `mesh-page`. Without a seam to cross, glass has nothing to do and
-the panel is indistinguishable from a white card — which is why the overlap is
-the component's reason for existing rather than a detail of its position.
-
-Three constraints follow, all measured:
-
-1. **Density 0.68, not 0.46.** Card glass runs at 46%, but a panel crossing the
-   seam has its top third over black, and `{colors.ink}` at 46% white gives
-   **4.02:1** — below AA. At 68% it gives 8.4:1. Transparency has a ceiling and
-   the text sets it.
-2. **The overlap is proportional, not absolute.** What matters is that the seam
-   crosses the panel's upper half. At a fixed 96px a 110px panel ends up **87%
-   over the black** — it stops straddling and starts floating. Hence two
-   measures: `{layout.overlap}` 96px for panels 160px and taller, and
-   `{layout.overlap-sm}` 52px for metric rows and three-fact strips. Both land
-   near 48%.
-3. **`{colors.muted}` may not enter the dark zone.** #6b6b6b over the grey the
-   panel produces on black gives **2.47:1**. Secondary text in the upper third
-   uses `{colors.ink-2}` (4.80:1); `muted` only below the seam. No density
-   fixes this — even at 90% white, `muted` reaches only 4.19:1.
-
-**`edge-l` / `edge-d`** — The glass edge. **Glass takes no even border.** A
-flat ring draws the whole rectangle and the eye reads it before the content;
-at 60% white against #0a0a0a that is near the maximum contrast the screen can
-produce. A real edge is not uniform — it catches light at the top and fades
-away around the curve.
-
-Two layers: a very faint hairline on all four sides, and an `inset` light line
-on the top edge only. `edge-l-hot` / `edge-d-hot` tint the edge with the accent
-on hover.
+**`vacante-card`** — The job listing card, shared by the home page and the
+listing. Title, company, **salary as the main figure** (`tabular-nums`),
+modality tag, location, up to three technologies and a relative date.
 
 ### Inputs & Forms
 
@@ -444,10 +375,14 @@ object changing place, which is what makes the exclusivity legible.
 
 ### Navigation
 
-**`nav-floating`** — Dark translucent pill floating over light content, 940px
-max, `{rounded.nav}`, `backdrop-blur` 16px with saturation. Sticky. Over the
-dark hero it dissolves; over light content it contrasts. That crossing is the
-most recognisable element in the system.
+**`navbar`** — Full-width solid `{colors.night}` bar, 64px tall (`--nav-flow`),
+sticky, with a 1px `{colors.hairline-d}` bottom edge. Brand on the left, links
+in the middle, session controls on the right; the sign-up button is
+`button-primary`. Hidden on the sign-in, registration and password screens,
+which carry their own brand.
+
+**`brand`** — The "th" monogram (32px, 9px radius, hairline edge) plus
+"TalentHub". The same mark as the app icon, Play Store and favicon.
 
 **`footer`** — Dark closing band. Brand block plus role-aware link columns.
 Hidden on closed surfaces — sign-in, registration, password recovery,
@@ -477,13 +412,11 @@ move between tabs.
 
 ### Signature Components
 
-**`mesh-page`** — The page substrate. Four minimum-saturation halos, fixed
-attachment. Required wherever glass appears.
-
-**`auth-shell`** — The four session screens. **Dark register throughout**, not
-a light plate on a dark canvas. Adds the drifting aurora, `[color-scheme:dark]`
-on selects so the native dropdown is not white, and a Chrome autofill patch
-without which the dark band breaks exactly where the browser tries to help.
+**`auth-shell`** — The four session screens. Dark register throughout, with a
+solid `{colors.elevated}` card and the brand above it. Adds
+`[color-scheme:dark]` on selects so the native dropdown is not white, and a
+Chrome autofill patch without which the dark card breaks exactly where the
+browser tries to help.
 
 ---
 
@@ -491,33 +424,31 @@ without which the dark band breaks exactly where the browser tries to help.
 
 ### Do
 
-- Cut dark and light bands at a hard edge, always.
-- Mount summary panels across the seam — that overlap is the composition.
+- Cut the dark band and the light body at a hard edge, always.
+- Keep the dark band short: title, count, and on the home page the search.
 - Give every executing or navigating button an icon from the vocabulary above.
-- Use `{colors.accent}` for interaction and nothing else.
+- Use `{colors.accent}` for the brand and for interaction, and nothing else.
 - Reserve colour for resolution; leave work-in-progress in full ink.
 - Give every list a loading state, an empty state and an error state with a
   retry action.
-- Keep table rows opaque; glass belongs in the chrome.
-- Verify contrast against the **effective** background, which on a glass panel
-  differs between its top and its bottom.
+- Show only real data. Derive anything shown from the API, and hide it when
+  there is none.
 - State the consequence in a confirmation dialog instead of asking "are you
   sure?".
 
 ### Don't
 
-- No `box-shadow` for elevation. Ever.
-- No `font-bold` in a headline; nothing above 540.
-- No even border on glass — use `{component.edge-l}` / `{component.edge-d}`.
-- No `{colors.muted}` in the dark third of a glass panel.
+- No `box-shadow` for elevation, no `backdrop-filter`, no translucent panels.
+- No radial halos, auroras, parallax, cursor-following glows or count-up
+  numbers.
+- No `font-bold` in a headline; nothing above 540, nothing above 52px.
 - No state colour on a clickable control.
 - No amber as a state colour.
 - No emoji as icons. Everything comes from `lucide-react`.
-- No announcement pill with a dot above the headline. It is the single most
-  recognisable element of AI-generated landing pages.
-- No `backdrop-filter` on table rows — it forces a full stack recomposition on
-  every scroll.
-- No navigation pinned to the viewport edge; it always floats.
+- No announcement pill with a dot above the headline, no hand-written sample
+  job card, no statistics row with small numbers.
+- No claim the product cannot back ("market data", "verified profiles",
+  review times).
 
 ---
 
@@ -525,9 +456,9 @@ without which the dark band breaks exactly where the browser tries to help.
 
 | Breakpoint | Behaviour |
 |---|---|
-| **< 640px** | Single column. Navigation collapses to a menu button; nav flow drops to 58px. Glass panels still straddle but at a smaller proportion. Optional side panels are hidden rather than stacked. |
+| **< 640px** | Single column. Navigation collapses to a menu button. Optional side panels are hidden rather than stacked. |
 | **640–1024px** | Two-column grids. Tables scroll horizontally inside their own container; the page body never scrolls sideways. |
-| **≥ 1024px** | Full composition: hero grids at 1.15fr / 0.85fr, three-column feature rows, side panels visible, sticky in-page indexes. |
+| **≥ 1024px** | Full composition: multi-column listings, side panels visible, sticky in-page indexes. |
 | **≥ 1440px** | Content stops at 1200px; bands stay full-bleed. |
 
 Headlines use `clamp()` throughout, so the display tier scales continuously
@@ -539,30 +470,6 @@ rather than stepping at breakpoints.
 
 Traps found while building this. Each cost real debugging time and none is
 obvious from the rendered result.
-
-**`opacity` breaks `backdrop-filter`.** An element with `opacity < 1` — itself
-or any ancestor — becomes a *backdrop root*, so the filter loses the page
-behind it and the glass paints flat, then snaps in when opacity reaches 1. Any
-entrance animation on a glass surface must animate position only.
-
-**No ancestor of a straddling panel may set `overflow: hidden`.** The panel
-lives inside the light section and rises 96px above its box; any clipping in
-the chain removes exactly the half sitting over the black, heading included.
-
-**A band that paints its own background needs `flow-root`.** The panel's
-negative margin **collapses upward** through any ancestor without top padding
-or border, dragging the section's top edge — and therefore its background —
-along with it. The panel stays put, the light band rises behind it, and the
-seam disappears. It looks identical to the effect not being applied at all.
-
-**Do not use `mask-composite` for the glass edge.** A masked gradient ring
-looks better and breaks in Firefox: `-webkit-mask` is accepted there as an
-alias of the standard shorthand and, being a shorthand, resets
-`mask-composite` to `add`; `-webkit-mask-composite: xor` then does not exist
-to restore it. The pseudo-element ends up painting the **entire rectangle** over
-the card. An `@supports (mask-composite)` guard does not protect against this,
-because Firefox does support the property — it is the following line that
-fails.
 
 **Chrome autofill ignores `background-color`.** On a dark input the only
 override it honours is an inset `box-shadow`. Without the patch the dark band

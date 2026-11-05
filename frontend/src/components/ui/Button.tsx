@@ -1,7 +1,7 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
 
-type Variant = 'primary' | 'accent' | 'ghost';
+type Variant = 'primary' | 'accent' | 'ghost' | 'danger';
 type Tone = 'light' | 'dark';
 type Size = 'sm' | 'md';
 
@@ -14,18 +14,26 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 /**
  * Pill de 9999px en todas sus formas — es la silueta que define el sistema.
- * `primary` siempre invierte la superficie: sólido oscuro sobre claro,
- * sólido blanco sobre oscuro. Uno por sección.
+ *
+ * `primary` es el azul de marca en los dos registros. Antes era negro sobre
+ * claro y blanco sobre oscuro, y el azul casi no aparecía en el sitio: todo
+ * se leía gris. `accent` se queda como alias para no tocar cada llamada.
+ * `danger` es solo para confirmar algo destructivo. Uno por sección.
  */
+const ACCENT = 'bg-accent text-white hover:bg-accent-hover';
+const DANGER = 'bg-danger text-white hover:bg-[#b91c1c]';
+
 const VARIANTS: Record<Tone, Record<Variant, string>> = {
   light: {
-    primary: 'bg-ink text-white hover:bg-[#2b2b2b]',
-    accent: 'bg-accent text-white hover:bg-accent-hover',
+    primary: ACCENT,
+    accent: ACCENT,
+    danger: DANGER,
     ghost: 'bg-transparent text-ink border border-hairline hover:border-hairline-strong hover:bg-black/[0.02]',
   },
   dark: {
-    primary: 'bg-white text-ink hover:bg-[#e9e9ea]',
-    accent: 'bg-accent text-white hover:bg-accent-hover',
+    primary: ACCENT,
+    accent: ACCENT,
+    danger: DANGER,
     ghost: 'bg-transparent text-white/90 border border-hairline-d hover:border-hairline-d-strong hover:bg-white/[0.05]',
   },
 };

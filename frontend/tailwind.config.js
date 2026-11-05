@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 // Sistema de diseño TalentHub — ver DESIGN.md en la raíz del proyecto.
-// Claro por defecto, oscuro como banda de acento. Un solo acento cromático.
+// Claro por defecto, una franja oscura corta arriba. El azul es la marca y la acción.
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -38,7 +38,6 @@ module.exports = {
         accent: '#3355ff',           // 5.41:1 con blanco encima · AA
         'accent-hover': '#2544e6',   // 6.89:1 · AA
         'accent-on-dark': '#9db0ff', // 9.51:1 sobre night · AAA
-        'accent-wash': '#4a66ff',    // solo halos y gradientes, nunca texto
 
         // ── Hairlines: sustituyen a toda sombra de elevación ──
         hairline: 'rgba(0,0,0,0.10)',
@@ -78,7 +77,9 @@ module.exports = {
 
       // Escala propia; no pisa las de Tailwind
       fontSize: {
-        display:  ['4.5rem',   { lineHeight: '1',    letterSpacing: '-0.035em' }], // 72
+        // El display bajó de 72 a 52: el titular gigante con tracking muy
+        // cerrado era uno de los rasgos de landing generada.
+        display:  ['3.25rem',  { lineHeight: '1.05', letterSpacing: '-0.02em'  }], // 52
         'h1':     ['3rem',     { lineHeight: '1',    letterSpacing: '-0.02em'  }], // 48
         'h2':     ['2.25rem',  { lineHeight: '1.11', letterSpacing: '-0.015em' }], // 36
         'h3':     ['1.5rem',   { lineHeight: '1.33', letterSpacing: '-0.01em'  }], // 24
@@ -105,21 +106,12 @@ module.exports = {
         pill: '9999px',
       },
 
-      // Única sombra permitida: el filo inset del glass.
-      // La spec original de Dimension definía exactamente esto y nada más.
+      // Sin sombras de elevación ni filos de vidrio: solo el halo de foco.
       boxShadow: {
-        'glass-edge': 'inset 0 1px 0 rgba(255,255,255,0.85)',
-        'glass-edge-d': 'inset 0 1px 0 rgba(255,255,255,0.14)',
         'focus-accent': '0 0 0 3px rgba(51,85,255,0.22)',
         // El halo de foco necesita su versión clara: el azul pleno
         // desaparece contra una superficie oscura.
         'focus-accent-d': '0 0 0 3px rgba(157,176,255,0.24)',
-      },
-
-      backdropBlur: {
-        card: '22px',
-        nav: '16px',
-        overlay: '28px',
       },
 
       // Una sola curva en CSS: desaceleración limpia, sin sobrepaso.

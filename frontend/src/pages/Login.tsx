@@ -4,10 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
   ArrowLeft,
-  BarChart3,
   Eye,
   EyeOff,
   Lock,
+  ListChecks,
   LogIn,
   ShieldCheck,
   TrendingUp,
@@ -18,6 +18,8 @@ import { showSuccess } from '../utils/alerts';
 import { AuthShell, Button, Field, Input } from '../components/ui';
 import { DUR, EASE, rise } from '../lib/motion';
 
+// Solo lo que la plataforma hace de verdad: aquí había "Datos del mercado"
+// (no existe) y una línea con 1,240 vacantes y 380 empresas inventadas.
 const PRUEBAS = [
   {
     icon: ShieldCheck,
@@ -30,9 +32,9 @@ const PRUEBAS = [
     body: 'Lo ves antes de aplicar, no después de cuatro entrevistas.',
   },
   {
-    icon: BarChart3,
-    title: 'Datos del mercado mexicano',
-    body: 'Salarios y tendencias del sector TI en México, no de otro país.',
+    icon: ListChecks,
+    title: 'Sigue tu proceso',
+    body: 'Ves en qué etapa va cada postulación y te avisamos cuando la empresa la mueve.',
   },
 ];
 
@@ -119,12 +121,6 @@ const Login: React.FC = () => {
             ))}
           </motion.ul>
 
-          <motion.p
-            variants={rise}
-            className="tabular mt-12 border-t border-hairline-d pt-6 text-[0.875rem] text-muted-d"
-          >
-            <span className="text-ink-2d">1,240 vacantes activas</span> · 380 empresas verificadas
-          </motion.p>
         </>
       }
       footer={

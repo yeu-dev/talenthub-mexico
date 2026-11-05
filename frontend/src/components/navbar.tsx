@@ -6,22 +6,26 @@ import api from "../services/api";
 import { Button } from "./ui";
 import { cx } from "../lib/cx";
 import { EASE, DUR } from "../lib/motion";
+import Brand from "./Brand";
 
 /**
- * Nav flotante oscuro sobre contenido claro.
+ * Barra oscura de ancho completo, pegada arriba, con el logo.
  *
- * Es el componente firma del sistema: en vez de una barra blanca pegada al
- * borde, un pill oscuro translúcido que flota separado del viewport. Sobre el
- * hero oscuro se funde; sobre el contenido claro contrasta. Ese cruce es lo
- * que distingue al sitio de cualquier otro portal claro.
+ * Antes era una pastilla translúcida con desenfoque flotando sobre la página:
+ * el gesto más repetido de las landings generadas, y sin logo. Ahora es una
+ * barra sólida del mismo color que la franja oscura de cada página, así que
+ * las dos se leen como una sola pieza.
  *
  * La lógica de roles, el contador de notificaciones y el menú móvil son los
  * de siempre — aquí solo cambió la forma.
  */
 const Navbar: React.FC = () => {
   const location = useLocation();
-  const isHome = location.pathname === "/";
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  // Las pantallas de acceso usan AuthShell, que trae su propio logo y ocupa
+  // toda la pantalla: ahi la barra sobra.
+  const isAuthPage = ["/login", "/register", "/olvide-password", "/restablecer-password"].some(
+    (ruta) => location.pathname === ruta || location.pathname.startsWith(`${ruta}/`)
+  );
 
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("user_username");
@@ -64,7 +68,7 @@ const Navbar: React.FC = () => {
 
   const navLinks = (
     <>
-      {!isHome && tipo !== "empresa" && tipo !== "validador" && (
+      {tipo !== "empresa" && tipo !== "validador" && (
         <Link to="/vacantes" className={linkClass}>
           Vacantes
         </Link>
@@ -98,7 +102,7 @@ const Navbar: React.FC = () => {
         </Link>
       )}
 
-      {!isHome && tipo !== "validador" && (
+      {tipo !== "validador" && (
         <Link to="/planes" className={linkClass}>
           Planes
         </Link>
@@ -148,18 +152,10 @@ const Navbar: React.FC = () => {
   );
 
   return (
-    <div className="pointer-events-none sticky top-0 z-50 px-4 pt-4 md:px-7 md:pt-5">
-      <nav
-        className={cx(
-          "pointer-events-auto mx-auto max-w-[940px]",
-          "rounded-nav border border-hairline-d bg-elevated/80 shadow-glass-edge-d",
-          "backdrop-blur-nav backdrop-saturate-150"
-        )}
-      >
-        <div className="flex items-center justify-between gap-6 py-2 pl-5 pr-2">
-          <Link to={rutaLogo} className="whitespace-nowrap text-[1rem] font-mid tracking-[-0.015em] text-white">
-            TalentHub
-          </Link>
+    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night">
+      <nav className="mx-auto max-w-page px-6 md:px-7">
+        <div className="flex h-16 items-center justify-between gap-6">
+          <Brand to={rutaLogo} />
 
           <div className="hidden items-center gap-6 lg:flex">{navLinks}</div>
           <div className="hidden items-center gap-5 lg:flex">{sessionControls}</div>
@@ -185,7 +181,7 @@ const Navbar: React.FC = () => {
               transition={{ duration: DUR.base, ease: EASE }}
               className="overflow-hidden lg:hidden"
             >
-              <div className="flex flex-col gap-5 border-t border-hairline-d px-5 py-5">
+              <div className="flex flex-col gap-5 border-t border-hairline-d py-5">
                 {navLinks}
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline-d pt-5">
                   {sessionControls}

@@ -80,14 +80,13 @@ export const Dialog: React.FC<DialogProps> = ({
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
-      className="fixed inset-0 z-[300] flex items-center justify-center bg-night/40 p-6 backdrop-blur-[6px]"
+      className="fixed inset-0 z-[300] flex items-center justify-center bg-night/50 p-6"
     >
       <div
         ref={panelRef}
         className={cx(
           'w-full max-w-[430px] rounded-card p-7',
-          'edge-l bg-white/[0.88]',
-          'backdrop-blur-overlay'
+          'border border-hairline bg-canvas'
         )}
       >
         <h2 id="dlg-title" className="text-h3 font-demi text-ink">
@@ -102,7 +101,7 @@ export const Dialog: React.FC<DialogProps> = ({
           <Button ref={cancelRef} variant="ghost" size="sm" onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button variant={destructive ? 'primary' : 'accent'} size="sm" onClick={onConfirm}>
+          <Button variant={destructive ? 'danger' : 'primary'} size="sm" onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

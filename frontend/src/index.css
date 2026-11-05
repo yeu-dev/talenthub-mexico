@@ -48,19 +48,10 @@
   :root {
     color-scheme: light;
 
-    /* Altura de FLUJO del nav flotante: su padding superior mas el pill.
-       Las bandas oscuras se montan bajo el nav con un margen negativo de
-       exactamente este valor. Estuvo escrito a mano como 72px en doce
-       paginas y no era correcto en ningun ancho: el nav mide 58px en movil
-       (deja 14px de sobra) y 75px en escritorio (deja 3px de <body> blanco
-       asomando arriba de la banda). Una sola fuente, y responsiva. */
-    --nav-flow: 58px;
-  }
-
-  @media (min-width: 768px) {
-    :root {
-      --nav-flow: 75px;
-    }
+    /* Altura de la barra de navegacion (h-16). Las bandas oscuras se montan
+       bajo ella con un margen negativo de exactamente este valor, asi la
+       barra y la banda se leen como una sola pieza. */
+    --nav-flow: 64px;
   }
 
   html {
@@ -104,137 +95,55 @@
 }
 
 @layer utilities {
-  /* Franja de acento horizontal — separador de banda oscura */
-  .accent-wash {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      transparent 30%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent 70%,
-      transparent
-    );
-  }
-
-  /* Sustrato de página completa.
-     El glass es una lente: sin algo detrás no refracta nada y una card
-     translúcida se ve idéntica a una opaca. Esto le da qué mirar a través.
-     `background-attachment: fixed` mantiene el halo quieto mientras el
-     contenido corre por encima — sin coste de repintado por scroll. */
+  /*
+    Clases de transicion. El sistema de vidrio (paneles translucidos montados
+    sobre el filo de bandas oscuras, halos de color de fondo, filos inset)
+    salio del diseno: era lo que hacia que la web pareciera generada. Mientras
+    cada pagina se limpia, estas clases conservan su nombre pero pintan la
+    version solida, para que nada se rompa. Se borran al terminar la fase 7.
+  */
   .mesh-page {
-    background-color: theme('colors.canvas');
-    /* Tres tonos en saturación mínima: cálido arriba-izquierda, frío
-       arriba-derecha, verde-azulado abajo. Ninguno se lee como "color de
-       marca" — son luz, no pigmento. Pero le dan al glass variación de TONO
-       que refractar, no solo de luminancia, que es la diferencia entre
-       vidrio y plástico esmerilado. */
-    background-image:
-      radial-gradient(50% 42% at 4% 4%, rgba(255, 170, 92, 0.14), transparent 70%),
-      radial-gradient(46% 40% at 98% 18%, rgba(74, 102, 255, 0.13), transparent 70%),
-      radial-gradient(54% 46% at 82% 96%, rgba(56, 190, 178, 0.11), transparent 72%),
-      radial-gradient(58% 50% at 18% 92%, rgba(0, 0, 0, 0.03), transparent 72%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    background-color: theme('colors.surface');
   }
 
-  /* ── Panel de vidrio que atraviesa el filo ──
-
-     El degradado que se ve en estos paneles NO está pintado. Es el vidrio
-     refractando dos fondos distintos: su mitad de arriba está montada sobre la
-     banda oscura y la de abajo sobre el cuerpo claro. Por eso `overlap` no es
-     un detalle de posición — es la razón de ser del componente. Sin el solape
-     esto es una card blanca cualquiera.
-
-     Densidad 0.68 y no 0.46 como el glass de card: la mitad superior queda
-     sobre negro, y `ink` (#161616) al 46% de blanco da 4.02:1 — reprueba AA.
-     Al 68% da 8.4:1. La transparencia tiene un techo, y lo pone el texto. */
-  .glass-panel {
-    background-color: rgba(255, 255, 255, 0.68);
-    border-radius: theme('borderRadius.card');
-    backdrop-filter: blur(22px) saturate(1.8);
-    -webkit-backdrop-filter: blur(22px) saturate(1.8);
-  }
-
-  /* 96px de solape: suficiente para que el filo cruce por el tercio superior
-     del panel, que es donde el contraste entre los dos fondos se lee mejor. */
-  .glass-panel-overlap {
+  .mesh-light {
     position: relative;
-    z-index: 10;
-    margin-top: -6rem;
   }
 
-  /* El solape es fijo pero los paneles no miden lo mismo, y lo que importa es
-     la PROPORCION: el filo tiene que cruzar por la mitad superior del panel.
-     A 96px, uno de 110px de alto queda al 87% sobre el negro — deja de estar
-     a caballo y pasa a flotar sobre la banda, que es justo lo que no se
-     buscaba. Los paneles bajos (una fila de metricas, tres datos) usan esta. */
+  .glass-panel {
+    background-color: theme('colors.canvas');
+    border-radius: theme('borderRadius.card');
+  }
+
+  /* Ya no se monta sobre la banda: queda debajo con aire normal. */
+  .glass-panel-overlap,
   .glass-panel-overlap-sm {
     position: relative;
-    z-index: 10;
-    margin-top: -3.25rem;
+    margin-top: 1.5rem;
   }
 
   .glass-panel-hot:hover {
-    background-color: rgba(255, 255, 255, 0.76);
+    border-color: theme('colors.hairline-strong');
   }
 
-  /* ── Filo de vidrio ──
-
-     Un `border` parejo y brillante traza el rectángulo entero, y el ojo lo lee
-     antes que al contenido. Un filo real no es uniforme: la luz pega arriba y
-     el resto del canto solo define el borde.
-
-     Aquí eso son dos capas — un hairline tenue por los cuatro lados y una
-     línea de luz `inset` únicamente arriba. Sin máscaras.
-
-     Hubo una versión con `mask-composite` que recortaba un degradado al
-     contorno. Se veía mejor y estaba ROTA en Firefox: ahí `-webkit-mask` entra
-     como alias del shorthand estándar y, al ser shorthand, reinicia
-     `mask-composite` a `add`; luego `-webkit-mask-composite: xor` no existe en
-     Firefox y no lo vuelve a poner. Resultado: el pseudo-elemento pintaba el
-     rectángulo COMPLETO encima de la card y el contenido se veía lavado.
-     El `@supports` no protegía de nada, porque Firefox sí soporta
-     `mask-composite` — la que fallaba era la línea siguiente. */
   .edge-l {
-    border: 1px solid rgba(0, 0, 0, 0.055);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.035);
+    border: 1px solid theme('colors.hairline');
   }
+
   .edge-l-hot:hover {
-    border-color: rgba(51, 85, 255, 0.38);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.92),
-      inset 0 0 0 1px rgba(51, 85, 255, 0.12);
+    border-color: rgba(51, 85, 255, 0.4);
   }
 
   .edge-d {
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border: 1px solid theme('colors.hairline-d');
   }
+
   .edge-d-hot:hover {
-    border-color: rgba(157, 176, 255, 0.38);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    border-color: theme('colors.hairline-d-strong');
   }
 
-  /* Variante de sección: el halo vive dentro de la banda, no de la página.
-
-     Los halos van como CAPAS DE FONDO, no como pseudo-elementos. Antes eran
-     ::before/::after posicionados fuera de la caja, y contenerlos obligaba a
-     poner `overflow: hidden` en la sección — que recortaba también al panel
-     montado sobre el filo: se le comían los 80px de arriba, ícono y título
-     incluidos. Un background se recorta solo al border-box y no le impone
-     nada a los hijos, que es justo lo que hacía falta. */
-  .mesh-light {
-    position: relative;
-    background-image:
-      radial-gradient(360px 280px at 220px 190px, rgba(255, 170, 92, 0.16), transparent 72%),
-      radial-gradient(
-        320px 260px at calc(100% - 200px) calc(100% - 120px),
-        rgba(74, 102, 255, 0.15),
-        transparent 72%
-      );
-    background-repeat: no-repeat;
+  .accent-wash {
+    background: theme('colors.hairline-d');
   }
 }
 
