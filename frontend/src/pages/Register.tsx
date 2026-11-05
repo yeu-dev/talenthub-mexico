@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { showSuccess } from '../utils/alerts';
 import PasswordValidator from '../components/PasswordValidator';
@@ -12,12 +12,16 @@ import { useTitulo } from '../hooks/useTitulo';
 const Register: React.FC = () => {
   useTitulo('Crea tu cuenta');
   const navigate = useNavigate();
+  // `?rol=empresa` llega desde /empresas con "Publico vacantes" ya elegido:
+  // quien viene de ahí no tiene que escogerlo otra vez. Cualquier otro valor
+  // cae en aspirante, como siempre.
+  const [params] = useSearchParams();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     password2: '',
-    tipo: 'aspirante',
+    tipo: params.get('rol') === 'empresa' ? 'empresa' : 'aspirante',
     telefono: '',
     nombre_empresa: '',
   });

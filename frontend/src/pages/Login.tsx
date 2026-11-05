@@ -92,7 +92,8 @@ const Login: React.FC = () => {
           <motion.div variants={rise}>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 text-[0.875rem] text-muted-d transition-colors hover:text-ink-d"
+              // Directo sobre el velo: `ink-2d` para no bajar de AA.
+              className="inline-flex items-center gap-2 text-[0.875rem] text-ink-2d transition-colors hover:text-ink-d"
             >
               <ArrowLeft size={14} strokeWidth={1.8} />
               Volver al inicio

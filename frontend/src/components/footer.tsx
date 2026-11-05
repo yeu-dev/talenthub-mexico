@@ -1,9 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Brand from './Brand';
 import { Link, useLocation } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import { RESPONSABLE, hayContacto } from '../lib/responsable';
 import { useCambiosDeSesion } from '../lib/sesion';
+import { rutaBusqueda, stackPresente, vacantesPorCiudad } from '../lib/vacantes';
+import { vacantesPublicas } from '../lib/vacantesPublicas';
+
+/**
+ * "Empleos por": búsquedas sacadas de las vacantes publicadas, las tres
+ * tecnologías y las tres ciudades con más vacantes. Como los chips de la
+ * portada, nunca una escrita a mano: si la API no responde, la columna no sale.
+ */
+const useEmpleosPor = () => {
+  const [enlaces, setEnlaces] = useState<{ etiqueta: string; ruta: string }[]>([]);
+  useEffect(() => {
+    let vivo = true;
+    vacantesPublicas()
+      .then((vacantes) => {
+        if (!vivo) return;
+        setEnlaces([
+          ...stackPresente(vacantes, 3).map((t) => ({ etiqueta: `Empleos de ${t}`, ruta: rutaBusqueda({ q: t }) })),
+          ...vacantesPorCiudad(vacantes, 3).map((c) => ({ etiqueta: `Empleos en ${c.etiqueta}`, ruta: rutaBusqueda({ lugar: c.etiqueta }) })),
+        ]);
+      })
+      .catch(() => undefined);
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  return enlaces;
+};
 
 /**
  * Cierre del sitio, en registro oscuro.
@@ -29,6 +56,7 @@ const Footer: React.FC = () => {
   const { pathname } = useLocation();
   // Los enlaces dependen de la sesión: si vence, el pie vuelve a los de visitante.
   useCambiosDeSesion();
+  const empleosPor = useEmpleosPor();
 
   // Las pantallas de sesión y el checkout son superficies cerradas: entras,
   // resuelves una cosa y sales. Un footer ahí solo ofrece salidas.
@@ -47,7 +75,12 @@ const Footer: React.FC = () => {
   return (
     <footer className="border-t border-hairline-d bg-night text-ink-d">
       <div className="mx-auto max-w-page px-6 py-16 md:px-7">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div
+          className={cx(
+            'grid grid-cols-2 gap-x-8 gap-y-12',
+            empleosPor.length > 0 ? 'md:grid-cols-4 lg:grid-cols-[1.5fr_1fr_1.2fr_1fr_1fr]' : 'lg:grid-cols-[1.5fr_1fr_1fr_1fr]'
+          )}
+        >
           <div className="col-span-2 lg:col-span-1">
             <Brand />
             <p className="mt-3 max-w-[34ch] text-[0.9375rem] leading-relaxed text-muted-d">
@@ -66,7 +99,26 @@ const Footer: React.FC = () => {
                 Planes
               </Link>
             </li>
+            {!token && (
+              <li>
+                <Link to="/empresas" className={enlace}>
+                  Para empresas
+                </Link>
+              </li>
+            )}
           </Columna>
+
+          {empleosPor.length > 0 && (
+            <Columna titulo="Empleos por">
+              {empleosPor.map(({ etiqueta, ruta }) => (
+                <li key={ruta}>
+                  <Link to={ruta} className={enlace}>
+                    {etiqueta}
+                  </Link>
+                </li>
+              ))}
+            </Columna>
+          )}
 
           <Columna titulo="Cuenta">
             {!token && (

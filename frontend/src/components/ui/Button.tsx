@@ -1,5 +1,6 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
+import { useChispas } from '../../hooks/useChispas';
 
 type Variant = 'primary' | 'accent' | 'ghost' | 'danger';
 type Tone = 'light' | 'dark';
@@ -10,6 +11,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Registro de la superficie donde vive el botón, no del botón. */
   tone?: Tone;
   size?: Size;
+  /**
+   * Solo para la llamada a la acción principal de la pantalla ("Buscar
+   * vacantes", "Registrarse"): una luz recorre el borde al pasar el cursor y
+   * salen chispas al hacer clic. Si cada botón azul lo hiciera, dejaría de
+   * decir "esto es lo principal". Ver DESIGN.md, *Micro-interactions*.
+   */
+  destacado?: boolean;
 }
 
 /**
@@ -53,8 +61,9 @@ export const clasesBoton = ({
   variant = 'primary',
   tone = 'light',
   size = 'md',
+  destacado = false,
   className,
-}: { variant?: Variant; tone?: Tone; size?: Size; className?: string } = {}) =>
+}: { variant?: Variant; tone?: Tone; size?: Size; destacado?: boolean; className?: string } = {}) =>
   cx(
     'inline-flex items-center justify-center gap-2 rounded-pill font-mid',
     // Curva base, no de rebote: un sobrepaso sobre `background-color` empuja
@@ -65,15 +74,49 @@ export const clasesBoton = ({
     'active:scale-[0.96] disabled:opacity-45 disabled:pointer-events-none',
     SIZES[size],
     VARIANTS[tone][variant],
+    // `borde-luz` (index.css) también da el `position: relative` que necesita
+    // el lienzo de las chispas.
+    destacado && 'borde-luz',
     className
   );
 
+/**
+ * El botón destacado: el mismo `<button>`, con el lienzo de las chispas
+ * adentro. Va aparte para que los demás botones no carguen el hook.
+ */
+const BotonConChispas = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+  ({ onClick, children, ...rest }, ref) => {
+    const { lienzo, disparar } = useChispas();
+    return (
+      <button
+        ref={ref}
+        {...rest}
+        onClick={(e) => {
+          disparar(e);
+          onClick?.(e);
+        }}
+      >
+        {children}
+        {lienzo}
+      </button>
+    );
+  }
+);
+BotonConChispas.displayName = 'BotonConChispas';
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', tone = 'light', size = 'md', className, type = 'button', children, ...rest }, ref) => (
-    <button ref={ref} type={type} className={clasesBoton({ variant, tone, size, className })} {...rest}>
-      {children}
-    </button>
-  )
+  ({ variant = 'primary', tone = 'light', size = 'md', destacado = false, className, type = 'button', children, ...rest }, ref) => {
+    const clases = clasesBoton({ variant, tone, size, destacado, className });
+    return destacado ? (
+      <BotonConChispas ref={ref} type={type} className={clases} {...rest}>
+        {children}
+      </BotonConChispas>
+    ) : (
+      <button ref={ref} type={type} className={clases} {...rest}>
+        {children}
+      </button>
+    );
+  }
 );
 Button.displayName = 'Button';
 

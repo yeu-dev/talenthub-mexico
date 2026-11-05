@@ -1,12 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
+import { ArrowRight, Banknote, Bell, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
+import EmpresasQuePublican from "../components/portada/EmpresasQuePublican";
+import Explora from "../components/portada/Explora";
+import ParaQuienBusca from "../components/portada/ParaQuienBusca";
+import ParaEmpresas from "../components/portada/ParaEmpresas";
 import api from "../services/api";
 import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, haceCuanto, partesSalario, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { riseGlass, riseVisible, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
+import TitularGiratorio, { palabrasDelTitular } from "../components/TitularGiratorio";
 import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
@@ -26,7 +31,8 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   return (
     <motion.li
       variants={subeResorte}
-      className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4"
+      // `reflejo`: la misma franja de luz que las tarjetas de /vacantes (index.css).
+      className="reflejo relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4"
     >
       <div className="flex min-w-0 items-center gap-4">
         <Iniciales nombre={vacante.empresa_nombre} tamano={40} />
@@ -114,6 +120,8 @@ const Home: React.FC = () => {
   }, [cargar]);
 
   const chips = useMemo(() => chipsPopulares(vacantes), [vacantes]);
+  // Las palabras que giran en el titular salen de la misma lista: sin otra petición.
+  const palabras = useMemo(() => palabrasDelTitular(vacantes), [vacantes]);
   // El endpoint ya las entrega de la más nueva a la más vieja.
   const recientes = vacantes.slice(0, RECIENTES);
 
@@ -132,7 +140,9 @@ const Home: React.FC = () => {
   // El margen negativo va en la raíz y no en el header: la raíz recorta los
   // halos (`overflow-hidden`) y recortaría también la parte que sube bajo la barra.
   return (
-    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night text-ink-d">
+    // Sin `bg-night` propio: el body ya es negro, y un fondo aquí taparía el velo
+    // vivo que `App` monta detrás de toda la portada.
+    <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden text-ink-d">
       {/* Halos fijos detrás del cuerpo: el vidrio oscuro necesita tono que
           refractar; sobre negro plano se vería igual que una tarjeta opaca.
           Sin `blur()`: el degradado radial ya se desvanece solo, y un filtro
@@ -155,7 +165,7 @@ const Home: React.FC = () => {
             variants={riseVisible}
             className="max-w-[20ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]"
           >
-            Empleo en TI con el sueldo a la vista
+            <TitularGiratorio palabras={palabras} />
           </motion.h1>
           {/* Lo que distingue al sitio, en íconos y no en un párrafo. */}
           <motion.ul variants={riseVisible} className="mt-6 flex list-none flex-wrap gap-x-6 gap-y-3 p-0 text-[0.9375rem] text-ink-2d">
@@ -172,7 +182,7 @@ const Home: React.FC = () => {
           </motion.ul>
 
           {/* Buscador en vidrio oscuro */}
-            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md md:backdrop-blur-card backdrop-saturate-150 md:p-4">
+            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md backdrop-saturate-150 md:bg-[rgba(16,16,18,0.5)] md:p-4 md:backdrop-blur-card">
               <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
                 <label className={campo}>
                   <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
@@ -195,7 +205,7 @@ const Home: React.FC = () => {
                     className={input}
                   />
                 </label>
-                <Button type="submit" className="md:ml-2">
+                <Button type="submit" destacado className="md:ml-2">
                   <Search size={15} strokeWidth={1.8} />
                   Buscar vacantes
                 </Button>
@@ -220,10 +230,15 @@ const Home: React.FC = () => {
         </div>
       </header>
 
+      {/* Cada sección de aquí abajo cambia de superficie y de composición
+          respecto a la anterior (DESIGN.md, *Band Architecture*). */}
 
-      {/* ───────────── Lista de sueldos ───────────── */}
-      {/* La sección se queda siempre: con error dice qué pasó y deja a la
-          vista el enlace para empresas, que no depende de la API. */}
+      {/* ───────────── Empresas que publican: franja centrada ───────────── */}
+      <EmpresasQuePublican vacantes={vacantes} cargando={estado === "cargando"} />
+
+      {/* ───────────── Lista de sueldos: panel de vidrio ───────────── */}
+      {/* La sección se queda siempre: con error dice qué pasó, y la banda
+          para empresas de más abajo sigue a la vista porque no depende de la API. */}
         <section className="pb-20 pt-14 md:pb-24">
           <div className="mx-auto max-w-page px-6 md:px-7">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
@@ -293,17 +308,17 @@ const Home: React.FC = () => {
               </>
             )}
 
-            {/* Una línea para empresas, no un bloque de venta. */}
-            <Link
-              to="/planes"
-              className="mt-10 inline-flex items-center gap-2.5 text-[0.9375rem] font-mid text-accent-on-dark hover:text-ink-d"
-            >
-              <Building2 size={17} strokeWidth={1.7} aria-hidden="true" />
-              ¿Contratas? Publica gratis
-              <ArrowRight size={15} strokeWidth={1.8} aria-hidden="true" />
-            </Link>
           </div>
         </section>
+
+      {/* ───────────── Busca por stack, ciudad o modalidad: banda surface ───────────── */}
+      <Explora vacantes={vacantes} />
+
+      {/* ───────────── Para quien busca: partida, halo azul ───────────── */}
+      <ParaQuienBusca />
+
+      {/* ───────────── Para empresas: espejo, con velo (antes era una línea suelta) ───────────── */}
+      <ParaEmpresas vacantes={vacantes} />
 
     </div>
   );

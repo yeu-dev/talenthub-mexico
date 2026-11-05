@@ -93,6 +93,36 @@ did not, so every page turned dark without rewriting its classes. Read
 halos (blue, teal and a very low warm tone). Glass is a lens; without
 something behind it, a translucent card looks identical to an opaque one.
 
+### The live veil
+
+The home page, the session screens and the dark band at the top of every
+other page add one animated layer on top of the halos: **Dark Veil** from React Bits (`components/fondos/`), a slow blue veil
+in `{colors.accent}` rendered with WebGL.
+
+- From `md` only. On phones, and wherever WebGL is off, the static halos are
+  what shows.
+- No cursor interaction. It pauses itself under reduced motion, in a hidden
+  tab and off screen.
+- Opacity 45%. Text sitting directly on it at its brightest point would
+  fail with `muted-d`, so panels over it darken from `md`
+  (`rgba(16,16,18,0.5)`: `muted` 4.97:1, `muted-d` 4.66:1), and text placed
+  directly on it uses `ink-2d` (7.02:1) or brighter. At 50% `muted-d` drops
+  to 4.53:1, so it does not go higher without darker panels.
+- In the dark band of the other pages (`PageHeader`) it is dimmer, at 25%,
+  because breadcrumbs and tabs sit on it in `muted-d` (4.70:1 at its
+  brightest). It fades out towards the bottom, where the glass panels mount,
+  and towards the right, where the page leaves the app notice column, so it
+  never ends in a hard edge.
+- As a mid-page section (`banda`: the "For companies" close of the home page
+  and the closing band of `/empresas`) it is also at 25%, because text sits
+  directly on it, and it fades in and out at the top and bottom. Cards on it
+  darken from `md` like the panels over the hero veil.
+- On the home page it is mounted from `App`, at full window width, and fades
+  out before the salary list. Mounted inside the page it was clipped by the
+  column reserved for the app notice.
+- React Bits is MIT + Commons Clause: free to use and modify here, not to
+  resell as a component. The credit is in the file header.
+
 ### Text
 
 | Token | Value | canvas | night | glass 6% | glass hover 9% | Use |
@@ -254,7 +284,31 @@ carries and what crosses its edge:
 
 - **Home** — the tallest band, with one headline, three icon claims and the
   search on a glass panel; quick searches derived from real data. Below it,
-  the salary list on a glass container.
+  a long page where **each section changes surface and composition from the
+  one before**, so no two read as the same band twice:
+  1. *Companies that post here* — centred credits strip between hairlines.
+  2. *Recent vacancies* — the salary list on a glass container.
+  3. *Search by stack, city or modality* — full-width `{colors.surface}` band
+     with a teal halo; an open three-column index (stack 1.7fr with its real
+     salary range, city and modality 1fr each), every count exactly what the
+     linked search returns.
+  4. *For job seekers* — back on `night` with a blue halo; steps on the left,
+     the real "Mis postulaciones" track on the right (marked as an example).
+  5. *For companies* — the closing band, with the live veil (`banda`) and in
+     mirror: a real published vacancy on the left, the pitch on the right.
+- **Companies (`/empresas`)** — the landing for whoever hires, with the app
+  notice hidden: hero with the veil and two real product pieces (a vacancy and
+  an example application) instead of stock photos → the companies strip →
+  horizontal steps on a `surface` band → the applications panel in mirror →
+  the company plans from `/planes/` on one glass board split by hairlines →
+  a centred closing band with the veil.
+- **Rhythm** — section padding is fluid (`py-[clamp(3.5rem,7vw,6.5rem)]`,
+  less for closings), never a fixed `py-20`/`py-28` tuned for one width.
+  Split sections stack until `lg` and from there sit in two columns aligned
+  to the top, so the visual starts level with the heading instead of
+  floating in the gap. Full-width backgrounds live in their own layer
+  (`FondoSeccion`) and fade out to the right while the app notice keeps that
+  column free, the same way the bands do.
 - **Listing (`/vacantes`)** — short band (`solapa={false}`) with title and
   count, then a search-and-filter toolbar on dark glass that sticks under the
   nav while scrolling.
@@ -344,9 +398,62 @@ minimal, the silhouette became the thing carrying the system's identity.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
-- Only two loops exist, both in the app notice: the phone floats, and a ring
-  grows and fades around the app icon. Both animate `transform` and
+- Only four loops exist: the live veil behind the home page, the session
+  screens and the page bands (see *The live veil*); the rotating word in the
+  home headline; and two in the app notice: the phone floats, and a ring grows
+  and fades around the app icon. The CSS ones animate `transform` and
   `opacity` only, never `box-shadow`, which repaints on every frame.
+- The home headline reads "Tu siguiente empleo en ___ ya trae el sueldo". The
+  gap starts on "TI" and then cycles every 2.8s through languages, databases
+  and web stack (up to 8). The names come from a curated list in
+  `lib/vacantes.ts`, so they read clean ("SQL", not a raw "SQL y OWASP"), but a
+  name only shows if at least one published vacancy mentions it as a whole
+  word in its title, description or technologies (`stackPresente`): the
+  headline never promises jobs that are not there. Without the API it stays
+  on "TI". It sits on its own middle line, so only that line
+  changes width. Letters slide up through an `overflow-hidden` window and are
+  never faded: the headline is the LCP and must be readable from the first
+  frame. Screen readers hear the full sentence once; the rotating part is
+  `aria-hidden`. It pauses in a hidden tab.
+
+- **Process steps (`components/portada/Proceso.tsx`)** run as one authored
+  sequence the first time they scroll into view: each step lights its circle,
+  its icon makes the gesture of what it describes and the line segment to the
+  next step fills; then the next one starts (1.5s apart, about 4.5s for the
+  whole sequence, starting once half the list is on screen: at 0.85s it went
+  by before it could be read). The six icons and
+  gestures are all different — the eye blinks, the paper plane flies off and
+  comes back, the bell rings, the upload arrow rises, the shield seals, the
+  inbox receives — so no step reads as another. Text is readable from the
+  first frame (it starts at 55% and only rises). It runs once, and under
+  reduced motion every step is shown lit with the line complete.
+
+### Micro-interactions
+
+Three small effects, adapted from React Bits and rebuilt without new
+dependencies. None of them follows the cursor, none uses a shadow, and none
+loops: each one runs once per hover or per click.
+
+- **Glare (`.reflejo`, `index.css`):** a faint white band (10%) crosses a
+  vacancy card or a home row once when the cursor enters, in 0.85s. It snaps
+  back off-element on leave, ready for the next pass. Used on `VacanteCard`
+  and the home salary rows only.
+- **Light border (`.borde-luz`, `index.css`):** an `accent-on-dark` light runs
+  once around the pill on hover. It lives in the button's own `::before`,
+  masked to a 2px ring outside the edge, so the button keeps its size and its
+  focus ring. The rotating angle is a registered `@property --giro`.
+- **Sparks (`hooks/useChispas.tsx`):** eight short `accent-on-dark` strokes
+  burst from the click point and fade in 0.42s. A keyboard click bursts from
+  the centre. The canvas only draws while sparks are alive.
+
+The light border and the sparks come together as `Button destacado` (or
+`clasesBoton({ destacado: true })` plus `useChispas` on a link). They are
+reserved for the main call to action of a screen: today "Buscar vacantes" on
+the home page and "Registrarse" in the nav bar. Every other button stays
+plain; if all of them sparkled, none would read as the main one.
+
+Glare and the light border only exist on devices with a cursor
+(`@media (hover: hover)`): on touch, a tap would fire them out of place.
 
 ### Reduced motion
 
@@ -355,10 +462,13 @@ minimal, the silhouette became the thing carrying the system's identity.
 
 - **framer-motion:** the app is wrapped in `<MotionConfig reducedMotion="user">`,
   so springs, rises, `layoutId` slides and `whileTap` stop moving while
-  opacity and colour changes remain.
+  opacity and colour changes remain. The home headline stops rotating and
+  stays on its first word.
 - **CSS (`index.css`):**
   - the loops (`flotar`, `latido`) and the skeleton pulse stop;
   - hover lifts and press scales are cancelled;
+  - the glare and the light border are removed (the hover still shows through
+    the background and the button tone), and `useChispas` draws no sparks;
   - smooth scrolling is turned off;
   - colour, border and opacity transitions stay, shortened to 0.12s;
   - loading spinners keep turning, because they are the only signal that
