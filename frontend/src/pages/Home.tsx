@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Banknote, Bell, Building2, MapPin, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, Banknote, Bell, Building2, MapPin, Search, ShieldCheck } from "../components/icons";
 import api from "../services/api";
 import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
-import { rise, riseGlass, stagger } from "../lib/motion";
-import { cx } from "../lib/cx";
+import { rise, riseGlass, stagger, subeResorte } from "../lib/motion";
+import Iniciales from "../components/Iniciales";
 import { useTitulo } from "../hooks/useTitulo";
 
 const RECIENTES = 8;
@@ -23,8 +23,13 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   const fecha = haceCuanto(vacante.fecha_publicacion);
 
   return (
-    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4">
-      <div className="min-w-0">
+    <motion.li
+      variants={subeResorte}
+      className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4"
+    >
+      <div className="flex min-w-0 items-center gap-4">
+        <Iniciales nombre={vacante.empresa_nombre} tamano={40} />
+        <div className="min-w-0">
         <h3 className="text-[1.0625rem] font-demi leading-snug text-ink-d">
           {/* El `after` del enlace cubre la fila: toda es clicable, y el lector
               de pantalla anuncia un solo enlace con el nombre del puesto. */}
@@ -39,6 +44,7 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
           {vacante.empresa_nombre}
           {techs.length > 0 && <span className="text-ink-2d"> · {techs.join(", ")}</span>}
         </p>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-ink-2d">
@@ -55,7 +61,7 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
         </p>
         <p className="text-[0.8125rem] text-muted-d">MXN al mes{fecha && ` · ${fecha}`}</p>
       </div>
-    </li>
+    </motion.li>
   );
 };
 
@@ -71,7 +77,6 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
  */
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const conSesion = Boolean(localStorage.getItem("token"));
   useTitulo();
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
   const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
@@ -123,9 +128,7 @@ const Home: React.FC = () => {
           aria-hidden="true"
           className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]"
         />
-        {/* Sin sesión, la tarjeta flotante de la app ocupa la esquina derecha: la
-            portada le deja esa columna libre para no tapar buscador ni lista. */}
-        <div className={cx("relative mx-auto max-w-page px-6 md:px-7", !conSesion && "lg:pr-[340px]")}>
+        <div className="relative mx-auto max-w-page px-6 md:px-7">
         <motion.div variants={stagger(0.08)} initial="hidden" animate="show">
           <motion.h1
             variants={rise}
@@ -183,7 +186,7 @@ const Home: React.FC = () => {
                     <Link
                       key={chip.etiqueta}
                       to={rutaBusqueda(chip.filtros)}
-                      className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-colors hover:border-hairline-d-strong hover:text-ink-d"
+                      className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-[color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-hairline-d-strong hover:text-ink-d active:scale-95"
                     >
                       {chip.etiqueta}
                     </Link>
@@ -200,7 +203,7 @@ const Home: React.FC = () => {
       {/* ───────────── Lista de sueldos ───────────── */}
       {estado !== "error" && (
         <section className="pb-20 pt-14 md:pb-24">
-          <div className={cx("mx-auto max-w-page px-6 md:px-7", !conSesion && "lg:pr-[340px]")}>
+          <div className="mx-auto max-w-page px-6 md:px-7">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
               <h2 className="font-heading text-[clamp(1.5rem,2.6vw,2rem)] font-demi leading-[1.1] tracking-[-0.015em] text-ink-d">
                 Vacantes recientes
@@ -238,11 +241,17 @@ const Home: React.FC = () => {
                   <span>Lugar</span>
                   <span className="text-right">Sueldo</span>
                 </div>
-                <ul className="list-none p-0 [&>li:last-child]:border-b-0">
+                <motion.ul
+                  variants={stagger(0.07)}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, amount: 0.15 }}
+                  className="list-none p-0 [&>li:last-child]:border-b-0"
+                >
                   {recientes.map((vacante) => (
                     <Fila key={vacante.id} vacante={vacante} />
                   ))}
-                </ul>
+                </motion.ul>
                 </div>
               </>
             )}

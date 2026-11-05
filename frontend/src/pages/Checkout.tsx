@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Loader2, ShieldCheck } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { rise, riseGlass, stagger } from '../lib/motion';

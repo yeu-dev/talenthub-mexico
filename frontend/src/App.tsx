@@ -4,6 +4,8 @@ import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
 import AppPromo from './components/AppPromo';
+import { PromoAppProvider, usePromoApp } from './components/PromoApp';
+import { cx } from './lib/cx';
 import { ConfirmHost } from './components/ui';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -22,10 +24,31 @@ import SolicitarRecuperacion from './pages/auth/SolicitarRecuperacion';
 import RestablecerPassword from './pages/auth/RestablecerPassword';
 import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
 
+/**
+ * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
+ * escritorio deja libre la columna derecha donde flota; al minimizarla, la
+ * página se estira con una transición del padding.
+ */
+const Pagina: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { mostrar, mini } = usePromoApp();
+  return (
+    <div
+      className={cx(
+        'transition-[padding] duration-500 ease-base motion-reduce:transition-none',
+        mostrar && !mini && 'lg:pr-[340px]'
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router>
+      <PromoAppProvider>
       <Navbar />
+      <Pagina>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -47,6 +70,7 @@ function App() {
       </Routes>
 
       <Footer />
+      </Pagina>
 
       {/* Aviso de la app: en todas las páginas públicas hasta que se inicia sesión. */}
       <AppPromo />
@@ -61,6 +85,7 @@ function App() {
 
       {/* Resuelve las promesas de showConfirm(); sileo no hace confirmaciones */}
       <ConfirmHost />
+      </PromoAppProvider>
     </Router>
   );
 }

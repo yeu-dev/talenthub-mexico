@@ -1,12 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Menu, X, LogOut } from "lucide-react";
+import { Bell, Menu, X, LogOut } from "./icons";
 import api from "../services/api";
 import { Button } from "./ui";
 import { cx } from "../lib/cx";
-import { EASE, DUR } from "../lib/motion";
+import { EASE, DUR, SPRING } from "../lib/motion";
 import Brand from "./Brand";
+
+// La sección actual: texto blanco y una línea azul en el borde de la barra
+// que se DESLIZA de un link al otro al cambiar de página (layoutId), en vez
+// de apagarse en uno y prenderse en otro.
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  cx(
+    "relative text-[0.9375rem] transition-colors duration-200 hover:text-white",
+    isActive ? "text-white" : "text-white/90"
+  );
+
+const Enlace: React.FC<{ to: string; enMenu: boolean; className?: string; children: React.ReactNode }> = ({
+  to,
+  enMenu,
+  className,
+  children,
+}) => (
+  <NavLink to={to} className={(estado) => cx(linkClass(estado), className)}>
+    {({ isActive }) => (
+      <>
+        {children}
+        {isActive && !enMenu && (
+          <motion.span
+            layoutId="nav-activo"
+            transition={SPRING}
+            className="absolute -bottom-[22px] left-0 right-0 h-[2px] rounded-pill bg-accent-on-dark"
+          />
+        )}
+      </>
+    )}
+  </NavLink>
+);
 
 /**
  * Barra de vidrio oscuro de ancho completo, pegada arriba, con el logo.
@@ -62,60 +93,53 @@ const Navbar: React.FC = () => {
 
   // La sección actual se marca: texto blanco y una línea azul debajo. Antes
   // todos los links se veían igual y no se sabía en qué página se estaba.
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    cx(
-      "relative text-[0.9375rem] transition-colors duration-200 hover:text-white",
-      isActive
-        ? "text-white after:absolute after:-bottom-[22px] after:left-0 after:right-0 after:h-[2px] after:rounded-pill after:bg-accent-on-dark max-lg:after:hidden"
-        : "text-white/90"
-    );
   const linkPlano = "text-[0.9375rem] text-white/90 transition-colors duration-200 hover:text-white";
 
-  const navLinks = (
+  const navLinks = (enMenu: boolean) => (
     <>
       {tipo !== "empresa" && tipo !== "validador" && (
-        <NavLink to="/vacantes" className={linkClass}>
+        <Enlace to="/vacantes" enMenu={enMenu}>
           Vacantes
-        </NavLink>
+        </Enlace>
       )}
 
       {tipo === "aspirante" && (
         <>
-          <NavLink to="/mi-perfil" className={linkClass}>
+          <Enlace to="/mi-perfil" enMenu={enMenu}>
             Mi perfil
-          </NavLink>
-          <NavLink to="/mis-aplicaciones" className={linkClass}>
+          </Enlace>
+          <Enlace to="/mis-aplicaciones" enMenu={enMenu}>
             Mis postulaciones
-          </NavLink>
+          </Enlace>
         </>
       )}
 
       {tipo === "empresa" && (
         <>
-          <NavLink to="/dashboard" className={linkClass}>
+          <Enlace to="/dashboard" enMenu={enMenu}>
             Mis vacantes
-          </NavLink>
-          <NavLink to="/aplicaciones-empresa" className={linkClass}>
+          </Enlace>
+          <Enlace to="/aplicaciones-empresa" enMenu={enMenu}>
             Postulaciones
-          </NavLink>
+          </Enlace>
         </>
       )}
 
       {tipo === "validador" && (
-        <NavLink to="/validador" className={(estado) => cx(linkClass(estado), "text-accent-on-dark hover:text-accent-on-dark")}>
+        <Enlace to="/validador" enMenu={enMenu} className="text-accent-on-dark hover:text-accent-on-dark">
           Panel de auditoría
-        </NavLink>
+        </Enlace>
       )}
 
       {tipo !== "validador" && (
-        <NavLink to="/planes" className={linkClass}>
+        <Enlace to="/planes" enMenu={enMenu}>
           Planes
-        </NavLink>
+        </Enlace>
       )}
 
-      <NavLink to="/politicas" className={linkClass}>
+      <Enlace to="/politicas" enMenu={enMenu}>
         Privacidad
-      </NavLink>
+      </Enlace>
     </>
   );
 
@@ -164,7 +188,7 @@ const Navbar: React.FC = () => {
         <div className="flex h-16 items-center justify-between gap-6">
           <Brand to={rutaLogo} />
 
-          <div className="hidden items-center gap-6 lg:flex">{navLinks}</div>
+          <div className="hidden items-center gap-6 lg:flex">{navLinks(false)}</div>
           <div className="hidden items-center gap-5 lg:flex">{sessionControls}</div>
 
           <button
@@ -189,7 +213,7 @@ const Navbar: React.FC = () => {
               className="overflow-hidden lg:hidden"
             >
               <div className="flex flex-col gap-5 border-t border-hairline-d py-5">
-                {navLinks}
+                {navLinks(true)}
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline-d pt-5">
                   {sessionControls}
                 </div>

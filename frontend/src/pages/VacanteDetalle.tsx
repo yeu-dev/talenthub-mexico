@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from 'lucide-react';
+import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
+import Iniciales from '../components/Iniciales';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { formatoSalario } from '../lib/vacantes';
@@ -29,14 +30,7 @@ const REGRESO: Record<string, { ruta: string; texto: string }> = {
   validador: { ruta: '/validador', texto: 'Validación' },
 };
 
-/** "Nebula Labs" → "NL": el membrete de la empresa en el encabezado. */
-const iniciales = (nombre: string) =>
-  nombre
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]!.toUpperCase())
-    .join('') || '·';
+
 
 const VacanteDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,14 +147,7 @@ const VacanteDetalle: React.FC = () => {
       <PageHeader
         tono="oscuro"
         migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: vacante.titulo }]}
-        inicio={
-          <span
-            aria-hidden="true"
-            className="flex h-14 w-14 flex-none items-center justify-center rounded-[14px] border border-hairline-d bg-white/[0.06] text-[1.125rem] font-demi text-accent-on-dark"
-          >
-            {iniciales(vacante.empresa_nombre)}
-          </span>
-        }
+        inicio={<Iniciales nombre={vacante.empresa_nombre} tamano={56} />}
         titulo={vacante.titulo}
         detalle={vacante.empresa_nombre}
         acciones={

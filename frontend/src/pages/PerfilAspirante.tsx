@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, Upload, Check, Save } from 'lucide-react';
+import { FileText, Upload, Check, Save } from '../components/icons';
 import api, { getMediaUrl } from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, Field, Input, Textarea, Skeleton } from '../components/ui';

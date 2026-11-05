@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, CreditCard, RotateCcw, Unlock, X, Zap } from "lucide-react";
+import { Check, ArrowRight, CreditCard, RotateCcw, Unlock, X, Zap } from "../components/icons";
 import api from "../services/api";
 import { showSuccess, showError, showConfirm } from "../utils/alerts";
 import { Button, Card, EmptyState, SkeletonList } from "../components/ui";

@@ -138,6 +138,25 @@ module.exports = {
         base: 'cubic-bezier(0.22,0.61,0.36,1)',
       },
 
+      // Movimientos lentos y en bucle, solo para el aviso de la app: el
+      // celular flota y el ícono de TalentHub late. Ambos se apagan con
+      // `prefers-reduced-motion` (ver index.css).
+      keyframes: {
+        flotar: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        latido: {
+          '0%': { boxShadow: '0 0 0 0 rgba(51,85,255,0.45)' },
+          '70%': { boxShadow: '0 0 0 9px rgba(51,85,255,0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(51,85,255,0)' },
+        },
+      },
+      animation: {
+        flotar: 'flotar 4.5s ease-in-out infinite',
+        latido: 'latido 2.4s ease-out infinite',
+      },
+
       maxWidth: {
         page: '1200px',
       },

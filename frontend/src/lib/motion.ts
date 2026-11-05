@@ -46,6 +46,16 @@ export const riseGlass: Variants = {
   show: { y: 0, transition: { duration: DUR.slow, ease: EASE } },
 };
 
+/**
+ * Entrada de listas: sube con resorte y se asienta con un rebote corto, en
+ * vez del fundido de siempre. Sin opacidad a propósito: las tarjetas son de
+ * vidrio y un fade aplana el `backdrop-filter` hasta que llega a 1.
+ */
+export const subeResorte: Variants = {
+  hidden: { y: 28, scale: 0.975 },
+  show: { y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 22, mass: 0.9 } },
+};
+
 /** Contenedor que escalona a sus hijos. La orquestación es la firma, no el efecto suelto. */
 export const stagger = (gap = 0.09, delay = 0): Variants => ({
   hidden: {},

@@ -304,6 +304,16 @@ and minimal, the silhouette became the thing carrying the system's identity.
 - Card hover lifts by border, background and translation — **never shadow**.
 - Everything sits behind `prefers-reduced-motion`. This is not optional.
 
+- Lists enter with `subeResorte`: a short spring rise with a small settle,
+  staggered — not a fade (glass panels must not animate opacity).
+- Active indicators slide: the nav underline and the tab underline use a
+  shared `layoutId`, so they travel between items instead of blinking.
+- The app notice morphs: card and "Descarga la app" button are one element
+  changing shape with a spring; while open, the page leaves its column free
+  and reflows with a padding transition when it is minimised.
+- Only two loops exist, both in the app notice (the phone floats, the app icon
+  pulses), and both stop under `prefers-reduced-motion`.
+
 ---
 
 ## Components
@@ -466,7 +476,7 @@ browser tries to help.
 - No `font-bold` in a headline; nothing above 540, nothing above 52px.
 - No state colour on a clickable control.
 - No amber as a state colour.
-- No emoji as icons. Everything comes from `lucide-react`.
+- No emoji as icons. Everything comes from Phosphor (duotone) through `frontend/src/components/icons.tsx`, the same family as the mobile app; the duotone fill is tinted `{colors.accent-on-dark}`, grey on metadata and white on blue buttons.
 - No announcement pill with a dot above the headline, no hand-written sample
   job card, no statistics row with small numbers.
 - No claim the product cannot back ("market data", "verified profiles",

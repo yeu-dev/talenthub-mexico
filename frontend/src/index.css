@@ -167,6 +167,28 @@
   }
 }
 
+/* Íconos duotono (Phosphor): el relleno de detrás va en el azul de marca y el
+   trazo en el color del texto. En gris (metadatos) el relleno se queda gris,
+   y sobre un botón azul se vuelve blanco: el azul solo marca "esto responde". */
+.icono-duo path[opacity="0.2"] {
+  fill: theme('colors.accent-on-dark');
+  opacity: 0.32;
+}
+
+.icono-duo[class*="text-muted"] path[opacity="0.2"],
+.icono-duo[class*="#6b6b6b"] path[opacity="0.2"],
+.text-muted .icono-duo path[opacity="0.2"],
+.text-muted-d .icono-duo path[opacity="0.2"] {
+  fill: currentColor;
+  opacity: 0.22;
+}
+
+.bg-accent .icono-duo path[opacity="0.2"],
+.icono-claro path[opacity="0.2"] {
+  fill: #ffffff;
+  opacity: 0.3;
+}
+
 /* Escape obligatorio. Sin esto el sitio es hostil para quien tiene
    sensibilidad vestibular. */
 @media (prefers-reduced-motion: reduce) {

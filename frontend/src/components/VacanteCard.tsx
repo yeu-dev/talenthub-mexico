@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { MapPin } from './icons';
 import { Card, Tag, TONO_MODALIDAD } from './ui';
+import Iniciales from './Iniciales';
 import { formatoSalario, haceCuanto, tecnologias, VacantePublica } from '../lib/vacantes';
 
 interface Props {
@@ -27,7 +28,8 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
   return (
     <Card as="article" glass interactive className="relative flex h-full flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+        <Iniciales nombre={vacante.empresa_nombre} />
+        <div className="min-w-0 flex-1">
           <h3 className="text-[1.1875rem] font-demi leading-snug tracking-[-0.01em] text-ink">
             <Link
               to={`/vacantes/${vacante.id}`}

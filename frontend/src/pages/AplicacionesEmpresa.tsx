@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ExternalLink, FileText, Lock, RotateCcw, Search, X } from 'lucide-react';
+import { Check, ExternalLink, FileText, Lock, RotateCcw, Search, X } from '../components/icons';
 import api, { getMediaUrl } from '../services/api';
 import { showError, showSuccess } from '../utils/alerts';
 import {
@@ -13,7 +13,7 @@ import {
 } from '../components/ui';
 import type { EstadoPostulacion } from '../components/ui';
 import { cx } from '../lib/cx';
-import { DUR, EASE, rise, stagger } from '../lib/motion';
+import { DUR, EASE, stagger, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
@@ -227,7 +227,7 @@ const AplicacionesEmpresa: React.FC = () => {
                 const ocupada = enCurso === a.id;
 
                 return (
-                  <motion.div key={a.id} layout variants={rise} exit={{ opacity: 0, scale: 0.98 }}>
+                  <motion.div key={a.id} layout variants={subeResorte} exit={{ opacity: 0, scale: 0.98 }}>
                     <Card className="flex flex-col gap-5">
                       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
                         <div>

@@ -8,3 +8,22 @@ import '@testing-library/jest-dom';
 import { TextDecoder, TextEncoder } from 'util';
 
 Object.assign(global, { TextEncoder, TextDecoder });
+
+// jsdom no trae IntersectionObserver, y framer-motion lo usa para `whileInView`.
+// Este reporta todo como visible de inmediato, que es lo que importa en pruebas.
+class IntersectionObserverFalso {
+  private cb: IntersectionObserverCallback;
+  constructor(cb: IntersectionObserverCallback) {
+    this.cb = cb;
+  }
+  observe(el: Element) {
+    this.cb([{ isIntersecting: true, target: el, intersectionRatio: 1 } as IntersectionObserverEntry], this as never);
+  }
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+
+Object.assign(global, { IntersectionObserver: IntersectionObserverFalso });

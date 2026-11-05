@@ -4,7 +4,7 @@ import api from '../services/api';
 import { showSuccess } from '../utils/alerts';
 import PasswordValidator from '../components/PasswordValidator';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Building2, UserPlus, UserRound } from 'lucide-react';
+import { Building2, UserPlus, UserRound } from '../components/icons';
 import { AuthShell, Button, ChoiceCards, Field, Input } from '../components/ui';
 import { DUR, EASE } from '../lib/motion';
 import { useTitulo } from '../hooks/useTitulo';

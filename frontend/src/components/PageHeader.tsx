@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from './icons';
+import { motion } from 'framer-motion';
 import { cx } from '../lib/cx';
+import { SPRING } from '../lib/motion';
 
 export interface Miga {
   etiqueta: string;
@@ -146,18 +148,33 @@ const PageHeader: React.FC<Props> = ({
               to={p.to}
               className={({ isActive }) =>
                 cx(
-                  'whitespace-nowrap border-b-2 pb-3 text-[0.9375rem] font-mid transition-colors',
+                  'relative whitespace-nowrap pb-3 text-[0.9375rem] font-mid transition-colors',
                   isActive
                     ? oscuro
-                      ? 'border-accent-on-dark text-ink-d'
-                      : 'border-accent text-ink'
+                      ? 'text-ink-d'
+                      : 'text-ink'
                     : oscuro
-                      ? 'border-transparent text-muted-d hover:text-ink-d'
-                      : 'border-transparent text-muted hover:text-ink'
+                      ? 'text-muted-d hover:text-ink-d'
+                      : 'text-muted hover:text-ink'
                 )
               }
             >
-              {p.etiqueta}
+              {({ isActive }) => (
+                <>
+                  {p.etiqueta}
+                  {/* La línea se desliza entre pestañas al cambiar de sección. */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="pestana-activa"
+                      transition={SPRING}
+                      className={cx(
+                        'absolute -bottom-px left-0 right-0 h-[2px] rounded-pill',
+                        oscuro ? 'bg-accent-on-dark' : 'bg-accent'
+                      )}
+                    />
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>

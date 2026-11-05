@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MapPin, RotateCcw, Search, X } from 'lucide-react';
+import { MapPin, RotateCcw, Search, X } from '../components/icons';
 import api from '../services/api';
 import { Button, EmptyState, Input, SkeletonList } from '../components/ui';
 import PageHeader from '../components/PageHeader';
 import VacanteCard from '../components/VacanteCard';
 import { useTitulo } from '../hooks/useTitulo';
+import { motion } from 'framer-motion';
 import { cx } from '../lib/cx';
+import { stagger, subeResorte } from '../lib/motion';
 import { coincide, VacantePublica } from '../lib/vacantes';
 
 const MODALIDADES = [
@@ -130,7 +132,7 @@ const Vacantes: React.FC = () => {
                     aria-checked={activo}
                     onClick={() => cambiar('modalidad', valor)}
                     className={cx(
-                      'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-colors',
+                      'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-[color,border-color,background-color,transform] duration-200 active:scale-95',
                       activo
                         ? 'border-accent bg-accent/[0.08] text-accent-on-dark'
                         : 'border-hairline bg-white/[0.04] text-ink-2 hover:border-hairline-strong hover:text-ink'
@@ -204,13 +206,21 @@ const Vacantes: React.FC = () => {
           )}
 
           {estado === 'listo' && vacantesFiltradas.length > 0 && (
-            <ul className="grid list-none grid-cols-1 gap-4 p-0 lg:grid-cols-2">
+            <motion.ul
+              // La llave cambia con los filtros: así cada búsqueda vuelve a
+              // entrar escalonada en vez de que las tarjetas solo cambien.
+              key={`${q}|${lugar}|${modalidad}|${salario}`}
+              variants={stagger(0.05)}
+              initial="hidden"
+              animate="show"
+              className="grid list-none grid-cols-1 gap-4 p-0 lg:grid-cols-2"
+            >
               {vacantesFiltradas.map((vacante) => (
-                <li key={vacante.id}>
+                <motion.li key={vacante.id} variants={subeResorte}>
                   <VacanteCard vacante={vacante} conDescripcion />
-                </li>
+                </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           )}
         </div>
       </div>

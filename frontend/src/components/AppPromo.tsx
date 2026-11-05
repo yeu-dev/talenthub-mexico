@@ -1,34 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import React from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, ScanLine, X } from 'lucide-react';
+import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, ScanLine, X } from './icons';
 import { PLAY_STORE_URL } from '../lib/app';
-import { cx } from '../lib/cx';
-import { EASE } from '../lib/motion';
-
-/** Cerrado en esta visita: en la siguiente vuelve a abrirse grande. */
-const CLAVE = 'th_app_promo_mini';
-
-const leer = () => {
-  try {
-    return sessionStorage.getItem(CLAVE) === '1';
-  } catch {
-    return false;
-  }
-};
-
-const guardar = (mini: boolean) => {
-  try {
-    if (mini) sessionStorage.setItem(CLAVE, '1');
-    else sessionStorage.removeItem(CLAVE);
-  } catch {
-    /* sin almacenamiento solo se olvida al recargar */
-  }
-};
-
-/** Pantallas cerradas: ahí la única salida útil es la que da la página. */
-const SIN_AVISO = ['/login', '/register', '/olvide-password', '/restablecer-password', '/checkout'];
+import { usePromoApp } from './PromoApp';
 
 /** Los íconos de relleno de la pantalla de inicio: grises, para que destaque el de TalentHub. */
 const APPS = [
@@ -48,7 +23,7 @@ const APPS = [
 const Celular: React.FC = () => (
   <div
     aria-hidden="true"
-    className="mx-auto -mb-16 mt-6 h-[210px] w-[200px] rounded-t-[34px] border-[6px] border-b-0 border-[#161616] bg-white px-4 pt-3"
+    className="mx-auto -mb-16 mt-6 h-[210px] w-[200px] animate-flotar rounded-t-[34px] border-[6px] border-b-0 border-[#161616] bg-white px-4 pt-3"
   >
     <div className="relative flex items-center justify-between px-1 text-[9px] font-demi text-[#161616]">
       <span className="tabular">9:41</span>
@@ -62,7 +37,7 @@ const Celular: React.FC = () => (
 
     <div className="mt-5 grid grid-cols-3 gap-x-3 gap-y-3">
       <div className="flex flex-col items-center gap-1">
-        <img src="/icon-192.png" alt="" className="h-[42px] w-[42px] rounded-[11px] ring-2 ring-accent ring-offset-2" />
+        <img src="/icon-192.png" alt="" className="h-[42px] w-[42px] animate-latido rounded-[11px] ring-2 ring-accent ring-offset-2" />
         <span className="text-[8.5px] font-demi text-[#161616]">TalentHub</span>
       </div>
       {APPS.map(({ nombre, Icono }) => (
@@ -78,17 +53,11 @@ const Celular: React.FC = () => (
 );
 
 /**
- * La tarjeta con el QR y el celular. Es clara a propósito sobre el sitio
- * oscuro, por eso usa colores fijos y no los tokens (que ahora son oscuros).
+ * El contenido de la tarjeta: QR, título y el celular. Es clara a propósito
+ * sobre el sitio oscuro, por eso usa colores fijos y no los tokens.
  */
-export const TarjetaApp: React.FC<{ onCerrar?: () => void; className?: string }> = ({ onCerrar, className }) => (
-  <aside
-    aria-label="Descarga la app de TalentHub"
-    className={cx(
-      'relative w-[300px] overflow-hidden rounded-card border border-white/40 bg-[rgba(238,241,255,0.96)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150',
-      className
-    )}
-  >
+const TarjetaApp: React.FC<{ onCerrar?: () => void }> = ({ onCerrar }) => (
+  <div className="relative w-[300px] px-6 pt-6 text-center">
     {onCerrar && (
       <button
         type="button"
@@ -114,88 +83,81 @@ export const TarjetaApp: React.FC<{ onCerrar?: () => void; className?: string }>
     <p className="mt-1 text-[0.75rem] text-[#6b6b6b]">Por ahora solo para testers</p>
 
     <Celular />
-  </aside>
+  </div>
 );
+
+/** Resorte para el cambio de forma tarjeta ⇄ botón. */
+const FORMA = { type: 'spring' as const, stiffness: 320, damping: 32, mass: 0.9 };
 
 /**
  * Aviso para descargar la app, en todas las páginas públicas hasta que se
  * inicia sesión (la web no puede saber si alguien escaneó el QR: eso pasa en
  * el celular, así que la sesión es la señal).
- * - En escritorio la tarjeta flota en la esquina, abierta desde que se entra.
- *   Cerrarla la encoge a un botón que la vuelve a abrir; en la siguiente
- *   visita sale grande otra vez. La portada le deja libre esa columna para que
- *   no tape el buscador ni la lista.
+ * - En escritorio flota en la esquina, abierta desde que se entra, y la página
+ *   le deja libre esa columna (ver `Pagina` en App). Al minimizarla la tarjeta
+ *   se encoge hasta volverse el botón —es el mismo elemento cambiando de
+ *   forma, no uno que se va y otro que llega— y la página se estira.
  * - En celular un QR no sirve (no se escanea la propia pantalla): es una barra
  *   abajo con el botón que abre Google Play. Cerrarla dura lo que la visita.
  */
 const AppPromo: React.FC = () => {
-  const { pathname } = useLocation();
-  const [mini, setMini] = useState(leer);
-  const [listo, setListo] = useState(false);
-
-  // Un momento después de cargar, para no competir con lo primero que se lee.
-  useEffect(() => {
-    const t = window.setTimeout(() => setListo(true), 1200);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  const conSesion = Boolean(localStorage.getItem('token'));
-  const cerrada = SIN_AVISO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
-  if (!listo || conSesion || cerrada) return null;
-
-  const encoger = () => {
-    setMini(true);
-    guardar(true);
-  };
-  const abrir = () => {
-    setMini(false);
-    guardar(false);
-  };
+  const { mostrar, mini, encoger, abrir } = usePromoApp();
+  const reducido = useReducedMotion();
+  if (!mostrar) return null;
 
   return (
     <>
-      {/* ── Escritorio: flota en la esquina, abierta desde que se entra ──
-          Entra subiendo y al cerrarse se encoge al botón, con movimiento. */}
-      <div className="fixed bottom-6 right-6 z-40 hidden lg:block">
-        <AnimatePresence mode="wait" initial>
+      {/* ── Escritorio ── */}
+      <motion.div
+        layout
+        initial={reducido ? false : { y: 48, opacity: 0 }}
+        animate={{ y: 0, opacity: 1, backgroundColor: mini ? '#3355ff' : 'rgba(238,241,255,0.97)' }}
+        transition={{ layout: FORMA, y: FORMA, opacity: { duration: 0.3 }, backgroundColor: { duration: 0.25 } }}
+        style={{ borderRadius: mini ? 9999 : 24 }}
+        className="fixed bottom-6 right-6 z-40 hidden overflow-hidden lg:block"
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
           {mini ? (
             <motion.button
               key="mini"
               type="button"
               onClick={abrir}
-              initial={{ opacity: 0, y: 16, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.96 }}
-              transition={{ duration: 0.32, ease: EASE }}
-              className="flex items-center gap-2 rounded-pill bg-accent px-4 py-3 text-[0.9375rem] font-mid text-white transition-colors hover:bg-accent-hover"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[0.9375rem] font-mid text-white"
             >
-              <QrCode size={17} strokeWidth={1.8} />
+              <QrCode size={18} className="icono-claro" />
               Descarga la app
             </motion.button>
           ) : (
             <motion.div
               key="tarjeta"
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ duration: 0.45, ease: EASE }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <TarjetaApp onCerrar={encoger} />
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* ── Celular ── */}
       {!mini && (
         <>
           {/* Hueco del alto de la barra, para que no tape el final de la página. */}
           <div aria-hidden="true" className="h-[76px] lg:hidden" />
-          <aside
+          <motion.aside
+            initial={reducido ? false : { y: 80 }}
+            animate={{ y: 0 }}
+            transition={FORMA}
             aria-label="Descarga la app de TalentHub"
             className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline-d bg-night/80 px-4 py-3 backdrop-blur-nav backdrop-saturate-150 lg:hidden"
           >
-            <img src="/icon-192.png" alt="" className="h-11 w-11 flex-none rounded-[11px]" />
+            <img src="/icon-192.png" alt="" className="h-11 w-11 flex-none animate-latido rounded-[11px]" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[0.9375rem] font-demi text-ink-d">TalentHub</p>
               <p className="truncate text-[0.8125rem] text-muted-d">App para Android</p>
@@ -204,9 +166,9 @@ const AppPromo: React.FC = () => {
               href={PLAY_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-none items-center gap-1.5 rounded-pill bg-accent px-4 py-2 text-[0.875rem] font-mid text-white"
+              className="flex flex-none items-center gap-1.5 rounded-pill bg-accent px-4 py-2 text-[0.875rem] font-mid text-white transition-transform active:scale-95"
             >
-              <Download size={15} strokeWidth={1.8} />
+              <Download size={16} className="icono-claro" />
               Descargar
             </a>
             <button
@@ -215,9 +177,9 @@ const AppPromo: React.FC = () => {
               aria-label="Cerrar aviso de la app"
               className="flex-none rounded-pill p-1.5 text-muted-d hover:text-ink-d"
             >
-              <X size={17} strokeWidth={1.8} />
+              <X size={18} />
             </button>
-          </aside>
+          </motion.aside>
         </>
       )}
     </>

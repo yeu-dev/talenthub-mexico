@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, X, Pencil, EyeOff, RotateCcw, ExternalLink, Trash2, Check } from 'lucide-react';
+import { Plus, X, Pencil, EyeOff, RotateCcw, ExternalLink, Trash2, Check } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import { Button, Card, EmptyState, Field, Input, Select, Textarea, SkeletonList, Tag } from '../components/ui';
 import type { TagTono } from '../components/ui';
-import { rise, stagger, EASE, DUR } from '../lib/motion';
+import { stagger, EASE, DUR, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
@@ -460,7 +460,7 @@ const Dashboard: React.FC = () => {
                 const pendiente = vacante.estado_validacion === 'pendiente';
 
                 return (
-                  <motion.li key={vacante.id} variants={rise}>
+                  <motion.li key={vacante.id} variants={subeResorte}>
                     <Card as="article" glass>
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">

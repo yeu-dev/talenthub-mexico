@@ -12,7 +12,7 @@ import {
   ScrollText,
   Users,
   X,
-} from 'lucide-react';
+} from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import {

@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   TrendingUp,
   User,
-} from 'lucide-react';
+} from '../components/icons';
 import api from '../services/api';
 import { showSuccess } from '../utils/alerts';
 import { AuthShell, Button, Field, Input } from '../components/ui';

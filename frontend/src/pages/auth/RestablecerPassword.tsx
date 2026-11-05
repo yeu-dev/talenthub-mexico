@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Check } from '../../components/icons';
 import PasswordValidator from '../../components/PasswordValidator';
 import api from '../../services/api';
 import { showSuccess, showError } from '../../utils/alerts';

@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ExternalLink, ArrowRight, RotateCcw } from 'lucide-react';
+import { ExternalLink, ArrowRight, RotateCcw } from '../components/icons';
 import api from '../services/api';
 import { showError } from '../utils/alerts';
 import { Button, Card, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
-import { rise, stagger } from '../lib/motion';
+import { stagger, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
@@ -143,7 +143,7 @@ const MisAplicaciones: React.FC = () => {
               className="flex list-none flex-col gap-3.5 p-0"
             >
               {aplicaciones.map((aplicacion) => (
-                <motion.li key={aplicacion.id} variants={rise}>
+                <motion.li key={aplicacion.id} variants={subeResorte}>
                   <Card as="article" glass interactive>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
