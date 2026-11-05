@@ -17,5 +17,6 @@ export type { EstadoPostulacion } from './ProcessTrack';
 
 export { default as AuthShell } from './AuthShell';
 export { default as EmptyState } from './EmptyState';
+export { default as AvisoLento } from './AvisoLento';
 export { Skeleton, SkeletonCard, SkeletonList } from './Skeleton';
 export { Dialog, ConfirmHost } from './Dialog';

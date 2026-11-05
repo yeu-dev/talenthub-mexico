@@ -1,43 +1,78 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import Home from './pages/Home';
 
 // La portada pide `/vacantes/`: aquí se responde con una lista fija para no
 // depender de la red. Función normal y no `jest.fn`: CRA corre con
 // `resetMocks`, que borra la implementación de los jest.fn antes de cada prueba.
+// `mockFalla` decide si la petición responde o falla; jest permite que la
+// fábrica del mock lea variables solo si su nombre empieza con `mock`.
+let mockFalla = false;
+
 jest.mock('./services/api', () => ({
   __esModule: true,
   default: {
     get: () =>
-      Promise.resolve({
-        data: [
-          {
-            id: 1,
-            titulo: 'Desarrollador Frontend React',
-            empresa_nombre: 'Nebula Labs',
-            descripcion: 'Producto real',
-            salario_min: '28000.00',
-            salario_max: '38000.00',
-            modalidad: 'remoto',
-            ubicacion: 'Puebla, Pue.',
-            fecha_publicacion: '2026-11-01T10:00:00Z',
-            requisitos: { lenguajes: ['React'] },
-          },
-        ],
-      }),
+      mockFalla
+        ? Promise.reject(new Error('sin red'))
+        : Promise.resolve({
+            data: [
+              {
+                id: 1,
+                titulo: 'Desarrollador Frontend React',
+                empresa_nombre: 'Nebula Labs',
+                descripcion: 'Producto real',
+                salario_min: '28000.00',
+                salario_max: '38000.00',
+                modalidad: 'remoto',
+                ubicacion: 'Puebla, Pue.',
+                fecha_publicacion: '2026-11-01T10:00:00Z',
+                requisitos: { lenguajes: ['React'] },
+              },
+            ],
+          }),
   },
 }));
 
-test('la portada muestra el buscador y las vacantes reales', async () => {
+const renderHome = () =>
   render(
     <MemoryRouter>
       <Home />
     </MemoryRouter>
   );
 
+afterEach(() => {
+  mockFalla = false;
+});
+
+test('la portada muestra el buscador y las vacantes reales', async () => {
+  renderHome();
+
   expect(screen.getByRole('search')).toBeInTheDocument();
   expect(screen.getByPlaceholderText(/puesto, empresa o tecnología/i)).toBeInTheDocument();
   expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
   expect(screen.getByText('$28,000 – $38,000')).toBeInTheDocument();
+});
+
+test('si la API falla, la portada lo dice, ofrece reintentar y conserva el enlace para empresas', async () => {
+  mockFalla = true;
+  renderHome();
+
+  expect(await screen.findByText('No pudimos cargar las vacantes recientes')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /publica gratis/i })).toBeInTheDocument();
+});
+
+test('reintentar vuelve a pedir las vacantes y las muestra', async () => {
+  mockFalla = true;
+  renderHome();
+
+  const reintentar = await screen.findByRole('button', { name: /reintentar/i });
+  mockFalla = false;
+  userEvent.click(reintentar);
+
+  expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
+  expect(screen.queryByText('No pudimos cargar las vacantes recientes')).not.toBeInTheDocument();
 });
