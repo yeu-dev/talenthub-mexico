@@ -39,17 +39,17 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
         <motion.div
           animate={reduced ? undefined : { x: [0, 60, -30, 0], y: [0, -40, 25, 0] }}
           transition={{ duration: 34, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute left-1/2 top-1/2 h-[900px] w-[1200px] -translate-x-1/2 -translate-y-[60%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.13),rgba(255,255,255,0.03)_50%,transparent_74%)] blur-[10px]"
+          className="absolute left-1/2 top-1/2 h-[900px] w-[1200px] -translate-x-1/2 -translate-y-[60%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.13),rgba(255,255,255,0.03)_50%,transparent_74%)]"
         />
         <motion.div
           animate={reduced ? undefined : { x: [0, -50, 30, 0], y: [0, 35, -25, 0] }}
           transition={{ duration: 42, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -left-40 top-[6%] h-[620px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.32),transparent_72%)] blur-[24px]"
+          className="absolute -left-40 top-[6%] h-[620px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.32),transparent_72%)]"
         />
         <motion.div
           animate={reduced ? undefined : { x: [0, 45, -20, 0], y: [0, -30, 40, 0] }}
           transition={{ duration: 38, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -right-32 bottom-[-8%] h-[560px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.18),transparent_72%)] blur-[24px]"
+          className="absolute -right-32 bottom-[-8%] h-[560px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.18),transparent_72%)]"
         />
       </div>
 

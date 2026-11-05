@@ -52,7 +52,7 @@ const Checkout: React.FC = () => {
     <div className="relative isolate mt-[calc(var(--nav-flow)*-1)] flex min-h-screen items-center justify-center overflow-hidden bg-night px-6 pb-24 pt-[168px] text-ink-d">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-[1000px] -translate-x-1/2 -translate-y-[56%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),rgba(255,255,255,0.03)_52%,transparent_76%)] blur-[8px]"
+        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-[1000px] -translate-x-1/2 -translate-y-[56%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),rgba(255,255,255,0.03)_52%,transparent_76%)]"
       />
 
       <motion.div variants={stagger(0.09)} initial="hidden" animate="show" className="w-full max-w-[440px]">

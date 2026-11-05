@@ -30,14 +30,16 @@ const Card: React.FC<CardProps> = ({
 
   // `backdrop-saturate` es lo que separa el vidrio del plástico esmerilado:
   // satura el tono que atraviesa el panel en vez de solo difuminarlo.
+  // Desenfoque de 12px en celular y 22px desde `md`: en el listado hay muchas
+  // tarjetas de vidrio a la vez y cada una recalcula su fondo al hacer scroll.
   const surface = glass
     ? tone === 'dark'
       // `edge-d` en vez de `border`: el borde parejo al 16% trazaba el
       // rectángulo entero y se leía antes que el contenido. Ver index.css.
-      ? 'bg-white/[0.07] backdrop-blur-card backdrop-saturate-150 edge-d'
+      ? 'bg-white/[0.07] backdrop-blur-md md:backdrop-blur-card backdrop-saturate-150 edge-d'
       // El sitio es oscuro en todas partes: el vidrio "claro" es el mismo
       // vidrio oscuro, un poco más denso porque suele llevar texto largo.
-      : 'bg-white/[0.06] backdrop-blur-card backdrop-saturate-150 edge-d'
+      : 'bg-white/[0.06] backdrop-blur-md md:backdrop-blur-card backdrop-saturate-150 edge-d'
     : tone === 'dark'
       ? 'bg-elevated border border-hairline-d'
       : 'bg-canvas border border-hairline';
