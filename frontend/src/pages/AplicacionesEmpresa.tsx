@@ -133,7 +133,7 @@ const AplicacionesEmpresa: React.FC = () => {
   const visibles = filtro ? aplicaciones.filter((a) => a.estado === filtro) : aplicaciones;
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       <PageHeader
         migas={migasDeCuenta('Postulaciones')}
         titulo="Postulaciones recibidas"
@@ -151,7 +151,7 @@ const AplicacionesEmpresa: React.FC = () => {
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Filtros ── */}
-        <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 p-6">
+        <div className="mt-6 glass-panel edge-l mb-8 p-6">
           <p className="mb-4 text-caption uppercase tracking-[0.06em] text-ink-2">Filtrar</p>
           <div className="flex flex-wrap gap-2">
             {FILTROS.map(({ id, label }) => {

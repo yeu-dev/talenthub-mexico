@@ -233,7 +233,7 @@ const DashboardValidador: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       <PageHeader
         migas={[{ etiqueta: 'Validación' }, { etiqueta: 'Centro de validación' }]}
         titulo="Centro de validación"
@@ -258,7 +258,7 @@ const DashboardValidador: React.FC = () => {
 
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Métricas ── */}
-        <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+        <div className="mt-6 glass-panel edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
           {METRICAS.map(({ label, total }) => (
             <div key={label} className="px-6 py-7">
               <span className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">

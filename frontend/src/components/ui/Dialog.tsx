@@ -16,7 +16,7 @@ interface DialogProps {
   onCancel: () => void;
 }
 
-/** Panel sólido sobre un velo oscuro: el contenido de atrás se apaga, no se difumina. */
+/** Panel glass sobre overlay difuminado. El glass funciona aquí porque siempre tiene contenido real debajo. */
 export const Dialog: React.FC<DialogProps> = ({
   open,
   title,
@@ -80,13 +80,14 @@ export const Dialog: React.FC<DialogProps> = ({
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
-      className="fixed inset-0 z-[300] flex items-center justify-center bg-night/50 p-6"
+      className="fixed inset-0 z-[300] flex items-center justify-center bg-night/40 p-6 backdrop-blur-[6px]"
     >
       <div
         ref={panelRef}
         className={cx(
           'w-full max-w-[430px] rounded-card p-7',
-          'border border-hairline bg-canvas'
+          'edge-l bg-white/[0.88]',
+          'backdrop-blur-overlay'
         )}
       >
         <h2 id="dlg-title" className="text-h3 font-demi text-ink">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, X } from 'lucide-react';
+import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, ScanLine, X } from 'lucide-react';
 import { PLAY_STORE_URL } from '../lib/app';
 
 /** Cerrado en esta visita: en la siguiente vuelve a abrirse grande. */
@@ -88,6 +88,16 @@ const AppPromo: React.FC = () => {
   const { pathname } = useLocation();
   const [mini, setMini] = useState(leer);
   const [listo, setListo] = useState(false);
+  const [bajo, setBajo] = useState(false);
+
+  // Arriba de la página la tarjeta taparía el buscador y los botones del
+  // encabezado: ahí se queda como botón chico, y se abre al empezar a bajar.
+  useEffect(() => {
+    const revisar = () => setBajo(window.scrollY > 320);
+    revisar();
+    window.addEventListener('scroll', revisar, { passive: true });
+    return () => window.removeEventListener('scroll', revisar);
+  }, []);
 
   // Un momento después de cargar, para no competir con lo primero que se lee.
   useEffect(() => {
@@ -111,7 +121,7 @@ const AppPromo: React.FC = () => {
   return (
     <>
       {/* ── Escritorio ── */}
-      {mini ? (
+      {mini || !bajo ? (
         <button
           type="button"
           onClick={abrir}
@@ -123,7 +133,7 @@ const AppPromo: React.FC = () => {
       ) : (
         <aside
           aria-label="Descarga la app de TalentHub"
-          className="fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card border border-accent/15 bg-[#eef1ff] px-6 pt-6 text-center lg:block"
+          className="edge-l fixed bottom-6 right-6 z-40 hidden w-[300px] overflow-hidden rounded-card bg-[rgba(238,241,255,0.78)] px-6 pt-6 text-center backdrop-blur-overlay backdrop-saturate-150 lg:block"
         >
           <button
             type="button"
@@ -139,12 +149,13 @@ const AppPromo: React.FC = () => {
           </div>
 
           <h2 className="mt-4 font-heading text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
-            Las vacantes, también en tu celular
+            Lleva TalentHub en tu celular
           </h2>
-          <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-2">
-            Escanea el código con la cámara de tu celular y descarga la app.
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-[0.875rem] text-ink-2">
+            <ScanLine size={15} strokeWidth={1.7} aria-hidden="true" />
+            Escanéalo con tu cámara
           </p>
-          <p className="mt-1.5 text-[0.75rem] text-muted">En prueba cerrada: por ahora solo para testers.</p>
+          <p className="mt-1 text-[0.75rem] text-muted">Por ahora solo para testers</p>
 
           <Celular />
         </aside>
@@ -157,7 +168,7 @@ const AppPromo: React.FC = () => {
           <div aria-hidden="true" className="h-[76px] lg:hidden" />
           <aside
             aria-label="Descarga la app de TalentHub"
-            className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline bg-canvas px-4 py-3 lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline bg-white/80 px-4 py-3 backdrop-blur-nav backdrop-saturate-150 lg:hidden"
           >
             <img src="/icon-192.png" alt="" className="h-11 w-11 flex-none rounded-[11px]" />
             <div className="min-w-0 flex-1">

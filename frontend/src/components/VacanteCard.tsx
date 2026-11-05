@@ -25,7 +25,7 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
   const fecha = haceCuanto(vacante.fecha_publicacion);
 
   return (
-    <Card as="article" interactive className="relative flex h-full flex-col gap-4 p-6">
+    <Card as="article" glass interactive className="relative flex h-full flex-col gap-4 p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-[1.1875rem] font-demi leading-snug tracking-[-0.01em] text-ink">
@@ -55,7 +55,7 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
       <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-hairline pt-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {techs.map((tech) => (
-            <span key={tech} className="rounded-pill bg-surface px-2.5 py-1 text-[0.8125rem] text-ink-2">
+            <span key={tech} className="rounded-pill bg-white/70 px-2.5 py-1 text-[0.8125rem] text-ink-2">
               {tech}
             </span>
           ))}

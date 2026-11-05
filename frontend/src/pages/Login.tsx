@@ -24,18 +24,15 @@ import { useTitulo } from '../hooks/useTitulo';
 const PRUEBAS = [
   {
     icon: ShieldCheck,
-    title: 'Ofertas verificadas',
-    body: 'Cada vacante pasa por revisión manual antes de publicarse.',
+    title: 'Vacantes revisadas',
   },
   {
     icon: TrendingUp,
-    title: 'Rango salarial a la vista',
-    body: 'Lo ves antes de aplicar, no después de cuatro entrevistas.',
+    title: 'Sueldo siempre visible',
   },
   {
     icon: ListChecks,
-    title: 'Sigue tu proceso',
-    body: 'Ves en qué etapa va cada postulación y te avisamos cuando la empresa la mueve.',
+    title: 'Avisos de tu proceso',
   },
 ];
 
@@ -109,16 +106,13 @@ const Login: React.FC = () => {
             El portal de TI que sí dice cuánto paga
           </motion.h2>
 
-          <motion.ul variants={rise} className="mt-11 flex list-none flex-col gap-7 p-0">
-            {PRUEBAS.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-4">
-                <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-pill border border-hairline-d bg-white/[0.04]">
-                  <Icon size={16} strokeWidth={1.6} className="text-ink-d" />
+          <motion.ul variants={rise} className="mt-10 flex list-none flex-col gap-5 p-0">
+            {PRUEBAS.map(({ icon: Icon, title }) => (
+              <li key={title} className="flex items-center gap-4">
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill border border-hairline-d bg-white/[0.04]">
+                  <Icon size={18} strokeWidth={1.6} className="text-accent-on-dark" />
                 </span>
-                <div>
-                  <p className="font-mid text-[0.9375rem] text-ink-d">{title}</p>
-                  <p className="mt-1 max-w-[38ch] text-[0.875rem] leading-relaxed text-muted-d">{body}</p>
-                </div>
+                <p className="font-mid text-[1rem] text-ink-d">{title}</p>
               </li>
             ))}
           </motion.ul>

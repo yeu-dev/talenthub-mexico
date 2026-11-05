@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 // Sistema de diseño TalentHub — ver DESIGN.md en la raíz del proyecto.
-// Claro por defecto, una franja oscura corta arriba. El azul es la marca y la acción.
+// Claro por defecto, bandas oscuras donde la página lo pide, vidrio como firma.
+// El azul es la marca y la acción.
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -106,12 +107,21 @@ module.exports = {
         pill: '9999px',
       },
 
-      // Sin sombras de elevación ni filos de vidrio: solo el halo de foco.
+      // Sin sombras de elevación. Las únicas: el filo inset del vidrio y el
+      // halo de foco.
       boxShadow: {
+        'glass-edge': 'inset 0 1px 0 rgba(255,255,255,0.85)',
+        'glass-edge-d': 'inset 0 1px 0 rgba(255,255,255,0.14)',
         'focus-accent': '0 0 0 3px rgba(51,85,255,0.22)',
         // El halo de foco necesita su versión clara: el azul pleno
         // desaparece contra una superficie oscura.
         'focus-accent-d': '0 0 0 3px rgba(157,176,255,0.24)',
+      },
+
+      backdropBlur: {
+        card: '22px',
+        nav: '16px',
+        overlay: '28px',
       },
 
       // Una sola curva en CSS: desaceleración limpia, sin sobrepaso.

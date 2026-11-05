@@ -9,15 +9,11 @@ import { EASE, DUR } from "../lib/motion";
 import Brand from "./Brand";
 
 /**
- * Barra oscura de ancho completo, pegada arriba, con el logo.
+ * Barra de vidrio oscuro de ancho completo, pegada arriba, con el logo.
  *
- * Antes era una pastilla translúcida con desenfoque flotando sobre la página:
- * el gesto más repetido de las landings generadas, y sin logo. Ahora es una
- * barra sólida del mismo color que la franja oscura de cada página, así que
- * las dos se leen como una sola pieza.
- *
- * La lógica de roles, el contador de notificaciones y el menú móvil son los
- * de siempre — aquí solo cambió la forma.
+ * Translúcida con desenfoque: sobre las bandas oscuras se funde, y sobre el
+ * contenido claro se ve pasar la página por debajo. La sección actual se
+ * marca con una línea azul en el borde inferior de la barra.
  */
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -161,7 +157,7 @@ const Navbar: React.FC = () => {
   );
 
   return (
-    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night">
+    <div className="sticky top-0 z-50 border-b border-hairline-d bg-night/75 shadow-glass-edge-d backdrop-blur-nav backdrop-saturate-150">
       <nav className="mx-auto max-w-page px-6 md:px-7">
         <div className="flex h-16 items-center justify-between gap-6">
           <Brand to={rutaLogo} />

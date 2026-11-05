@@ -81,7 +81,7 @@ const Tabs: React.FC<Props> = ({ items, value, onChange, name, label, className 
                 layoutId={`tab-${name}`}
                 aria-hidden="true"
                 transition={SPRING_SOFT}
-                className="absolute inset-0 rounded-pill border border-hairline bg-canvas"
+                className="edge-l absolute inset-0 rounded-pill bg-canvas"
               />
             )}
             <span

@@ -74,7 +74,7 @@ const MisAplicaciones: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       <PageHeader
         migas={migasDeCuenta('Mis postulaciones')}
         titulo="Mis postulaciones"
@@ -91,7 +91,7 @@ const MisAplicaciones: React.FC = () => {
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resumen: responde la pregunta real, ¿en qué voy? ── */}
         {estado === 'listo' && aplicaciones.length > 0 && (
-          <div className="mt-6 rounded-card border border-hairline bg-canvas mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
+          <div className="mt-6 glass-panel edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
             {conteos.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
@@ -143,7 +143,7 @@ const MisAplicaciones: React.FC = () => {
             >
               {aplicaciones.map((aplicacion) => (
                 <motion.li key={aplicacion.id} variants={rise}>
-                  <Card as="article" interactive>
+                  <Card as="article" glass interactive>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
                         <h2 className="text-[1.3125rem] font-demi tracking-[-0.012em] text-ink">

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MapPin, CalendarDays, ArrowRight, Send, LogIn } from 'lucide-react';
+import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from 'lucide-react';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
@@ -98,7 +98,7 @@ const VacanteDetalle: React.FC = () => {
 
   if (estado === 'cargando') {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-screen mesh-page">
         <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <SkeletonCard />
         </div>
@@ -108,7 +108,7 @@ const VacanteDetalle: React.FC = () => {
 
   if (estado === 'error' || !vacante) {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-screen mesh-page">
         <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <EmptyState
             title="No encontramos esta vacante"
@@ -143,17 +143,20 @@ const VacanteDetalle: React.FC = () => {
     year: 'numeric',
   });
 
-  const etiqueta = 'text-[0.8125rem] uppercase tracking-[0.06em] text-muted';
+  // Sobre el filo, el tercio de arriba del vidrio cae sobre negro: ahí `muted`
+  // no llega a AA y el texto secundario sube a `ink-2`.
+  const etiquetaFilo = 'text-[0.8125rem] uppercase tracking-[0.06em] text-ink-2';
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       {/* ── Membrete: se lee como la ficha de un puesto, no como otra portada ── */}
       <PageHeader
+        tono="oscuro"
         migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: vacante.titulo }]}
         inicio={
           <span
             aria-hidden="true"
-            className="flex h-14 w-14 flex-none items-center justify-center rounded-[14px] bg-accent/[0.08] text-[1.125rem] font-demi text-accent"
+            className="flex h-14 w-14 flex-none items-center justify-center rounded-[14px] border border-hairline-d bg-white/[0.06] text-[1.125rem] font-demi text-accent-on-dark"
           >
             {iniciales(vacante.empresa_nombre)}
           </span>
@@ -162,53 +165,57 @@ const VacanteDetalle: React.FC = () => {
         detalle={vacante.empresa_nombre}
         acciones={
           <div className="text-left sm:text-right">
-            <p className="tabular text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink">
+            <p className="tabular text-[1.375rem] font-demi leading-tight tracking-[-0.01em] text-ink-d">
               {formatoSalario(vacante.salario_min, vacante.salario_max)}
             </p>
-            <p className="text-[0.8125rem] text-muted">al mes</p>
+            <p className="text-[0.8125rem] text-muted-d">al mes</p>
           </div>
         }
       />
 
-      <div className="mx-auto grid max-w-page grid-cols-1 gap-5 px-6 pb-20 pt-6 md:px-7 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      {/* El resumen y la caja de postularse se montan sobre el filo de la banda:
+          el degradado del vidrio es la banda negra refractada arriba. */}
+      <div className="glass-panel-overlap mx-auto grid max-w-page grid-cols-1 gap-5 px-6 pb-20 md:px-7 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
         <div className="flex flex-col gap-5">
           {/* ── Resumen: dónde y cómo; el sueldo ya va en el membrete ── */}
-          <Card className="p-7">
-            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
-                <dt className={etiqueta}>Modalidad</dt>
-                <dd className="mt-1.5 flex items-center gap-2 text-body text-ink">
+          <div className="glass-panel edge-l p-7">
+            {/* Íconos en vez de rótulos: el dato se entiende solo. El rótulo
+                queda para lectores de pantalla. */}
+            <dl className="flex flex-wrap items-center gap-x-8 gap-y-3 text-body text-ink">
+              <div className="flex items-center gap-2">
+                <dt className="sr-only">Modalidad</dt>
+                <Laptop size={17} strokeWidth={1.7} className="text-ink-2" aria-hidden="true" />
+                <dd>
                   <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? 'neutro'}>{modalidad}</Tag>
                 </dd>
               </div>
-              <div>
-                <dt className={etiqueta}>Ubicación</dt>
-                <dd className="mt-1.5 flex items-center gap-2 text-body text-ink">
-                  <MapPin size={15} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
-                  {vacante.ubicacion}
-                </dd>
+              <div className="flex items-center gap-2">
+                <dt className="sr-only">Ubicación</dt>
+                <MapPin size={17} strokeWidth={1.7} className="text-ink-2" aria-hidden="true" />
+                <dd>{vacante.ubicacion}</dd>
               </div>
-              <div>
-                <dt className={etiqueta}>Publicada</dt>
-                <dd className="tabular mt-1.5 flex items-center gap-2 text-body text-ink">
-                  <CalendarDays size={15} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
-                  {fecha}
-                </dd>
+              <div className="flex items-center gap-2">
+                <dt className="sr-only">Publicada</dt>
+                <CalendarDays size={17} strokeWidth={1.7} className="text-ink-2" aria-hidden="true" />
+                <dd className="tabular">{fecha}</dd>
               </div>
             </dl>
-          </Card>
+          </div>
 
           {/* ── Requisitos ── */}
           {hayRequisitos && (
-            <Card className="p-7">
+            <Card glass className="p-7">
               <h2 className="text-h3 font-demi text-ink">Requisitos</h2>
               <div className="mt-5 flex flex-col gap-6">
                 {lenguajes.length > 0 && (
                   <div>
-                    <h3 className={etiqueta}>Tecnologías</h3>
+                    <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
+                      <Code2 size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      Tecnologías
+                    </h3>
                     <ul className="mt-3 flex list-none flex-wrap gap-2 p-0">
                       {lenguajes.map((tech) => (
-                        <li key={tech} className="rounded-pill bg-surface px-3 py-1 text-[0.875rem] text-ink-2">
+                        <li key={tech} className="rounded-pill bg-white/70 px-3 py-1 text-[0.875rem] text-ink-2">
                           {tech}
                         </li>
                       ))}
@@ -217,13 +224,19 @@ const VacanteDetalle: React.FC = () => {
                 )}
                 {experiencia && (
                   <div>
-                    <h3 className={etiqueta}>Experiencia</h3>
+                    <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
+                      <Briefcase size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      Experiencia
+                    </h3>
                     <p className="mt-2 max-w-[68ch] text-body leading-relaxed text-ink-2">{experiencia}</p>
                   </div>
                 )}
                 {otros && (
                   <div>
-                    <h3 className={etiqueta}>Además</h3>
+                    <h3 className="flex items-center gap-2 text-[0.9375rem] font-mid text-ink">
+                      <ListPlus size={16} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                      Además
+                    </h3>
                     <p className="mt-2 max-w-[68ch] whitespace-pre-line text-body leading-relaxed text-ink-2">{otros}</p>
                   </div>
                 )}
@@ -235,7 +248,7 @@ const VacanteDetalle: React.FC = () => {
           )}
 
           {/* ── Descripción ── */}
-          <Card className="p-7">
+          <Card glass className="p-7">
             <h2 className="text-h3 font-demi text-ink">Descripción del puesto</h2>
             <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[1.0625rem] leading-relaxed text-ink-2">
               {vacante.descripcion}
@@ -246,23 +259,24 @@ const VacanteDetalle: React.FC = () => {
         {/* ── Acción según rol. En escritorio se queda a la vista al bajar. ── */}
         <aside className="lg:sticky lg:top-[calc(var(--nav-flow)+24px)]">
           {userTipo === 'aspirante' ? (
-            <Card className="p-6">
+            <div className="glass-panel edge-l p-6">
               <p className="tabular text-[1.125rem] font-demi text-ink">
                 {formatoSalario(vacante.salario_min, vacante.salario_max)}
               </p>
-              <p className="mt-0.5 text-[0.875rem] text-muted">
+              <p className="mt-0.5 text-[0.875rem] text-ink-2">
                 {vacante.empresa_nombre} · {modalidad}
               </p>
               <Button className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
                 <Send size={15} strokeWidth={1.8} />
                 {enviando ? 'Enviando…' : 'Postularme'}
               </Button>
-              <p className="mt-3 text-[0.8125rem] leading-relaxed text-muted">
-                Tu perfil y tu CV guardado se envían a {vacante.empresa_nombre}.
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-[0.8125rem] text-muted">
+                <FileText size={14} strokeWidth={1.7} aria-hidden="true" />
+                Se envía tu CV guardado
               </p>
-            </Card>
+            </div>
           ) : userTipo === 'empresa' ? (
-            <Card className="p-6">
+            <div className="glass-panel edge-l p-6">
               <p className="text-body text-ink">Esta es una vacante publicada en la plataforma.</p>
               <p className="mt-2 text-[0.9375rem] text-ink-2">
                 Puedes gestionar las tuyas desde{' '}
@@ -271,18 +285,17 @@ const VacanteDetalle: React.FC = () => {
                 </Link>
                 .
               </p>
-            </Card>
+            </div>
           ) : userTipo === 'validador' ? (
-            <Card className="p-6">
-              <p className={etiqueta}>Vista de auditoría</p>
+            <div className="glass-panel edge-l p-6">
+              <p className={etiquetaFilo}>Vista de auditoría</p>
               <p className="mt-2 text-body text-ink">
                 Estás viendo esta vacante como parte de tu revisión de calidad.
               </p>
-            </Card>
+            </div>
           ) : (
-            <Card className="p-6">
-              <p className="text-body text-ink">¿Te interesa?</p>
-              <p className="mt-1 text-[0.9375rem] text-ink-2">Inicia sesión o crea tu cuenta para postularte.</p>
+            <div className="glass-panel edge-l p-6">
+              <p className="text-body font-mid text-ink">¿Te interesa?</p>
               <Link to="/login" className="mt-5 block">
                 <Button className="w-full">
                   <LogIn size={15} strokeWidth={1.8} />
@@ -292,7 +305,7 @@ const VacanteDetalle: React.FC = () => {
               <Link to="/register" className="mt-3 block text-center text-[0.875rem] text-accent hover:underline">
                 Crear cuenta
               </Link>
-            </Card>
+            </div>
           )}
         </aside>
       </div>

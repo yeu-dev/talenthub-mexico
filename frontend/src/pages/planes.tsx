@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, RotateCcw, X } from "lucide-react";
+import { Check, ArrowRight, CreditCard, RotateCcw, Unlock, X, Zap } from "lucide-react";
 import api from "../services/api";
 import { showSuccess, showError, showConfirm } from "../utils/alerts";
 import { Button, Card, EmptyState, SkeletonList } from "../components/ui";
@@ -36,9 +36,9 @@ const DESCRIPCIONES: Record<string, string> = {
 
 /** Lo que ya promete la página, dicho donde se toma la decisión. */
 const GARANTIAS = [
-  { titulo: "Sin permanencia", detalle: "Cancelas cuando quieras, desde tu propio panel." },
-  { titulo: "El cambio aplica al momento", detalle: "Subes o bajas de plan y toma efecto de inmediato." },
-  { titulo: "Cobro por PayPal", detalle: "TalentHub nunca ve los datos de tu tarjeta." },
+  { titulo: "Sin permanencia", Icono: Unlock },
+  { titulo: "Cambio al momento", Icono: Zap },
+  { titulo: "Pago con PayPal", Icono: CreditCard },
 ];
 
 const Planes: React.FC = () => {
@@ -250,15 +250,19 @@ const Planes: React.FC = () => {
       />
 
       {/* ── Banda clara con los planes ── */}
-      <section className="bg-surface pb-20 pt-2 md:pb-[88px]">
+      <section className="mesh-light flow-root bg-surface pb-20 pt-2 md:pb-[88px]">
         <div className="relative mx-auto max-w-page px-6 md:px-7">
           {/* Panel a caballo del filo: refracta la banda oscura arriba y la
               página clara abajo. Ese degradado no está pintado. */}
-          <dl className="mt-6 rounded-card border border-hairline bg-canvas mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
-            {GARANTIAS.map(({ titulo, detalle }) => (
-              <div key={titulo}>
-                <dt className="font-mid text-[0.9375rem] text-ink">{titulo}</dt>
-                <dd className="mt-1.5 text-[0.875rem] leading-relaxed text-muted">{detalle}</dd>
+          <dl className="mt-6 glass-panel edge-l mb-14 grid grid-cols-1 gap-7 p-7 sm:grid-cols-3">
+            {/* Íconos con una etiqueta corta: la explicación larga sobraba. */}
+            {GARANTIAS.map(({ titulo, Icono }) => (
+              <div key={titulo} className="flex items-center gap-3">
+                <dt className="sr-only">{titulo}</dt>
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill bg-accent/[0.08]">
+                  <Icono size={18} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
+                </span>
+                <dd className="font-mid text-[0.9375rem] text-ink">{titulo}</dd>
               </div>
             ))}
           </dl>

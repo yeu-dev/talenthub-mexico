@@ -142,7 +142,7 @@ const PerfilAspirante: React.FC = () => {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-screen mesh-page">
         <div className="mx-auto max-w-4xl px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <div className="flex items-center gap-5">
             <Skeleton className="h-20 w-20 rounded-pill" />
@@ -209,7 +209,7 @@ const PerfilAspirante: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       <PageHeader
         ancho="doc"
         migas={migasDeCuenta('Mi perfil')}
@@ -226,7 +226,7 @@ const PerfilAspirante: React.FC = () => {
         {/* ── Identidad: quién eres, antes que los campos ── */}
         <motion.header
           variants={rise}
-          className="mt-6 rounded-card border border-hairline bg-canvas mb-8 flex flex-wrap items-center gap-6 p-7"
+          className="mt-6 glass-panel edge-l mb-8 flex flex-wrap items-center gap-6 p-7"
         >
           <div className="h-20 w-20 flex-none overflow-hidden rounded-pill border border-hairline bg-surface">
             {mostrarFoto ? (

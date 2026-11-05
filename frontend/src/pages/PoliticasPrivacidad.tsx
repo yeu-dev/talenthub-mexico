@@ -135,7 +135,7 @@ const slug = (n: string) => `seccion-${n}`;
 const PoliticasPrivacidad: React.FC = () => {
   useTitulo('Aviso de privacidad');
   return (
-  <div className="bg-surface">
+  <div className="mesh-page">
     <PageHeader
       migas={[{ etiqueta: 'Inicio', to: '/' }, { etiqueta: 'Aviso de privacidad' }]}
       titulo="Cómo tratamos tus datos"
@@ -146,7 +146,7 @@ const PoliticasPrivacidad: React.FC = () => {
          El panel monta 96px sobre la banda oscura: el degradado que se ve es
          el vidrio refractando negro arriba y página clara abajo. ── */}
     <div className="mx-auto max-w-page px-6 md:px-7">
-      <dl className="mt-6 rounded-card border border-hairline bg-canvas grid grid-cols-1 gap-6 p-7 sm:grid-cols-3">
+      <dl className="mt-6 glass-panel edge-l grid grid-cols-1 gap-6 p-7 sm:grid-cols-3">
         {META.map(({ label, value }) => (
           <div key={label}>
             <dt className="text-[0.8125rem] uppercase tracking-[0.06em] text-ink-2">{label}</dt>

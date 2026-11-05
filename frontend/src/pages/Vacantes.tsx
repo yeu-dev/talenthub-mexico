@@ -72,11 +72,11 @@ const Vacantes: React.FC = () => {
   const limpiarFiltros = () => setParams(new URLSearchParams(), { replace: true });
 
   const campo =
-    'flex flex-1 items-center gap-2.5 rounded-ui border border-hairline px-3.5 py-2.5 transition-colors focus-within:border-accent focus-within:shadow-focus-accent';
+    'flex flex-1 items-center gap-2.5 rounded-ui border border-hairline bg-white/80 px-3.5 py-2.5 transition-colors focus-within:border-accent focus-within:shadow-focus-accent';
   const input = 'w-full bg-transparent text-body text-ink placeholder:text-muted focus:outline-none';
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen mesh-page">
       {/* ── Encabezado claro: es la herramienta de búsqueda, no una portada ── */}
       <PageHeader
         titulo="Vacantes"
@@ -89,8 +89,9 @@ const Vacantes: React.FC = () => {
         }
       />
 
-      {/* ── Barra de búsqueda y filtros: se queda pegada bajo la navegación al bajar ── */}
-      <div className="sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-canvas">
+      {/* ── Barra de búsqueda y filtros, en vidrio: se queda pegada bajo la navegación
+           y las tarjetas se ven pasar desenfocadas por debajo ── */}
+      <div className="sticky top-[var(--nav-flow)] z-30 border-b border-hairline bg-white/70 backdrop-blur-nav backdrop-saturate-150">
         <div className="mx-auto flex max-w-page flex-col gap-3 px-6 py-4 md:px-7 lg:flex-row lg:items-center">
           <div role="search" className="flex flex-1 flex-col gap-2 sm:flex-row">
             <label className={campo}>
@@ -129,8 +130,8 @@ const Vacantes: React.FC = () => {
                     className={cx(
                       'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-colors',
                       activo
-                        ? 'border-accent bg-accent/[0.06] text-accent'
-                        : 'border-hairline text-ink-2 hover:border-hairline-strong hover:text-ink'
+                        ? 'border-accent bg-accent/[0.08] text-accent'
+                        : 'border-hairline bg-white/60 text-ink-2 hover:border-hairline-strong hover:text-ink'
                     )}
                   >
                     {etiqueta}

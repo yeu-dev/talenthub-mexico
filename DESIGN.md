@@ -18,14 +18,12 @@ search) and the closed screens (sign-in, registration, checkout), plus the
 footer. Every other page opens with a light header. When every page started
 with the same dark band and a title, pages could not be told apart.
 
-> **Why this changed (phase 7).** The first version of this system was built
-> around frosted glass panels mounted across the dark/light seam, colour halos
-> behind the page, a cursor-following glow, parallax, animated auroras and
-> count-up numbers. Together they made the site read as a generated landing
-> page rather than a product, and the brand blue barely appeared because the
-> primary button was black or white. All of that is gone. What stays is what
-> was doing real work: the type, the pill silhouette, the contrast-checked
-> palette and the state rules.
+> **What changed in phase 7.** The glass stays: it is the signature people
+> recognise. What made the site read as generated was elsewhere: a
+> hand-written sample job card, invented figures, no logo, the brand blue
+> hidden behind a black/white primary button, no search on the home page, and
+> every page opening the same way. Those are fixed; the glass now sits on
+> pages that each have their own header.
 
 **Key Characteristics:**
 - Light canvas. Dark only for the nav, the home hero, the closed screens and
@@ -38,8 +36,11 @@ with the same dark band and a title, pages could not be told apart.
 - The "th" monogram (the same icon as the mobile app, Play Store and the
   favicon) next to the name in the navigation, the footer and the sign-in
   screens.
-- **Solid surfaces only:** cards are `{colors.canvas}` or `{colors.elevated}`
-  with a 1px hairline. No translucency, no blur, no elevation shadows.
+- **Glass as the signature:** translucent panels with blur and saturation
+  over the `mesh-page` halos, mounted across the dark/light seam where a page
+  has a dark band. No elevation shadows.
+- **Icons over explanations:** a short label with an icon instead of a
+  paragraph wherever the idea fits in three words.
 - State colour marks **resolution, not activity**: teal for resolved in
   favour, red for resolved against. Work in progress carries full ink.
 - Full pill (`{rounded.pill}`) on every control.
@@ -243,18 +244,22 @@ The navigation marks the current section (white text and a 2px
 
 ## Elevation & Depth
 
-**There is no elevation shadow in this system, and no translucency.** Depth
-comes from:
+**There is no elevation shadow in this system.** Depth is built from:
 
 1. Surface contrast (`{colors.canvas}` → `{colors.surface}`,
    `{colors.night}` → `{colors.elevated}`)
-2. A 1px `{colors.hairline}` / `{colors.hairline-d}` edge
+2. A 1px edge — `{colors.hairline}`, or `edge-l` / `edge-d` on glass
+3. Translucency plus `backdrop-filter` over the `mesh-page` halos
+4. Overlap: panels mount ~96px over the dark band above them
 
-The only two shadows are the focus halos (`{shadow.focus-accent}` —
-`0 0 0 3px rgba(51,85,255,0.22)` and `{shadow.focus-accent-d}` —
-`0 0 0 3px rgba(157,176,255,0.24)`). They signal state, not elevation.
+The only shadows are the glass inset edge and the focus halos
+(`{shadow.focus-accent}` / `{shadow.focus-accent-d}`).
 
-No radial halos inside the dark band, no drifting auroras, no parallax.
+**Glass rules that still hold:** panels crossing the seam use `glass-panel`
+(68% white) because `{colors.muted}` fails AA over the dark third — secondary
+text there uses `{colors.ink-2}`; glass animates position only (`riseGlass`);
+no ancestor of a straddling panel may clip (`overflow: hidden`); a section that
+contains one needs `flow-root`; tables stay opaque.
 
 ---
 
@@ -352,13 +357,17 @@ as the action it is avoiding.
 
 ### Cards & Surfaces
 
-**`card`** — `{rounded.card}`, 28px padding, solid `{colors.canvas}` (light) or
-`{colors.elevated}` (dark), 1px hairline, no shadow. `interactive` cards change
-only the border on hover (`{colors.accent}` at 40% on light); they do not lift.
+**`card`** — `{rounded.card}`, 28px padding, no shadow. With `glass`:
+translucent plus `backdrop-blur` and `backdrop-saturate`. `interactive` lifts
+by border, background and translation — never shadow.
 
-**`vacante-card`** — The job listing card, shared by the home page and the
-listing. Title, company, **salary as the main figure** (`tabular-nums`),
-modality tag, location, up to three technologies and a relative date.
+**`glass-panel`** — the signature panel, 68% white, mounted across the seam
+between a dark band and the light body (home search, job detail summary and
+action card). On light-only pages it sits on `mesh-page` without the overlap.
+
+**`vacante-card`** — the job card on the listing: glass card with the salary
+as the main figure (`tabular-nums`), modality, location, up to three
+technologies and a relative date.
 
 ### Inputs & Forms
 
@@ -386,11 +395,11 @@ object changing place, which is what makes the exclusivity legible.
 
 ### Navigation
 
-**`navbar`** — Full-width solid `{colors.night}` bar, 64px tall (`--nav-flow`),
-sticky, with a 1px `{colors.hairline-d}` bottom edge. Brand on the left, links
-in the middle, session controls on the right; the sign-up button is
-`button-primary`. Hidden on the sign-in, registration and password screens,
-which carry their own brand.
+**`navbar`** — Full-width dark glass bar, 64px tall (`--nav-flow`), sticky,
+`bg-night/75` with blur and saturation and a 1px `{colors.hairline-d}` bottom
+edge. Pages slide under it with a negative margin of `--nav-flow`, so the page
+is seen passing beneath. The current section is marked with a 2px
+`{colors.accent-on-dark}` line on the bar's bottom edge.
 
 **`brand`** — The "th" monogram (32px, 9px radius, hairline edge) plus
 "TalentHub". The same mark as the app icon, Play Store and favicon.
@@ -424,7 +433,8 @@ move between tabs.
 ### Signature Components
 
 **`auth-shell`** — The four session screens. Dark register throughout, with a
-solid `{colors.elevated}` card and the brand above it. Adds
+dark glass card (`edge-d`) over slowly drifting auroras — glass over flat
+black refracts nothing — and the brand above it. Adds
 `[color-scheme:dark]` on selects so the native dropdown is not white, and a
 Chrome autofill patch without which the dark card breaks exactly where the
 browser tries to help.
@@ -449,9 +459,10 @@ browser tries to help.
 
 ### Don't
 
-- No `box-shadow` for elevation, no `backdrop-filter`, no translucent panels.
-- No radial halos, auroras, parallax, cursor-following glows or count-up
-  numbers.
+- No `box-shadow` for elevation. Ever.
+- No `{colors.muted}` in the dark third of a glass panel.
+- No `backdrop-filter` on table rows.
+- No parallax, cursor-following glows or count-up numbers.
 - No `font-bold` in a headline; nothing above 540, nothing above 52px.
 - No state colour on a clickable control.
 - No amber as a state colour.

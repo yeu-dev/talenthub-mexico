@@ -27,6 +27,25 @@ export const rise: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: DUR.slow, ease: EASE } },
 };
 
+/**
+ * Entrada para lo que lleva `backdrop-filter`: sube, pero NO se desvanece.
+ *
+ * Un elemento con `opacity < 1` —él o cualquiera de sus ancestros— se convierte
+ * en *backdrop root*: el filtro pierde el fondo de la página que debería
+ * muestrear y el vidrio se pinta plano. Cuando el fade termina, la opacidad
+ * llega a 1, el backdrop root desaparece y el degradado entra DE GOLPE.
+ *
+ * Eso era exactamente el "la card tarda unos segundos en agarrar el degradado".
+ * Animar solo el desplazamiento lo evita: `transform` no crea backdrop root.
+ *
+ * Regla: ningún panel con `backdrop-filter` —ni un ancestro suyo— puede animar
+ * opacidad. Si hace falta el fade, va en el contenido de adentro.
+ */
+export const riseGlass: Variants = {
+  hidden: { y: 18 },
+  show: { y: 0, transition: { duration: DUR.slow, ease: EASE } },
+};
+
 /** Contenedor que escalona a sus hijos. La orquestación es la firma, no el efecto suelto. */
 export const stagger = (gap = 0.09, delay = 0): Variants => ({
   hidden: {},
