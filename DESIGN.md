@@ -704,6 +704,17 @@ rather than stepping at breakpoints.
 Traps found while building this. Each cost real debugging time and none is
 obvious from the rendered result.
 
+**Nothing may depend on an injected `<style>` tag.** Production sends a CSP
+(`vercel.json`) whose `style-src` has no `'unsafe-inline'`, so any `<style>`
+created at runtime is blocked. The local dev server sends no CSP, so the bug
+only shows in production. framer-motion's `AnimatePresence mode="popLayout"`
+works that way: the home headline's outgoing word stayed in the flow and the
+new one landed to its right, leaving a gap. Use `mode="wait"`, or stack the
+items in one grid cell (`[grid-area:1/1]`) as `TitularGiratorio` does. Style
+props (`style={...}`) are fine: React and framer set them through the CSSOM,
+which the CSP allows. To check, serve a production build with the same
+headers before shipping anything that animates enter and exit together.
+
 **Chrome autofill ignores `background-color`.** On a dark input the only
 override it honours is an inset `box-shadow` (`.input-dark` in `index.css`).
 Without the patch the field turns pale yellow precisely when the browser is
