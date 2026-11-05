@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MapPin, RotateCcw, Search, X } from '../components/icons';
 import api from '../services/api';
-import { Button, EmptyState, Input, SkeletonList } from '../components/ui';
+import { AvisoLento, Button, EmptyState, Input, SkeletonList } from '../components/ui';
 import PageHeader from '../components/PageHeader';
 import VacanteCard from '../components/VacanteCard';
 import { useTitulo } from '../hooks/useTitulo';
@@ -171,7 +171,12 @@ const Vacantes: React.FC = () => {
       <div className="mx-auto max-w-page px-6 pb-20 md:px-7">
         {/* ── Resultados ── */}
         <div className="pt-6">
-          {estado === 'cargando' && <SkeletonList count={4} />}
+          {estado === 'cargando' && (
+            <>
+              <SkeletonList count={4} />
+              <AvisoLento cargando />
+            </>
+          )}
 
           {estado === 'error' && (
             <EmptyState

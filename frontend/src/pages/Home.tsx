@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Banknote, Bell, Building2, MapPin, Search, ShieldCheck } from "../components/icons";
+import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
 import api from "../services/api";
-import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
+import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { rise, riseGlass, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
@@ -83,22 +83,32 @@ const Home: React.FC = () => {
   const [q, setQ] = useState("");
   const [lugar, setLugar] = useState("");
 
+  // `vivo` evita escribir estado si la portada ya se desmontó a media carga.
+  const vivo = useRef(true);
   useEffect(() => {
-    let vivo = true;
+    vivo.current = true;
+    return () => {
+      vivo.current = false;
+    };
+  }, []);
+
+  const cargar = useCallback(() => {
+    setEstado("cargando");
     api
       .get<VacantePublica[]>("/vacantes/")
       .then(({ data }) => {
-        if (!vivo) return;
+        if (!vivo.current) return;
         setVacantes(data);
         setEstado("listo");
       })
-      // La lista se oculta: un error en la portada no merece un aviso, y el
-      // buscador sigue funcionando porque lleva a /vacantes.
-      .catch(() => vivo && setEstado("error"));
-    return () => {
-      vivo = false;
-    };
+      // Antes el error ocultaba toda la sección y la portada se quedaba en el
+      // buscador y el pie. Ahora se dice qué pasó y se ofrece reintentar.
+      .catch(() => vivo.current && setEstado("error"));
   }, []);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
 
   const chips = useMemo(() => chipsPopulares(vacantes), [vacantes]);
   // El endpoint ya las entrega de la más nueva a la más vieja.
@@ -205,7 +215,8 @@ const Home: React.FC = () => {
 
 
       {/* ───────────── Lista de sueldos ───────────── */}
-      {estado !== "error" && (
+      {/* La sección se queda siempre: con error dice qué pasó y deja a la
+          vista el enlace para empresas, que no depende de la API. */}
         <section className="pb-20 pt-14 md:pb-24">
           <div className="mx-auto max-w-page px-6 md:px-7">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
@@ -225,7 +236,22 @@ const Home: React.FC = () => {
                 {[0, 1, 2, 3].map((i) => (
                   <Skeleton key={i} height={56} className="bg-white/[0.06]" />
                 ))}
+                <AvisoLento cargando />
               </div>
+            )}
+
+            {estado === "error" && (
+              <EmptyState
+                tone="dark"
+                title="No pudimos cargar las vacantes recientes"
+                description="El servidor no respondió. Puede ser una caída momentánea o tu conexión; el buscador de arriba sigue funcionando."
+                action={
+                  <Button variant="ghost" tone="dark" onClick={cargar}>
+                    <RotateCcw size={14} strokeWidth={1.8} />
+                    Reintentar
+                  </Button>
+                }
+              />
             )}
 
             {estado === "listo" && recientes.length === 0 && (
@@ -271,7 +297,6 @@ const Home: React.FC = () => {
             </Link>
           </div>
         </section>
-      )}
 
     </div>
   );
