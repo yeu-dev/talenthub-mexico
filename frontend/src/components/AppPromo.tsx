@@ -37,7 +37,12 @@ const Celular: React.FC = () => (
 
     <div className="mt-5 grid grid-cols-3 gap-x-3 gap-y-3">
       <div className="flex flex-col items-center gap-1">
-        <img src="/icon-192.png" alt="" className="h-[42px] w-[42px] animate-latido rounded-[11px] ring-2 ring-accent ring-offset-2" />
+        {/* El anillo que late es un elemento aparte: se anima con transform y
+            opacidad, y la imagen se queda quieta con su borde fijo. */}
+        <span className="relative">
+          <span aria-hidden="true" className="absolute inset-0 animate-latido rounded-[11px] border-2 border-accent opacity-0" />
+          <img src="/icon-192.png" alt="" className="relative h-[42px] w-[42px] rounded-[11px] ring-2 ring-accent ring-offset-2" />
+        </span>
         <span className="text-[8.5px] font-demi text-[#161616]">TalentHub</span>
       </div>
       {APPS.map(({ nombre, Icono }) => (
@@ -157,7 +162,10 @@ const AppPromo: React.FC = () => {
             aria-label="Descarga la app de TalentHub"
             className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline-d bg-night/80 px-4 py-3 backdrop-blur-nav backdrop-saturate-150 lg:hidden"
           >
-            <img src="/icon-192.png" alt="" className="h-11 w-11 flex-none animate-latido rounded-[11px]" />
+            <span className="relative flex-none">
+              <span aria-hidden="true" className="absolute inset-0 animate-latido rounded-[11px] border-2 border-accent opacity-0" />
+              <img src="/icon-192.png" alt="" className="relative h-11 w-11 rounded-[11px]" />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[0.9375rem] font-demi text-ink-d">TalentHub</p>
               <p className="truncate text-[0.8125rem] text-muted-d">App para Android</p>

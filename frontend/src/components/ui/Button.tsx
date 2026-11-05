@@ -21,7 +21,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
  * `danger` es solo para confirmar algo destructivo. Uno por sección.
  */
 const ACCENT = 'bg-accent text-white hover:bg-accent-hover';
-const DANGER = 'bg-[#dc2626] text-white hover:bg-[#b91c1c]';
+const DANGER = 'bg-danger-fill text-white hover:bg-danger-fill-hover';
 
 const VARIANTS: Record<Tone, Record<Variant, string>> = {
   light: {
