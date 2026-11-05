@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { normalizar, tecnologiasFrecuentes, VacantePublica } from '../lib/vacantes';
+import { stackPresente, VacantePublica } from '../lib/vacantes';
 
 /**
  * El titular de la portada: "Tu siguiente empleo en ___ ya trae el sueldo",
  * con la palabra del hueco girando (Rotating Text, de React Bits, rehecho con
  * framer-motion).
  *
- * - Arranca en "TI" y después pasa por las tecnologías que más piden las
- *   vacantes publicadas. Nada escrito a mano: sin API se queda en "TI".
+ * - Arranca en "TI" y después pasa por los lenguajes, bases de datos y stack
+ *   web que mencionan las vacantes publicadas (`stackPresente`): los nombres
+ *   salen de una lista curada, pero solo gira lo que de verdad se pide. Sin
+ *   API se queda en "TI".
  * - Va en tres líneas fijas y la palabra vive sola en la de en medio. Así,
  *   cuando cambia de ancho ("TI" → "JavaScript"), nada más se reacomoda.
  * - Las letras suben desde abajo de una ventana con `overflow-hidden`:
@@ -22,13 +24,11 @@ import { normalizar, tecnologiasFrecuentes, VacantePublica } from '../lib/vacant
 /** La palabra con la que arranca: la frase de siempre. */
 const BASE = 'TI';
 const CADA_MS = 2800;
-const MAXIMO = 5;
+/** Con 8 más "TI", una vuelta completa dura unos 25 s. */
+const MAXIMO = 8;
 
-/** "TI" y luego las tecnologías más pedidas, sin repetir "TI". */
-export const palabrasDelTitular = (vacantes: VacantePublica[]): string[] => [
-  BASE,
-  ...tecnologiasFrecuentes(vacantes, MAXIMO).filter((t) => normalizar(t) !== normalizar(BASE)),
-];
+/** "TI" y luego el stack que piden las vacantes, de lo más pedido a lo menos. */
+export const palabrasDelTitular = (vacantes: VacantePublica[]): string[] => [BASE, ...stackPresente(vacantes, MAXIMO)];
 
 const TitularGiratorio: React.FC<{ palabras: string[] }> = ({ palabras }) => {
   const reducido = useReducedMotion();

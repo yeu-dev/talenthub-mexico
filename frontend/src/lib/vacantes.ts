@@ -129,12 +129,62 @@ function porFrecuencia(valores: string[]): string[] {
 }
 
 /**
- * Las tecnologías que más piden las vacantes publicadas, de la más pedida a
- * la menos. Misma fuente y mismo filtro de relleno que los chips: nada
- * escrito a mano.
+ * Lenguajes, bases de datos y stack web con su nombre bien escrito, para el
+ * titular de la portada. Es una lista curada para que los nombres se vean
+ * limpios ("SQL" y no "SQL y OWASP" tal como lo capturó una empresa), pero
+ * no se muestra tal cual: `stackPresente` deja solo lo que de verdad piden
+ * las vacantes publicadas.
+ *
+ * `claves` son las formas en que se escribe cada uno, ya sin acentos y en
+ * minúsculas. Se buscan como palabra completa (ver `mencionaPalabra`).
  */
-export function tecnologiasFrecuentes(vacantes: VacantePublica[], maximo = 5): string[] {
-  return porFrecuencia(vacantes.flatMap(tecnologias)).slice(0, maximo);
+const STACK: { etiqueta: string; claves: string[] }[] = [
+  { etiqueta: 'Java', claves: ['java'] },
+  { etiqueta: 'JavaScript', claves: ['javascript'] },
+  { etiqueta: 'TypeScript', claves: ['typescript'] },
+  { etiqueta: 'Python', claves: ['python'] },
+  { etiqueta: 'PHP', claves: ['php'] },
+  { etiqueta: 'C#', claves: ['c#'] },
+  { etiqueta: 'Go', claves: ['go', 'golang'] },
+  { etiqueta: 'Kotlin', claves: ['kotlin'] },
+  { etiqueta: 'SQL', claves: ['sql'] },
+  { etiqueta: 'PostgreSQL', claves: ['postgresql', 'postgres'] },
+  { etiqueta: 'MySQL', claves: ['mysql'] },
+  { etiqueta: 'MongoDB', claves: ['mongodb', 'mongo'] },
+  { etiqueta: 'HTML', claves: ['html', 'html5'] },
+  { etiqueta: 'CSS', claves: ['css', 'css3'] },
+  { etiqueta: 'React', claves: ['react', 'reactjs', 'react.js'] },
+  { etiqueta: 'Angular', claves: ['angular'] },
+  { etiqueta: 'Node.js', claves: ['node.js', 'nodejs', 'node'] },
+];
+
+const escaparRegex = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * `true` si `clave` aparece como palabra completa en `texto` (los dos ya
+ * normalizados). Con un `includes` simple, "java" coincidía dentro de
+ * "javascript", "go" dentro de "google" y "sql" dentro de "postgresql".
+ */
+export function mencionaPalabra(texto: string, clave: string): boolean {
+  return new RegExp(`(^|[^a-z0-9])${escaparRegex(clave)}(?![a-z0-9])`).test(texto);
+}
+
+/**
+ * Del stack curado, lo que menciona al menos una vacante publicada (título,
+ * descripción o tecnologías), de lo más pedido a lo menos; los empates van en
+ * el orden de la lista. Si nadie pide Java, Java no sale.
+ */
+export function stackPresente(vacantes: VacantePublica[], maximo = 8): string[] {
+  const textos = vacantes.map((v) => normalizar([v.titulo, v.descripcion, ...tecnologias(v)].join(' ')));
+  return STACK.map((item, orden) => ({
+    etiqueta: item.etiqueta,
+    orden,
+    n: textos.filter((texto) => item.claves.some((clave) => mencionaPalabra(texto, clave))).length,
+  }))
+    .filter((item) => item.n > 0)
+    .sort((a, b) => b.n - a.n || a.orden - b.orden)
+    .slice(0, maximo)
+    .map((item) => item.etiqueta);
 }
 
 /**

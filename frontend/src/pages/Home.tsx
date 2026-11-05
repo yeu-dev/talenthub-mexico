@@ -27,7 +27,8 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   return (
     <motion.li
       variants={subeResorte}
-      className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4"
+      // `reflejo`: la misma franja de luz que las tarjetas de /vacantes (index.css).
+      className="reflejo relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline-d px-2 py-5 transition-colors hover:bg-white/[0.04] md:grid-cols-[minmax(0,1fr)_220px_180px] md:items-center md:px-4"
     >
       <div className="flex min-w-0 items-center gap-4">
         <Iniciales nombre={vacante.empresa_nombre} tamano={40} />
@@ -200,7 +201,7 @@ const Home: React.FC = () => {
                     className={input}
                   />
                 </label>
-                <Button type="submit" className="md:ml-2">
+                <Button type="submit" destacado className="md:ml-2">
                   <Search size={15} strokeWidth={1.8} />
                   Buscar vacantes
                 </Button>
