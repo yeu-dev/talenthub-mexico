@@ -149,7 +149,8 @@ const Planes: React.FC = () => {
                     <span
                       className={cx(
                         "whitespace-nowrap rounded-pill border px-2.5 py-1 text-[0.6875rem] uppercase tracking-[0.06em]",
-                        destacado ? "border-hairline-d text-accent-on-dark" : "border-hairline text-accent-on-dark"
+                        // Etiqueta, no botón: tinta plena y borde reforzado, sin azul.
+                        destacado ? "border-hairline-d-strong text-ink-d" : "border-hairline-strong text-ink"
                       )}
                     >
                       Tu plan
@@ -260,7 +261,9 @@ const Planes: React.FC = () => {
             {GARANTIAS.map(({ titulo, Icono }) => (
               <div key={titulo} className="flex items-center gap-3">
                 <dt className="sr-only">{titulo}</dt>
-                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill bg-accent/[0.08]">
+                {/* Contenedor neutro, como en el login: el ícono azul es marca,
+                    pero un fondo azul se leería como botón. */}
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-pill border border-hairline-d bg-white/[0.04]">
                   <Icono size={18} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
                 </span>
                 <dd className="font-mid text-[0.9375rem] text-ink">{titulo}</dd>
