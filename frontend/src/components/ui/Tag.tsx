@@ -1,8 +1,14 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
 
-/** Los tres tonos de estado del sistema. Nunca visten algo clicable. */
-export type TagTono = 'neutro' | 'curso' | 'bien' | 'mal' | 'marca';
+/**
+ * Los tonos de una etiqueta. Nunca visten algo clicable.
+ *
+ * No hay tono azul a propósito: el azul es lo único que marca "esto se puede
+ * tocar", y una etiqueta no se toca. Antes existía `marca` (azul) y lo usaba
+ * "Híbrido", que se leía como un botón.
+ */
+export type TagTono = 'neutro' | 'curso' | 'bien' | 'mal';
 
 interface Props {
   tone?: 'light' | 'dark';
@@ -29,7 +35,6 @@ const ESTILO: Record<TagTono, { claro: string; oscuro: string }> = {
   curso: { claro: 'border-hairline-strong text-ink', oscuro: 'border-hairline-d-strong text-ink-d' },
   bien: { claro: 'border-ok/35 text-ok', oscuro: 'border-ok-d/35 text-ok-d' },
   mal: { claro: 'border-danger/35 text-danger', oscuro: 'border-danger-d/35 text-danger-d' },
-  marca: { claro: 'border-accent/35 text-accent-on-dark', oscuro: 'border-accent-on-dark/35 text-accent-on-dark' },
 };
 
 /**
@@ -50,10 +55,14 @@ const Tag: React.FC<Props> = ({ tone = 'light', tono = 'neutro', className, chil
   </span>
 );
 
-/** Modalidad de la vacante. El color codifica dónde trabajas, no adorna. */
+/**
+ * Modalidad de la vacante. Solo "remoto" lleva color (teal), porque es lo que
+ * más se filtra; híbrido y presencial van en tinta plena y se distinguen por
+ * la palabra, no por un tono.
+ */
 export const TONO_MODALIDAD: Record<string, TagTono> = {
   remoto: 'bien',
-  hibrido: 'marca',
+  hibrido: 'curso',
   presencial: 'curso',
 };
 
