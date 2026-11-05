@@ -1,4 +1,4 @@
-import { chipsPopulares, coincide, formatoSalario, haceCuanto, normalizar, rutaBusqueda, VacantePublica } from './vacantes';
+import { chipsPopulares, coincide, formatoSalario, haceCuanto, normalizar, partesSalario, rutaBusqueda, VacantePublica } from './vacantes';
 
 const vacante = (over: Partial<VacantePublica>): VacantePublica => ({
   id: 1,
@@ -95,5 +95,15 @@ describe('formato', () => {
   it('arma la ruta de búsqueda sin parámetros vacíos', () => {
     expect(rutaBusqueda({ q: ' react ', lugar: '' })).toBe('/vacantes?q=react');
     expect(rutaBusqueda({})).toBe('/vacantes');
+  });
+});
+
+describe('partesSalario', () => {
+  test('separa la moneda de la cifra cuando hay monto', () => {
+    expect(partesSalario('28000.00', '38000.00')).toEqual({ cifra: '$28,000 – $38,000', conMoneda: true });
+  });
+
+  test('sin monto no hay moneda que poner', () => {
+    expect(partesSalario('0', '0')).toEqual({ cifra: 'Salario por definir', conMoneda: false });
   });
 });

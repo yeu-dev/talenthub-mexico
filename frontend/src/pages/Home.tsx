@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
 import api from "../services/api";
 import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
-import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
+import { chipsPopulares, haceCuanto, partesSalario, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
 import { riseGlass, riseVisible, stagger, subeResorte } from "../lib/motion";
 import Iniciales from "../components/Iniciales";
 import { useTitulo } from "../hooks/useTitulo";
@@ -21,6 +21,7 @@ const capital = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1
 const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
   const techs = tecnologias(vacante).slice(0, 3);
   const fecha = haceCuanto(vacante.fecha_publicacion);
+  const salario = partesSalario(vacante.salario_min, vacante.salario_max);
 
   return (
     <motion.li
@@ -57,9 +58,11 @@ const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
 
       <div className="md:text-right">
         <p className="tabular text-[1.125rem] font-demi tracking-[-0.01em] text-ink-d">
-          {formatoSalario(vacante.salario_min, vacante.salario_max).replace(" MXN", "")}
+          {salario.cifra}
         </p>
-        <p className="text-[0.8125rem] text-muted-d">MXN al mes{fecha && ` · ${fecha}`}</p>
+        <p className="text-[0.8125rem] text-muted-d">
+          {[salario.conMoneda && "MXN al mes", fecha].filter(Boolean).join(" · ")}
+        </p>
       </div>
     </motion.li>
   );
