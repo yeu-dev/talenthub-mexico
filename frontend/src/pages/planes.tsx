@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Check, ArrowRight, CreditCard, RotateCcw, Unlock, X, Zap } from "../components/icons";
 import api from "../services/api";
 import { showSuccess, showError, showConfirm } from "../utils/alerts";
-import { Button, Card, EmptyState, SkeletonList } from "../components/ui";
+import { AvisoLento, Button, Card, EmptyState, SkeletonList } from "../components/ui";
 import { cx } from "../lib/cx";
 import { rise, stagger, revealViewport } from "../lib/motion";
 import PageHeader from "../components/PageHeader";
@@ -296,7 +296,12 @@ const Planes: React.FC = () => {
             </Card>
           )}
 
-          {estado === "cargando" && <SkeletonList count={3} />}
+          {estado === "cargando" && (
+            <>
+              <SkeletonList count={3} />
+              <AvisoLento cargando />
+            </>
+          )}
 
           {estado === "error" && (
             <EmptyState

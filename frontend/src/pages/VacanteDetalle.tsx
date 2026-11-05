@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
-import { Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
+import { AvisoLento, Button, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
 import Iniciales from '../components/Iniciales';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
@@ -95,6 +95,7 @@ const VacanteDetalle: React.FC = () => {
       <div className="min-h-screen mesh-page">
         <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
           <SkeletonCard />
+          <AvisoLento cargando />
         </div>
       </div>
     );
