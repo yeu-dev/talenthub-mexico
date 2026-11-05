@@ -3,6 +3,7 @@ import Brand from './Brand';
 import { Link, useLocation } from 'react-router-dom';
 import { cx } from '../lib/cx';
 import { RESPONSABLE, hayContacto } from '../lib/responsable';
+import { useCambiosDeSesion } from '../lib/sesion';
 
 /**
  * Cierre del sitio, en registro oscuro.
@@ -26,6 +27,8 @@ const Columna: React.FC<{ titulo: string; children: React.ReactNode }> = ({ titu
 
 const Footer: React.FC = () => {
   const { pathname } = useLocation();
+  // Los enlaces dependen de la sesión: si vence, el pie vuelve a los de visitante.
+  useCambiosDeSesion();
 
   // Las pantallas de sesión y el checkout son superficies cerradas: entras,
   // resuelves una cosa y sales. Un footer ahí solo ofrece salidas.

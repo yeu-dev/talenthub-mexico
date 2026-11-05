@@ -7,6 +7,7 @@ import { Button } from "./ui";
 import { cx } from "../lib/cx";
 import { EASE, DUR, SPRING } from "../lib/motion";
 import Brand from "./Brand";
+import { useCambiosDeSesion } from "../lib/sesion";
 
 // La sección actual: texto blanco y una línea azul en el borde de la barra
 // que se DESLIZA de un link al otro al cambiar de página (layoutId), en vez
@@ -54,6 +55,9 @@ const Navbar: React.FC = () => {
     (ruta) => location.pathname === ruta || location.pathname.startsWith(`${ruta}/`)
   );
 
+  // Si la sesión vence en una página pública, la barra pasa a "Iniciar sesión"
+  // sin recargar: el interceptor de la API avisa con `cerrarSesionLocal`.
+  useCambiosDeSesion();
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("user_username");
   const tipo = localStorage.getItem("user_tipo");
