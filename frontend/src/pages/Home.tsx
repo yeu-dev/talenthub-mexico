@@ -1,373 +1,230 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { ShieldCheck, TrendingUp, BarChart3, ArrowRight, Plus, ExternalLink } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowRight, MapPin, Search } from "lucide-react";
 import api from "../services/api";
-import { Button, Card, CountUp, Tag } from "../components/ui";
-import { EASE, rise, riseGlass, stagger, revealViewport } from "../lib/motion";
+import { Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
+import AppPromo from "../components/AppPromo";
+import { chipsPopulares, formatoSalario, haceCuanto, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
+import { rise, stagger } from "../lib/motion";
 
-const FEATURES = [
-  {
-    icon: ShieldCheck,
-    title: "Ofertas verificadas",
-    body: "Cada vacante pasa por revisión manual antes de publicarse. Sin ofertas fantasma ni reclutadores que desaparecen.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Transparencia salarial",
-    body: "El rango se muestra antes de que apliques. Sin sorpresas cuando ya invertiste cuatro entrevistas.",
-  },
-  {
-    icon: BarChart3,
-    title: "Datos del mercado",
-    body: "Salarios promedio y tendencias reales del sector TI mexicano, no estimaciones de otro país.",
-  },
-];
+const RECIENTES = 8;
 
-interface Metricas {
-  vacantes: number;
-  nuevas: number;
-  empresas: number;
-  /** Miles de pesos: el hero muestra "$18k", no "$18,430". */
-  salarioK: number;
-}
-
-/** Vacante tal como la sirve el endpoint público `/vacantes/`. */
-interface VacantePublica {
-  empresa_nombre: string;
-  salario_min: string;
-  salario_max: string;
-  fecha_publicacion: string;
-}
-
-const SIETE_DIAS = 7 * 24 * 60 * 60 * 1000;
+const capital = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 
 /**
- * Las cifras del hero salen del mismo endpoint público que alimenta el muro
- * de vacantes, así que no pueden contradecirlo. No hay endpoint de
- * estadísticas y no lo inventamos en el backend: se derivan aquí.
+ * Una fila de la lista de sueldos. El sueldo es su propia columna, alineada a
+ * la derecha con cifras tabulares, para que se lea de arriba abajo como una
+ * pizarra de precios: es la promesa del sitio hecha forma.
  */
-function calcularMetricas(vacantes: VacantePublica[]): Metricas | null {
-  if (vacantes.length === 0) return null;
+const Fila: React.FC<{ vacante: VacantePublica }> = ({ vacante }) => {
+  const techs = tecnologias(vacante).slice(0, 3);
+  const fecha = haceCuanto(vacante.fecha_publicacion);
 
-  const ahora = Date.now();
-  const nuevas = vacantes.filter((v) => {
-    const t = new Date(v.fecha_publicacion).getTime();
-    return Number.isFinite(t) && ahora - t <= SIETE_DIAS;
-  }).length;
+  return (
+    <li className="relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-hairline px-2 py-5 transition-colors hover:bg-surface md:grid-cols-[minmax(0,1fr)_280px_200px] md:items-center md:px-4">
+      <div className="min-w-0">
+        <h3 className="text-[1.0625rem] font-demi leading-snug text-ink">
+          {/* El `after` del enlace cubre la fila: toda es clicable, y el lector
+              de pantalla anuncia un solo enlace con el nombre del puesto. */}
+          <Link
+            to={`/vacantes/${vacante.id}`}
+            className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-ui focus-visible:after:ring-2 focus-visible:after:ring-accent"
+          >
+            {vacante.titulo}
+          </Link>
+        </h3>
+        <p className="mt-0.5 truncate text-[0.875rem] text-muted">
+          {vacante.empresa_nombre}
+          {techs.length > 0 && <span className="text-ink-2"> · {techs.join(", ")}</span>}
+        </p>
+      </div>
 
-  const empresas = new Set(vacantes.map((v) => v.empresa_nombre).filter(Boolean)).size;
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.875rem] text-ink-2">
+        <span className="flex items-center gap-1">
+          <MapPin size={13} strokeWidth={1.7} className="text-muted" aria-hidden="true" />
+          {vacante.ubicacion}
+        </span>
+        <Tag tono={TONO_MODALIDAD[vacante.modalidad] ?? "neutro"}>{capital(vacante.modalidad)}</Tag>
+      </div>
 
-  // Promedio del punto medio de cada rango. Se descartan las que no traen
-  // rango en vez de contarlas como cero, que hundiría el promedio.
-  const medios = vacantes
-    .map((v) => {
-      const min = parseFloat(v.salario_min);
-      const max = parseFloat(v.salario_max);
-      if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
-      return (min + max) / 2;
-    })
-    .filter((n): n is number => n !== null && n > 0);
+      <div className="md:text-right">
+        <p className="tabular text-[1.125rem] font-demi tracking-[-0.01em] text-ink">
+          {formatoSalario(vacante.salario_min, vacante.salario_max).replace(" MXN", "")}
+        </p>
+        <p className="text-[0.8125rem] text-muted">MXN al mes{fecha && ` · ${fecha}`}</p>
+      </div>
+    </li>
+  );
+};
 
-  const salarioK = medios.length
-    ? Math.round(medios.reduce((a, b) => a + b, 0) / medios.length / 1000)
-    : 0;
-
-  return { vacantes: vacantes.length, nuevas, empresas, salarioK };
-}
-
+/**
+ * La portada es una bolsa de trabajo, no una página de venta: un buscador y
+ * debajo las vacantes que hay, con su sueldo. Nada más.
+ *
+ * Antes era la plantilla de landing generada: cejilla en versalitas, titular
+ * gigante, dos botones, una tarjeta escrita a mano (una "Kavak" que no
+ * existía), fila de cifras, tarjetas de "por qué nosotros" y halos que
+ * seguían al cursor. Todo lo que se ve aquí sale de `/vacantes/`; si no hay
+ * datos, se dice tal cual.
+ */
 const Home: React.FC = () => {
-  const heroRef = useRef<HTMLElement>(null);
-  const reduced = useReducedMotion();
-  const [metricas, setMetricas] = useState<Metricas | null>(null);
+  const navigate = useNavigate();
+  const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
+  const [estado, setEstado] = useState<"cargando" | "listo" | "error">("cargando");
+  const [q, setQ] = useState("");
+  const [lugar, setLugar] = useState("");
 
   useEffect(() => {
     let vivo = true;
     api
-      .get('/vacantes/')
+      .get<VacantePublica[]>("/vacantes/")
       .then(({ data }) => {
-        if (vivo) setMetricas(calcularMetricas(data));
+        if (!vivo) return;
+        setVacantes(data);
+        setEstado("listo");
       })
-      // Silencio a propósito: el hero se ve bien sin la fila de cifras, y un
-      // toast de error en la portada por una métrica no vale la interrupción.
-      .catch(() => {});
+      // La lista se oculta: un error en la portada no merece un aviso, y el
+      // buscador sigue funcionando porque lleva a /vacantes.
+      .catch(() => vivo && setEstado("error"));
     return () => {
       vivo = false;
     };
   }, []);
 
-  // Parallax del halo principal: se mueve a otra velocidad que el contenido.
-  const { scrollY } = useScroll();
-  const glowY = useTransform(scrollY, [0, 900], [0, 240]);
+  const chips = useMemo(() => chipsPopulares(vacantes), [vacantes]);
+  // El endpoint ya las entrega de la más nueva a la más vieja.
+  const recientes = vacantes.slice(0, RECIENTES);
 
-  // Halo secundario que persigue al cursor. useSpring da la inercia y el rAF.
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const cursorX = useSpring(rawX, { stiffness: 90, damping: 22, mass: 1.1 });
-  const cursorY = useSpring(rawY, { stiffness: 90, damping: 22, mass: 1.1 });
-  const cursorOpacity = useMotionValue(0);
-
-  const onHeroMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (reduced) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    rawX.set(e.clientX - r.left - 260);
-    rawY.set(e.clientY - r.top - 260);
-    cursorOpacity.set(1);
+  const buscar = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(rutaBusqueda({ q, lugar }));
   };
+
+  const campo = "flex flex-1 items-center gap-3 rounded-ui px-4 py-3 transition-colors focus-within:bg-surface";
+  const input = "w-full bg-transparent text-body text-ink placeholder:text-muted focus:outline-none";
 
   return (
     <div className="bg-canvas">
-      {/* ───────────── HERO · banda oscura ───────────── */}
-      <header
-        ref={heroRef}
-        onMouseMove={onHeroMove}
-        onMouseLeave={() => cursorOpacity.set(0)}
-        className="relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night pb-[168px] pt-[150px] text-ink-d"
-      >
-        <motion.div
-          aria-hidden="true"
-          style={{ y: reduced ? 0 : glowY }}
-          className="pointer-events-none absolute -top-48 left-1/2 -z-10 h-[760px] w-[1100px] -translate-x-[64%]"
-        >
-          <div className="h-full w-full bg-[radial-gradient(closest-side,rgba(255,255,255,0.17),rgba(255,255,255,0.04)_55%,transparent_78%)] blur-[6px]" />
-        </motion.div>
-
-        {!reduced && (
-          <motion.div
-            aria-hidden="true"
-            style={{ x: cursorX, y: cursorY, opacity: cursorOpacity }}
-            className="pointer-events-none absolute left-0 top-0 -z-10 hidden h-[520px] w-[520px] bg-[radial-gradient(closest-side,rgba(255,255,255,0.10),transparent_72%)] transition-opacity duration-500 md:block"
-          />
-        )}
-
-        <motion.div
-          variants={stagger(0.11, 0.05)}
-          initial="hidden"
-          animate="show"
-          className="relative mx-auto grid max-w-page grid-cols-1 gap-14 px-6 md:px-7 lg:grid-cols-[1.15fr_0.85fr] lg:items-center"
-        >
-          <div>
-            {/*
-              Aquí vivía un pill con puntito anunciando "17 vacantes nuevas".
-              Fuera: ese badge sobre el titular es el elemento más reconocible
-              de landing generada por IA — está en todas. El dato era bueno, la
-              forma no; ahora es un delta en las métricas, que es donde un
-              producto de datos real lo pondría.
-            */}
-            {/* Cejilla: el Home era la única página sin ella. No es el pill con
-                puntito que quitamos — es el mismo rótulo en versalitas que
-                encabeza vacantes, planes, privacidad y los tres paneles. */}
-            <motion.p
-              variants={rise}
-              className="mb-5 text-caption uppercase tracking-[0.06em] text-muted-d"
-            >
-              Empleo tecnológico en México
-            </motion.p>
-
-            <motion.h1
-              variants={rise}
-              className="mb-6 max-w-[14ch] font-heading text-[clamp(2.25rem,5.6vw,3.875rem)] font-mid leading-none tracking-[-0.035em]"
-            >
-              Conectando el mejor talento tecnológico
-            </motion.h1>
-
-            <motion.p variants={rise} className="mb-9 max-w-[44ch] text-sub text-ink-2d">
-              Oportunidades reales en las mejores empresas de TI en México, con el rango salarial a la
-              vista desde el primer día.
-            </motion.p>
-
-            <motion.div variants={rise} className="flex flex-wrap gap-3">
-              <Link to="/vacantes">
-                <Button variant="primary" tone="dark">
-                  <ArrowRight size={15} strokeWidth={1.8} />
-                  Ver vacantes
-                </Button>
-              </Link>
-              <Link to="/planes">
-                <Button variant="ghost" tone="dark">
-                  <Plus size={15} strokeWidth={1.8} />
-                  Publicar vacante
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Las dos preguntas que trae cualquiera que llega aquí: cuánto me
-                cuesta, y por dónde empiezo. Ambas verificadas contra el código:
-                el aspirante no tiene ninguna ruta de pago, y `planes.tsx` sirve
-                un plan con precio 0. */}
-            <motion.p variants={rise} className="mt-7 max-w-[46ch] text-[0.875rem] leading-relaxed text-muted-d">
-              Gratis para quien busca empleo. Las empresas empiezan en el plan gratuito.
-            </motion.p>
-          </div>
-
-          {/* Card glass: el hero oscuro con halo es donde el glass realmente luce.
-              `riseGlass` y no `rise`: un fade sobre un panel con backdrop-filter
-              lo deja plano hasta que la opacidad llega a 1. Ver lib/motion.ts. */}
-          <motion.div variants={riseGlass}>
-            <Card tone="dark" glass>
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="mb-1 text-[1.1875rem] font-demi tracking-[-0.01em] text-ink-d">
-                    Frontend Developer Senior
-                  </h2>
-                  <p className="text-[0.875rem] text-muted-d">Kavak</p>
-                </div>
-                <Tag tone="dark">Remoto</Tag>
-              </div>
-              <p className="tabular text-[1.0625rem] text-ink-d">$65,000 – $90,000 MXN</p>
-              <p className="mb-5 mt-1 text-[0.8125rem] text-muted-d">
-                Ciudad de México · híbrido opcional
-              </p>
-              <div className="flex gap-2.5 border-t border-hairline-d pt-[18px]">
-                <Link to="/vacantes">
-                  <Button variant="primary" tone="dark" size="sm">
-                    <ExternalLink size={14} strokeWidth={1.8} />
-                    Ver vacante
-                  </Button>
-                </Link>
-                <Link to="/vacantes">
-                  <Button variant="ghost" tone="dark" size="sm">
-                    <ArrowRight size={14} strokeWidth={1.8} />
-                    Todas
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          </motion.div>
-        </motion.div>
-
-        {/*
-          Estas tres cifras estuvieron escritas a mano —1,240 vacantes, 380
-          empresas, $72k— mientras el muro público mostraba seis. Un hero que
-          se contradice con la página siguiente destruye justo lo que esta
-          landing promete: que los números son reales.
-
-          Si la petición falla o no hay vacantes, la fila NO se pinta. Es
-          preferible un hero sin métricas a un hero con métricas inventadas.
-        */}
-        {metricas && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, ease: EASE }}
-            className="relative mx-auto mt-16 flex max-w-page flex-wrap gap-x-14 gap-y-6 border-t border-hairline-d px-6 pt-8 md:px-7"
+      {/* ───────────── Franja oscura con el buscador ───────────── */}
+      <header className="bg-night pb-14 pt-12 text-ink-d md:pb-16 md:pt-14">
+        <motion.div variants={stagger(0.08)} initial="hidden" animate="show" className="mx-auto max-w-page px-6 md:px-7">
+          <motion.h1
+            variants={rise}
+            className="max-w-[20ch] font-heading text-[clamp(2rem,4.6vw,3rem)] font-mid leading-[1.05] tracking-[-0.02em]"
           >
-            <div>
-              <p className="flex items-baseline gap-2.5">
-                <CountUp
-                  to={metricas.vacantes}
-                  className="tabular text-[2rem] font-mid leading-none tracking-[-0.03em]"
-                />
-                {metricas.nuevas > 0 && (
-                  <span className="tabular text-[0.8125rem] text-ink-2d">
-                    +{metricas.nuevas} esta semana
-                  </span>
-                )}
-              </p>
-              <p className="mt-1.5 text-[0.8125rem] text-muted-d">
-                {metricas.vacantes === 1 ? 'Vacante activa' : 'Vacantes activas'}
-              </p>
-            </div>
-            <div>
-              <CountUp
-                to={metricas.empresas}
-                className="tabular block text-[2rem] font-mid leading-none tracking-[-0.03em]"
-              />
-              {/* "con vacantes" y no "verificadas": es lo que de verdad se
-                  cuenta — empresas con al menos una oferta publicada. */}
-              <p className="mt-1.5 text-[0.8125rem] text-muted-d">
-                {metricas.empresas === 1 ? 'Empresa publicando' : 'Empresas publicando'}
-              </p>
-            </div>
-            {metricas.salarioK > 0 && (
-              <div>
-                <CountUp
-                  to={metricas.salarioK}
-                  prefix="$"
-                  suffix="k"
-                  className="tabular block text-[2rem] font-mid leading-none tracking-[-0.03em]"
-                />
-                <p className="mt-1.5 text-[0.8125rem] text-muted-d">Salario promedio MXN</p>
-              </div>
-            )}
-          </motion.div>
-        )}
+            Empleo en TI con el sueldo a la vista
+          </motion.h1>
 
-        {/*
-          El titular de la siguiente sección vive AQUÍ, al final de la banda
-          oscura, para que las tres cards puedan montarse sobre el filo. No es
-          un capricho de composición: el degradado de esas cards no está
-          pintado, es el vidrio refractando negro en su mitad de arriba y
-          página clara en la de abajo. Sin filo que atravesar, el glass no
-          tiene nada que hacer y la card se ve igual que una opaca.
-        */}
-        <motion.div
-          {...revealViewport}
-          className="relative mx-auto mt-[72px] max-w-page px-6 md:px-7"
-        >
-          <p className="mb-3 text-caption uppercase tracking-[0.06em] text-muted-d">Por qué TalentHub</p>
-          <h2 className="max-w-[20ch] font-heading text-[clamp(1.625rem,3.6vw,2.375rem)] font-demi leading-[1.12] tracking-[-0.018em] text-ink-d">
-            Tres cosas que no encuentras en otros portales
-          </h2>
+          <motion.form
+            variants={rise}
+            onSubmit={buscar}
+            role="search"
+            className="mt-8 flex flex-col gap-1 rounded-card bg-canvas p-2 md:flex-row md:items-center md:gap-0"
+          >
+            <label className={campo}>
+              <Search size={18} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+              <span className="sr-only">Puesto o tecnología</span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Puesto, empresa o tecnología"
+                className={input}
+              />
+            </label>
+            <span className="mx-1 hidden h-8 w-px bg-hairline md:block" aria-hidden="true" />
+            <label className={campo}>
+              <MapPin size={18} strokeWidth={1.7} className="flex-none text-muted" aria-hidden="true" />
+              <span className="sr-only">Ciudad o remoto</span>
+              <input
+                value={lugar}
+                onChange={(e) => setLugar(e.target.value)}
+                placeholder="Ciudad o remoto"
+                className={input}
+              />
+            </label>
+            <Button type="submit" className="md:ml-2">
+              <Search size={15} strokeWidth={1.8} />
+              Buscar vacantes
+            </Button>
+          </motion.form>
+
+          {chips.length > 0 && (
+            <motion.div variants={rise} className="mt-5 flex flex-wrap items-center gap-2">
+              {chips.map((chip) => (
+                <Link
+                  key={chip.etiqueta}
+                  to={rutaBusqueda(chip.filtros)}
+                  className="rounded-pill border border-hairline-d px-3.5 py-1.5 text-[0.875rem] text-ink-2d transition-colors hover:border-hairline-d-strong hover:text-ink-d"
+                >
+                  {chip.etiqueta}
+                </Link>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </header>
 
-      {/* ───────────── FEATURES · banda clara con sustrato ───────────── */}
-      <section className="mesh-light flow-root bg-surface pb-[120px] md:pb-[152px]">
-        <div className="relative mx-auto max-w-page px-6 md:px-7">
-          <motion.div
-            variants={stagger(0.09)}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            className="glass-panel-overlap grid grid-cols-1 gap-[18px] md:grid-cols-3"
-          >
-            {FEATURES.map(({ icon: Icon, title, body }) => (
-              <motion.div key={title} variants={riseGlass} className="h-full">
-                {/* Panel al 68% y no card al 46%: el tercio de arriba queda
-                    sobre negro, y ahí `ink` al 46% cae a 4.02:1 — reprueba AA.
-                    Al 68% da 8.4:1. La transparencia tiene techo y lo pone el texto. */}
-                <div className="glass-panel glass-panel-hot edge-l edge-l-hot h-full p-7 transition-[transform,background-color,border-color,box-shadow] duration-300 ease-base hover:-translate-y-1">
-                  <Icon size={20} strokeWidth={1.6} className="mb-[18px] text-ink" />
-                  <h3 className="mb-2.5 text-sub font-demi text-ink">{title}</h3>
-                  <p className="text-[0.90625rem] leading-relaxed text-ink-2">{body}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* ───────────── Lista de sueldos ───────────── */}
+      {estado !== "error" && (
+        <section className="pb-16 pt-12 md:pb-20">
+          <div className="mx-auto max-w-page px-6 md:px-7">
+            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
+              <h2 className="font-heading text-[clamp(1.5rem,2.6vw,2rem)] font-demi leading-[1.1] tracking-[-0.015em] text-ink">
+                Vacantes recientes
+              </h2>
+              {estado === "listo" && vacantes.length > 0 && (
+                <Link to="/vacantes" className="flex items-center gap-1.5 text-[0.9375rem] font-mid text-accent hover:text-accent-hover">
+                  Ver las {vacantes.length}
+                  <ArrowRight size={15} strokeWidth={1.8} />
+                </Link>
+              )}
+            </div>
 
-      {/* ───────────── CIERRE · banda oscura ───────────── */}
-      <section className="relative overflow-hidden bg-night py-[104px] text-ink-d">
-        <div className="accent-wash absolute inset-x-0 top-0 h-px" aria-hidden="true" />
-        <div className="mx-auto max-w-page px-6 md:px-7">
-          <motion.h2
-            {...revealViewport}
-            className="mb-4 max-w-[18ch] font-heading text-[clamp(1.75rem,4.4vw,2.75rem)] font-demi leading-[1.1] tracking-[-0.025em]"
-          >
-            Publica tu primera vacante hoy
-          </motion.h2>
-          <motion.p {...revealViewport} className="mb-8 max-w-[52ch] text-[1.0625rem] text-ink-2d">
-            Revisión en menos de 24 horas y alcance a más de mil perfiles de TI verificados.
-          </motion.p>
-          <motion.div {...revealViewport}>
-            <Link to="/planes">
-              <Button variant="primary" tone="dark">
-                <ArrowRight size={15} strokeWidth={1.8} />
-                Empezar ahora
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+            {estado === "cargando" && (
+              <div className="flex flex-col gap-3 border-t border-hairline pt-5">
+                {[0, 1, 2, 3].map((i) => (
+                  <Skeleton key={i} height={56} />
+                ))}
+              </div>
+            )}
+
+            {estado === "listo" && recientes.length === 0 && (
+              <EmptyState
+                title="Todavía no hay vacantes publicadas"
+                description="Cuando una empresa publique una y se apruebe, aparecerá aquí."
+              />
+            )}
+
+            {estado === "listo" && recientes.length > 0 && (
+              <>
+                {/* Encabezado de columnas: solo donde hay columnas. */}
+                <div className="hidden grid-cols-[minmax(0,1fr)_280px_200px] gap-x-8 border-b border-hairline px-4 pb-2 text-caption uppercase text-muted md:grid">
+                  <span>Puesto</span>
+                  <span>Lugar</span>
+                  <span className="text-right">Sueldo</span>
+                </div>
+                <ul className="list-none p-0">
+                  {recientes.map((vacante) => (
+                    <Fila key={vacante.id} vacante={vacante} />
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {/* Una línea para empresas, no un bloque de venta. */}
+            <p className="mt-10 text-[0.9375rem] text-ink-2">
+              ¿Contratas talento de TI?{" "}
+              <Link to="/planes" className="font-mid text-accent hover:text-accent-hover">
+                Publica tu vacante desde el plan gratuito
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+      )}
+
+      <AppPromo />
     </div>
   );
 };
