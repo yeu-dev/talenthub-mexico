@@ -93,6 +93,32 @@ did not, so every page turned dark without rewriting its classes. Read
 halos (blue, teal and a very low warm tone). Glass is a lens; without
 something behind it, a translucent card looks identical to an opaque one.
 
+### The live veil
+
+The home page, the session screens and the dark band at the top of every
+other page add one animated layer on top of the halos: **Dark Veil** from React Bits (`components/fondos/`), a slow blue veil
+in `{colors.accent}` rendered with WebGL.
+
+- From `md` only. On phones, and wherever WebGL is off, the static halos are
+  what shows.
+- No cursor interaction. It pauses itself under reduced motion, in a hidden
+  tab and off screen.
+- Opacity 45%. Text sitting directly on it at its brightest point would
+  fail with `muted-d`, so panels over it darken from `md`
+  (`rgba(16,16,18,0.5)`: `muted` 4.97:1, `muted-d` 4.66:1), and text placed
+  directly on it uses `ink-2d` (7.02:1) or brighter. At 50% `muted-d` drops
+  to 4.53:1, so it does not go higher without darker panels.
+- In the dark band of the other pages (`PageHeader`) it is dimmer, at 25%,
+  because breadcrumbs and tabs sit on it in `muted-d` (4.70:1 at its
+  brightest). It fades out towards the bottom, where the glass panels mount,
+  and towards the right, where the page leaves the app notice column, so it
+  never ends in a hard edge.
+- On the home page it is mounted from `App`, at full window width, and fades
+  out before the salary list. Mounted inside the page it was clipped by the
+  column reserved for the app notice.
+- React Bits is MIT + Commons Clause: free to use and modify here, not to
+  resell as a component. The credit is in the file header.
+
 ### Text
 
 | Token | Value | canvas | night | glass 6% | glass hover 9% | Use |
@@ -344,8 +370,9 @@ minimal, the silhouette became the thing carrying the system's identity.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
-- Only two loops exist, both in the app notice: the phone floats, and a ring
-  grows and fades around the app icon. Both animate `transform` and
+- Only three loops exist: the live veil behind the home page, the session
+  screens and the page bands (see *The live veil*), and two in the app notice: the phone floats,
+  and a ring grows and fades around the app icon. Both animate `transform` and
   `opacity` only, never `box-shadow`, which repaints on every frame.
 
 ### Reduced motion

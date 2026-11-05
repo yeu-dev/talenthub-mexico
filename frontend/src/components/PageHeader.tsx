@@ -4,6 +4,7 @@ import { ChevronRight } from './icons';
 import { motion } from 'framer-motion';
 import { cx } from '../lib/cx';
 import { SPRING } from '../lib/motion';
+import FondoVivo from './fondos/FondoVivo';
 
 export interface Miga {
   etiqueta: string;
@@ -88,6 +89,8 @@ const PageHeader: React.FC<Props> = ({
         className="pointer-events-none absolute -top-52 left-1/2 -z-10 h-[560px] w-[1000px] -translate-x-[58%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.15),transparent_74%)]"
       />
     )}
+    {/* El mismo velo vivo de la portada, más tenue. Solo en la banda oscura. */}
+    {oscuro && <FondoVivo alto="franja" />}
     <div className={cx('mx-auto px-6 md:px-7', ancho === 'doc' ? 'max-w-4xl' : 'max-w-page')}>
       {migas && migas.length > 0 && (
         <nav aria-label="Ruta" className="mb-4">

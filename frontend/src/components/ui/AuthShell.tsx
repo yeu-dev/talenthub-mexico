@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { cx } from '../../lib/cx';
 import { rise, riseGlass, stagger } from '../../lib/motion';
 import Brand from '../Brand';
+import FondoVivo from '../fondos/FondoVivo';
 
 interface Props {
   title: string;
@@ -52,6 +53,8 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
           className="absolute -right-32 bottom-[-8%] h-[560px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.18),transparent_72%)]"
         />
       </div>
+      {/* El velo vivo, desde `md`, encima de las auroras. */}
+      <FondoVivo alto="pantalla" />
 
       <div
         className={cx(
@@ -84,7 +87,7 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
               rectángulo trazado. `riseGlass`: un fade aplanaría el vidrio. */}
           <motion.div
             variants={riseGlass}
-            className="edge-d rounded-card bg-white/[0.045] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9"
+            className="edge-d rounded-card bg-white/[0.045] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9 md:bg-[rgba(16,16,18,0.5)]"
           >
             <div className="mb-7">
               <h1 className="text-h3 font-demi text-ink-d">{title}</h1>
@@ -94,8 +97,10 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
             {children}
           </motion.div>
 
+          {/* Fuera de la tarjeta, directo sobre el velo: `ink-2d` y no `muted-d`,
+              que en el punto más brillante del velo baja a 4.16:1. */}
           {footer && (
-            <motion.div variants={rise} className="mt-6 text-center text-[0.9375rem] text-muted-d">
+            <motion.div variants={rise} className="mt-6 text-center text-[0.9375rem] text-ink-2d">
               {footer}
             </motion.div>
           )}
