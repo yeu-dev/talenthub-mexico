@@ -121,7 +121,13 @@ const AppPromo: React.FC = () => {
         style={{ borderRadius: mini ? 9999 : 24 }}
         className="fixed bottom-6 right-6 z-40 hidden overflow-hidden lg:block"
       >
-        <AnimatePresence mode="popLayout" initial={false}>
+        {/* `wait` y no `popLayout`: `popLayout` saca del flujo a la pieza que
+            sale inyectando una etiqueta `<style>`, y la CSP de producción
+            (vercel.json) la bloquea. Las dos piezas convivían en el
+            contenedor y el cambio de forma brincaba. Con `wait` sale una
+            (0.2 s) y luego entra la otra; el `layout` del contenedor sigue
+            haciendo el cambio de forma. */}
+        <AnimatePresence mode="wait" initial={false}>
           {mini ? (
             <motion.button
               key="mini"
