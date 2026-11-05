@@ -52,8 +52,8 @@ test('la portada muestra el buscador y las vacantes reales', async () => {
 
   expect(screen.getByRole('search')).toBeInTheDocument();
   expect(screen.getByPlaceholderText(/puesto, empresa o tecnología/i)).toBeInTheDocument();
-  expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
-  expect(screen.getByText('$28,000 – $38,000')).toBeInTheDocument();
+  expect((await screen.findAllByText('Desarrollador Frontend React'))[0]).toBeInTheDocument();
+  expect(screen.getAllByText('$28,000 – $38,000')[0]).toBeInTheDocument();
 });
 
 test('si la API falla, la portada lo dice, ofrece reintentar y conserva el enlace para empresas', async () => {
@@ -62,7 +62,9 @@ test('si la API falla, la portada lo dice, ofrece reintentar y conserva el enlac
 
   expect(await screen.findByText('No pudimos cargar las vacantes recientes')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /publica gratis/i })).toBeInTheDocument();
+  // La banda para empresas no depende de la API: sigue a la vista con error.
+  expect(screen.getByRole('heading', { name: /publica gratis/i })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /para empresas/i })).toHaveAttribute('href', '/empresas');
 });
 
 test('reintentar vuelve a pedir las vacantes y las muestra', async () => {
@@ -73,7 +75,7 @@ test('reintentar vuelve a pedir las vacantes y las muestra', async () => {
   mockFalla = false;
   userEvent.click(reintentar);
 
-  expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
+  expect((await screen.findAllByText('Desarrollador Frontend React'))[0]).toBeInTheDocument();
   expect(screen.queryByText('No pudimos cargar las vacantes recientes')).not.toBeInTheDocument();
 });
 
@@ -87,5 +89,5 @@ test('el titular de la portada se ve desde el primer cuadro (no arranca en opaci
   expect(titular).toHaveAccessibleName('Tu siguiente empleo en TI ya trae el sueldo');
 
   // Espera a que termine la carga de la lista para no dejar estado pendiente.
-  expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
+  expect((await screen.findAllByText('Desarrollador Frontend React'))[0]).toBeInTheDocument();
 });

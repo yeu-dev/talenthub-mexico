@@ -1,13 +1,17 @@
 import {
   chipsPopulares,
   coincide,
+  empresasQuePublican,
   formatoSalario,
   haceCuanto,
   mencionaPalabra,
   normalizar,
   partesSalario,
   rutaBusqueda,
+  stackConSueldos,
   stackPresente,
+  vacantesPorCiudad,
+  vacantesPorModalidad,
   VacantePublica,
 } from './vacantes';
 
@@ -146,5 +150,71 @@ describe('stackPresente', () => {
   it('sin vacantes no da nada y respeta el máximo', () => {
     expect(stackPresente([])).toEqual([]);
     expect(stackPresente([vacante({})], 1)).toEqual(['TypeScript']);
+  });
+});
+
+describe('coincide con tecnologías del stack curado', () => {
+  it('"java" no trae las de JavaScript, y "node" encuentra "Node.js"', () => {
+    const js = vacante({ requisitos: { lenguajes: ['JavaScript'] } });
+    const java = vacante({ titulo: 'Backend Java', requisitos: { lenguajes: [] } });
+    const node = vacante({ requisitos: { lenguajes: ['Node.js'] } });
+    expect(coincide(js, { q: 'Java' })).toBe(false);
+    expect(coincide(java, { q: 'java' })).toBe(true);
+    expect(coincide(node, { q: 'node' })).toBe(true);
+    expect(coincide(node, { q: 'Node.js' })).toBe(true);
+  });
+
+  it('lo que no es del stack se sigue buscando por pedazo', () => {
+    expect(coincide(vacante({}), { q: 'desarr' })).toBe(true);
+  });
+
+  it('cada renglón del stack lleva exactamente a sus vacantes', () => {
+    const lista = [
+      vacante({ id: 1, requisitos: { lenguajes: ['JavaScript'] } }),
+      vacante({ id: 2, titulo: 'Backend Java', requisitos: { lenguajes: ['SQL'] } }),
+      vacante({ id: 3, requisitos: { lenguajes: ['PostgreSQL'] } }),
+    ];
+    for (const item of stackConSueldos(lista)) {
+      expect(lista.filter((v) => coincide(v, { q: item.etiqueta }))).toHaveLength(item.n);
+    }
+  });
+});
+
+describe('stackConSueldos', () => {
+  it('da el rango de sueldo de las vacantes de cada tecnología', () => {
+    const lista = [
+      vacante({ id: 1, salario_min: '20000', salario_max: '30000', requisitos: { lenguajes: ['Python'] } }),
+      vacante({ id: 2, salario_min: '35000', salario_max: '50000', requisitos: { lenguajes: ['Python'] } }),
+    ];
+    expect(stackConSueldos(lista)).toEqual([{ etiqueta: 'Python', n: 2, min: 20000, max: 50000 }]);
+  });
+});
+
+describe('conteos de la portada', () => {
+  const lista = [
+    vacante({ id: 1, empresa_nombre: 'Nebula Labs', ubicacion: 'Puebla, Pue.', modalidad: 'remoto' }),
+    vacante({ id: 2, empresa_nombre: 'Nebula Labs', ubicacion: 'Puebla', modalidad: 'hibrido' }),
+    vacante({ id: 3, empresa_nombre: 'Orbita', ubicacion: 'Monterrey, N.L.', modalidad: 'remoto' }),
+  ];
+
+  it('cuenta empresas y ciudades de la que más tiene a la que menos', () => {
+    expect(empresasQuePublican(lista)).toEqual([
+      { etiqueta: 'Nebula Labs', n: 2 },
+      { etiqueta: 'Orbita', n: 1 },
+    ]);
+    expect(vacantesPorCiudad(lista)).toEqual([
+      { etiqueta: 'Puebla', n: 2 },
+      { etiqueta: 'Monterrey', n: 1 },
+    ]);
+  });
+
+  it('solo da las modalidades que tienen vacantes, y cada ciudad lleva a sus vacantes', () => {
+    expect(vacantesPorModalidad(lista).map((m) => [m.valor, m.n])).toEqual([
+      ['remoto', 2],
+      ['hibrido', 1],
+    ]);
+    for (const c of vacantesPorCiudad(lista)) {
+      expect(lista.filter((v) => coincide(v, { lugar: c.etiqueta }))).toHaveLength(c.n);
+    }
   });
 });

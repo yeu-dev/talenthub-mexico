@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
@@ -26,6 +26,7 @@ import RestablecerPassword from './pages/auth/RestablecerPassword';
 import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
 import NoEncontrada from './pages/NoEncontrada';
 import FondoVivo from './components/fondos/FondoVivo';
+import Empresas from './pages/Empresas';
 
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
@@ -56,6 +57,37 @@ const FondoPortada: React.FC = () => {
   return pathname === '/' ? <FondoVivo /> : null;
 };
 
+/**
+ * Cada navegación arranca arriba de la página nueva.
+ *
+ * `BrowserRouter` no restaura el scroll por su cuenta: antes, al seguir un
+ * enlace desde el pie se llegaba a la otra página ya hasta abajo. Ahora:
+ * - un enlace (PUSH) sube hasta arriba, incluso de `/vacantes` a
+ *   `/vacantes?q=Python`, porque es otra búsqueda;
+ * - "atrás" (POP) también sube;
+ * - los filtros de `/vacantes` escriben la URL con `replace` mientras se
+ *   teclea: ahí NO se sube, o la página brincaría a cada tecla.
+ *
+ * El salto es instantáneo: con el scroll suave del sitio se vería pasar la
+ * página de antes. `scrollRestoration = 'manual'` evita que el navegador
+ * intente poner su propia posición encima de esta.
+ */
+export const AlInicio: React.FC = () => {
+  const { key } = useLocation();
+  const tipo = useNavigationType();
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+  }, []);
+
+  useEffect(() => {
+    if (tipo === 'REPLACE') return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [key, tipo]);
+
+  return null;
+};
+
 function App() {
   // `reducedMotion="user"`: framer-motion lee la preferencia del sistema. Si
   // está activa, apaga desplazamientos, escalas y `layoutId` (las líneas que
@@ -65,6 +97,7 @@ function App() {
     <MotionConfig reducedMotion="user">
     <Router>
       <PromoAppProvider>
+      <AlInicio />
       <FondoPortada />
       <Navbar />
       <Pagina>
@@ -79,6 +112,7 @@ function App() {
         <Route path="/aplicaciones-empresa" element={<AplicacionesEmpresa />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/planes" element={<Planes />} />
+        <Route path="/empresas" element={<Empresas />} />
         <Route path="/checkout/:planId" element={<Checkout />} />
         <Route path="/validador" element={<DashboardValidador />} />
         <Route path="/mi-perfil" element={<PerfilAspirante />} />

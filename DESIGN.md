@@ -113,6 +113,10 @@ in `{colors.accent}` rendered with WebGL.
   brightest). It fades out towards the bottom, where the glass panels mount,
   and towards the right, where the page leaves the app notice column, so it
   never ends in a hard edge.
+- As a mid-page section (`banda`: the "For companies" close of the home page
+  and the closing band of `/empresas`) it is also at 25%, because text sits
+  directly on it, and it fades in and out at the top and bottom. Cards on it
+  darken from `md` like the panels over the hero veil.
 - On the home page it is mounted from `App`, at full window width, and fades
   out before the salary list. Mounted inside the page it was clipped by the
   column reserved for the app notice.
@@ -280,7 +284,31 @@ carries and what crosses its edge:
 
 - **Home** — the tallest band, with one headline, three icon claims and the
   search on a glass panel; quick searches derived from real data. Below it,
-  the salary list on a glass container.
+  a long page where **each section changes surface and composition from the
+  one before**, so no two read as the same band twice:
+  1. *Companies that post here* — centred credits strip between hairlines.
+  2. *Recent vacancies* — the salary list on a glass container.
+  3. *Search by stack, city or modality* — full-width `{colors.surface}` band
+     with a teal halo; an open three-column index (stack 1.7fr with its real
+     salary range, city and modality 1fr each), every count exactly what the
+     linked search returns.
+  4. *For job seekers* — back on `night` with a blue halo; steps on the left,
+     the real "Mis postulaciones" track on the right (marked as an example).
+  5. *For companies* — the closing band, with the live veil (`banda`) and in
+     mirror: a real published vacancy on the left, the pitch on the right.
+- **Companies (`/empresas`)** — the landing for whoever hires, with the app
+  notice hidden: hero with the veil and two real product pieces (a vacancy and
+  an example application) instead of stock photos → the companies strip →
+  horizontal steps on a `surface` band → the applications panel in mirror →
+  the company plans from `/planes/` on one glass board split by hairlines →
+  a centred closing band with the veil.
+- **Rhythm** — section padding is fluid (`py-[clamp(3.5rem,7vw,6.5rem)]`,
+  less for closings), never a fixed `py-20`/`py-28` tuned for one width.
+  Split sections stack until `lg` and from there sit in two columns aligned
+  to the top, so the visual starts level with the heading instead of
+  floating in the gap. Full-width backgrounds live in their own layer
+  (`FondoSeccion`) and fade out to the right while the app notice keeps that
+  column free, the same way the bands do.
 - **Listing (`/vacantes`)** — short band (`solapa={false}`) with title and
   count, then a search-and-filter toolbar on dark glass that sticks under the
   nav while scrolling.
@@ -387,6 +415,18 @@ minimal, the silhouette became the thing carrying the system's identity.
   never faded: the headline is the LCP and must be readable from the first
   frame. Screen readers hear the full sentence once; the rotating part is
   `aria-hidden`. It pauses in a hidden tab.
+
+- **Process steps (`components/portada/Proceso.tsx`)** run as one authored
+  sequence the first time they scroll into view: each step lights its circle,
+  its icon makes the gesture of what it describes and the line segment to the
+  next step fills; then the next one starts (1.5s apart, about 4.5s for the
+  whole sequence, starting once half the list is on screen: at 0.85s it went
+  by before it could be read). The six icons and
+  gestures are all different — the eye blinks, the paper plane flies off and
+  comes back, the bell rings, the upload arrow rises, the shield seals, the
+  inbox receives — so no step reads as another. Text is readable from the
+  first frame (it starts at 55% and only rises). It runs once, and under
+  reduced motion every step is shown lit with the line complete.
 
 ### Micro-interactions
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DarkVeil from './DarkVeil';
+import { useColumnaAviso } from '../PromoApp';
 
 /**
  * El velo azul que se mueve detrás de la portada y de las pantallas de sesión
@@ -53,9 +54,41 @@ const useDesdeMd = () => {
  */
 const MASCARA_FRANJA = 'linear-gradient(to bottom, black 45%, transparent), linear-gradient(to right, black 78%, transparent)';
 
-const FondoVivo: React.FC<{ alto?: 'pagina' | 'pantalla' | 'franja' }> = ({ alto = 'pagina' }) => {
+/**
+ * - `banda` (una sección a media página, como el cierre para empresas): al
+ *   25%, igual que la franja, porque el texto va directo encima; se apaga
+ *   arriba y abajo para que la sección entre y salga sin filo.
+ */
+const MASCARA_BANDA = 'linear-gradient(to bottom, transparent, black 22%, black 78%, transparent)';
+/**
+ * La banda dentro de una página con el aviso de la app abierto: además se
+ * apaga a la derecha, donde la página deja libre esa columna (igual que la
+ * franja). Sin aviso, como en /empresas, llega entera al borde.
+ */
+const MASCARA_BANDA_AVISO = `${MASCARA_BANDA}, linear-gradient(to right, black 82%, transparent)`;
+
+const intersectar = (mascara: string): React.CSSProperties => ({
+  maskImage: mascara,
+  WebkitMaskImage: mascara,
+  maskComposite: 'intersect',
+  WebkitMaskComposite: 'source-in',
+});
+
+type Alto = 'pagina' | 'pantalla' | 'franja' | 'banda';
+
+const FondoVivo: React.FC<{ alto?: Alto }> = ({ alto = 'pagina' }) => {
   const desdeMd = useDesdeMd();
+  const aviso = useColumnaAviso();
   if (!desdeMd) return null;
+
+  const estilo: React.CSSProperties | undefined =
+    alto === 'franja'
+      ? intersectar(MASCARA_FRANJA)
+      : alto === 'banda'
+        ? aviso
+          ? intersectar(MASCARA_BANDA_AVISO)
+          : { maskImage: MASCARA_BANDA, WebkitMaskImage: MASCARA_BANDA }
+        : undefined;
 
   return (
     <div
@@ -65,11 +98,7 @@ const FondoVivo: React.FC<{ alto?: 'pagina' | 'pantalla' | 'franja' }> = ({ alto
           ? 'pointer-events-none absolute inset-x-0 top-0 -z-10 h-[1000px] [mask-image:linear-gradient(to_bottom,black_35%,transparent_80%)]'
           : 'pointer-events-none absolute inset-0 -z-10'
       }
-      style={
-        alto === 'franja'
-          ? { maskImage: MASCARA_FRANJA, WebkitMaskImage: MASCARA_FRANJA, maskComposite: 'intersect', WebkitMaskComposite: 'source-in' }
-          : undefined
-      }
+      style={estilo}
     >
       <DarkVeil
         color="#3355ff"
@@ -77,7 +106,7 @@ const FondoVivo: React.FC<{ alto?: 'pagina' | 'pantalla' | 'franja' }> = ({ alto
         brightness={0.85}
         glow={0.25}
         grain={0.03}
-        opacity={alto === 'franja' ? 0.25 : 0.45}
+        opacity={alto === 'franja' || alto === 'banda' ? 0.25 : 0.45}
         mouseInteraction={false}
       />
     </div>

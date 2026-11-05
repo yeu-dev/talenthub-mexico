@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Banknote, Bell, Building2, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
+import { ArrowRight, Banknote, Bell, MapPin, RotateCcw, Search, ShieldCheck } from "../components/icons";
+import EmpresasQuePublican from "../components/portada/EmpresasQuePublican";
+import Explora from "../components/portada/Explora";
+import ParaQuienBusca from "../components/portada/ParaQuienBusca";
+import ParaEmpresas from "../components/portada/ParaEmpresas";
 import api from "../services/api";
 import { AvisoLento, Button, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from "../components/ui";
 import { chipsPopulares, haceCuanto, partesSalario, rutaBusqueda, tecnologias, VacantePublica } from "../lib/vacantes";
@@ -226,10 +230,15 @@ const Home: React.FC = () => {
         </div>
       </header>
 
+      {/* Cada sección de aquí abajo cambia de superficie y de composición
+          respecto a la anterior (DESIGN.md, *Band Architecture*). */}
 
-      {/* ───────────── Lista de sueldos ───────────── */}
-      {/* La sección se queda siempre: con error dice qué pasó y deja a la
-          vista el enlace para empresas, que no depende de la API. */}
+      {/* ───────────── Empresas que publican: franja centrada ───────────── */}
+      <EmpresasQuePublican vacantes={vacantes} cargando={estado === "cargando"} />
+
+      {/* ───────────── Lista de sueldos: panel de vidrio ───────────── */}
+      {/* La sección se queda siempre: con error dice qué pasó, y la banda
+          para empresas de más abajo sigue a la vista porque no depende de la API. */}
         <section className="pb-20 pt-14 md:pb-24">
           <div className="mx-auto max-w-page px-6 md:px-7">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4">
@@ -299,17 +308,17 @@ const Home: React.FC = () => {
               </>
             )}
 
-            {/* Una línea para empresas, no un bloque de venta. */}
-            <Link
-              to="/planes"
-              className="mt-10 inline-flex items-center gap-2.5 text-[0.9375rem] font-mid text-accent-on-dark hover:text-ink-d"
-            >
-              <Building2 size={17} strokeWidth={1.7} aria-hidden="true" />
-              ¿Contratas? Publica gratis
-              <ArrowRight size={15} strokeWidth={1.8} aria-hidden="true" />
-            </Link>
           </div>
         </section>
+
+      {/* ───────────── Busca por stack, ciudad o modalidad: banda surface ───────────── */}
+      <Explora vacantes={vacantes} />
+
+      {/* ───────────── Para quien busca: partida, halo azul ───────────── */}
+      <ParaQuienBusca />
+
+      {/* ───────────── Para empresas: espejo, con velo (antes era una línea suelta) ───────────── */}
+      <ParaEmpresas vacantes={vacantes} />
 
     </div>
   );
