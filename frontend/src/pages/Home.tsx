@@ -109,7 +109,11 @@ const Home: React.FC = () => {
     navigate(rutaBusqueda({ q, lugar }));
   };
 
-  const campo = "flex flex-1 items-center gap-3 rounded-ui px-4 py-3 transition-colors focus-within:bg-white/[0.06]";
+  // El input no dibuja foco propio (`focus:outline-none`): lo marca el campo
+  // entero, con el mismo borde y halo que `Field` en tono oscuro. Solo el
+  // cambio de fondo al 6% no alcanzaba a verse.
+  const campo =
+    "flex flex-1 items-center gap-3 rounded-ui border border-transparent px-4 py-3 transition-[background-color,border-color,box-shadow] focus-within:border-accent-on-dark/55 focus-within:bg-white/[0.06] focus-within:shadow-focus-accent-d";
   const input = "w-full bg-transparent text-body text-ink-d placeholder:text-muted-d focus:outline-none";
 
   // El margen negativo va en la raíz y no en el header: la raíz recorta los

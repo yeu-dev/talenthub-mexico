@@ -33,7 +33,9 @@ const VacanteCard: React.FC<Props> = ({ vacante, conDescripcion = false }) => {
           <h3 className="text-[1.1875rem] font-demi leading-snug tracking-[-0.01em] text-ink">
             <Link
               to={`/vacantes/${vacante.id}`}
-              className="after:absolute after:inset-0 after:rounded-card after:content-[''] focus-visible:outline-none"
+              // El foco se dibuja en el `after`, que cubre la tarjeta: el
+              // anillo rodea toda la tarjeta y no solo el título.
+              className="after:absolute after:inset-0 after:rounded-card after:content-[''] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-accent-on-dark"
             >
               {vacante.titulo}
             </Link>
