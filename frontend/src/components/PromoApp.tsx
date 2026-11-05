@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useCambiosDeSesion } from '../lib/sesion';
 
 /** Minimizado en esta visita: en la siguiente vuelve a abrirse grande. */
 const CLAVE = 'th_app_promo_mini';
@@ -51,6 +52,8 @@ export const PromoAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => window.clearTimeout(t);
   }, []);
 
+  // El aviso es para visitantes: si la sesión vence, vuelve a aparecer.
+  useCambiosDeSesion();
   const conSesion = Boolean(localStorage.getItem('token'));
   const cerrada = SIN_AVISO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
   const mostrar = listo && !conSesion && !cerrada;
