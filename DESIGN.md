@@ -370,10 +370,19 @@ minimal, the silhouette became the thing carrying the system's identity.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
-- Only three loops exist: the live veil behind the home page, the session
-  screens and the page bands (see *The live veil*), and two in the app notice: the phone floats,
-  and a ring grows and fades around the app icon. Both animate `transform` and
+- Only four loops exist: the live veil behind the home page, the session
+  screens and the page bands (see *The live veil*); the rotating word in the
+  home headline; and two in the app notice: the phone floats, and a ring grows
+  and fades around the app icon. The CSS ones animate `transform` and
   `opacity` only, never `box-shadow`, which repaints on every frame.
+- The home headline reads "Tu siguiente empleo en ___ ya trae el sueldo". The
+  gap starts on "TI" and then cycles every 2.8s through the most requested
+  technologies in the published vacancies, never a hand-written list; without
+  the API it stays on "TI". It sits on its own middle line, so only that line
+  changes width. Letters slide up through an `overflow-hidden` window and are
+  never faded: the headline is the LCP and must be readable from the first
+  frame. Screen readers hear the full sentence once; the rotating part is
+  `aria-hidden`. It pauses in a hidden tab.
 
 ### Reduced motion
 
@@ -382,7 +391,8 @@ minimal, the silhouette became the thing carrying the system's identity.
 
 - **framer-motion:** the app is wrapped in `<MotionConfig reducedMotion="user">`,
   so springs, rises, `layoutId` slides and `whileTap` stop moving while
-  opacity and colour changes remain.
+  opacity and colour changes remain. The home headline stops rotating and
+  stays on its first word.
 - **CSS (`index.css`):**
   - the loops (`flotar`, `latido`) and the skeleton pulse stop;
   - hover lifts and press scales are cancelled;

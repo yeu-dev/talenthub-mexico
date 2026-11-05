@@ -84,6 +84,7 @@ test('el titular de la portada se ve desde el primer cuadro (no arranca en opaci
   // `rise` lo dejaba en `opacity: 0` hasta que corría la animación, y eso
   // retrasa el LCP. La entrada de ahora solo lo mueve.
   expect(titular.style.opacity).not.toBe('0');
+  expect(titular).toHaveAccessibleName('Tu siguiente empleo en TI ya trae el sueldo');
 
   // Espera a que termine la carga de la lista para no dejar estado pendiente.
   expect(await screen.findByText('Desarrollador Frontend React')).toBeInTheDocument();
