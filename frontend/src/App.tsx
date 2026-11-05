@@ -77,9 +77,8 @@ function App() {
 
       {/*
         Notificaciones. OJO con `theme`: sileo lo nombra por el color del TEXTO,
-        no de la superficie. "light" = texto claro = burbuja oscura, que es justo
-        lo que queremos — chrome oscuro flotando sobre contenido claro, igual que
-        el nav.
+        no de la superficie. "light" = texto claro = burbuja oscura, que es la
+        que va con el sitio, todo en oscuro.
       */}
       <Toaster theme="light" position="bottom-center" options={{ roundness: 18 }} />
 
