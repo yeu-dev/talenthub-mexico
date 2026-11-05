@@ -32,9 +32,17 @@ interface Estado {
   mini: boolean;
   encoger: () => void;
   abrir: () => void;
+  /** Una página puede pedir que no aparezca (la 404): ahí nada debe competir con la salida. */
+  silenciar: (silenciado: boolean) => void;
 }
 
-const Contexto = createContext<Estado>({ mostrar: false, mini: true, encoger: () => {}, abrir: () => {} });
+const Contexto = createContext<Estado>({
+  mostrar: false,
+  mini: true,
+  encoger: () => {},
+  abrir: () => {},
+  silenciar: () => {},
+});
 
 /**
  * El estado del aviso de la app, compartido: lo usa el aviso para dibujarse y
@@ -45,6 +53,7 @@ export const PromoAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { pathname } = useLocation();
   const [mini, setMini] = useState(leer);
   const [listo, setListo] = useState(false);
+  const [silenciado, silenciar] = useState(false);
 
   // Un momento después de cargar, para no competir con lo primero que se lee.
   useEffect(() => {
@@ -56,7 +65,7 @@ export const PromoAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useCambiosDeSesion();
   const conSesion = Boolean(localStorage.getItem('token'));
   const cerrada = SIN_AVISO.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
-  const mostrar = listo && !conSesion && !cerrada;
+  const mostrar = listo && !conSesion && !cerrada && !silenciado;
 
   const encoger = useCallback(() => {
     setMini(true);
@@ -67,8 +76,17 @@ export const PromoAppProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     guardar(false);
   }, []);
 
-  const valor = useMemo(() => ({ mostrar, mini, encoger, abrir }), [mostrar, mini, encoger, abrir]);
+  const valor = useMemo(() => ({ mostrar, mini, encoger, abrir, silenciar }), [mostrar, mini, encoger, abrir]);
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 };
 
 export const usePromoApp = () => useContext(Contexto);
+
+/** Oculta el aviso de la app mientras la página que lo llama está montada. */
+export const useSinAvisoApp = () => {
+  const { silenciar } = useContext(Contexto);
+  useEffect(() => {
+    silenciar(true);
+    return () => silenciar(false);
+  }, [silenciar]);
+};

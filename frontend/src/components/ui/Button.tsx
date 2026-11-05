@@ -43,25 +43,34 @@ const SIZES: Record<Size, string> = {
   md: 'text-[0.9375rem] px-[22px] py-[11px]',
 };
 
+/**
+ * Las clases del botón, sueltas. Sirven para que un `<Link>` se vea como
+ * botón sin meter un `<button>` dentro de un `<a>`: dos elementos
+ * interactivos anidados hacen que el lector de pantalla anuncie dos cosas y
+ * que el foco caiga dos veces en el mismo lugar.
+ */
+export const clasesBoton = ({
+  variant = 'primary',
+  tone = 'light',
+  size = 'md',
+  className,
+}: { variant?: Variant; tone?: Tone; size?: Size; className?: string } = {}) =>
+  cx(
+    'inline-flex items-center justify-center gap-2 rounded-pill font-mid',
+    // Curva base, no de rebote: un sobrepaso sobre `background-color` empuja
+    // la interpolación MÁS ALLÁ del color destino y la regresa — un parpadeo
+    // en cada hover. El overshoot solo tiene sentido físico en `transform`,
+    // y ahí el press ya lo da `active:scale`.
+    'transition-[transform,background-color,border-color,color] duration-150 ease-base',
+    'active:scale-[0.96] disabled:opacity-45 disabled:pointer-events-none',
+    SIZES[size],
+    VARIANTS[tone][variant],
+    className
+  );
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', tone = 'light', size = 'md', className, type = 'button', children, ...rest }, ref) => (
-    <button
-      ref={ref}
-      type={type}
-      className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-pill font-mid',
-        // Curva base, no de rebote: un sobrepaso sobre `background-color` empuja
-        // la interpolación MÁS ALLÁ del color destino y la regresa — un parpadeo
-        // en cada hover. El overshoot solo tiene sentido físico en `transform`,
-        // y ahí el press ya lo da `active:scale`.
-        'transition-[transform,background-color,border-color,color] duration-150 ease-base',
-        'active:scale-[0.96] disabled:opacity-45 disabled:pointer-events-none',
-        SIZES[size],
-        VARIANTS[tone][variant],
-        className
-      )}
-      {...rest}
-    >
+    <button ref={ref} type={type} className={clasesBoton({ variant, tone, size, className })} {...rest}>
       {children}
     </button>
   )

@@ -24,6 +24,7 @@ import PerfilAspirante from './pages/PerfilAspirante';
 import SolicitarRecuperacion from './pages/auth/SolicitarRecuperacion';
 import RestablecerPassword from './pages/auth/RestablecerPassword';
 import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
+import NoEncontrada from './pages/NoEncontrada';
 
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
@@ -73,6 +74,8 @@ function App() {
         {/* El :uid y :token son vitales para que useParams funcione */}
         <Route path="/restablecer-password/:uid/:token" element={<RestablecerPassword />} />
         <Route path="/politicas" element={<PoliticasPrivacidad />} />
+        {/* Cualquier otra ruta: la página de "no encontrada", no un hueco. */}
+        <Route path="*" element={<NoEncontrada />} />
       </Routes>
 
       <Footer />
