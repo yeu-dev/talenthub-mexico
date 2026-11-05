@@ -54,12 +54,19 @@ const TitularGiratorio: React.FC<{ palabras: string[] }> = ({ palabras }) => {
           en{' '}
           {/* `pb` y `-mb` iguales: la ventana baja lo suficiente para no
               cortar las colas (la "p" de "Python") sin mover la línea base.
-              `popLayout`: la palabra que sale se aparta del flujo y sube
-              mientras entra la nueva. Con `wait` el hueco se quedaba vacío
-              un instante entre las dos. `relative` es el ancla de esa salida. */}
-          <span className="relative -mb-[0.12em] inline-flex overflow-hidden whitespace-nowrap pb-[0.12em] align-bottom">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.span key={palabra} className="inline-flex">
+
+              La palabra que sale y la que entra van APILADAS en la misma celda
+              de una cuadrícula (`[grid-area:1/1]`), alineadas a la izquierda:
+              una sube y se va mientras la otra sube y llega, sin empujarse.
+              Antes era `AnimatePresence mode="popLayout"`, que saca a la que
+              sale del flujo inyectando una etiqueta `<style>`; la CSP de
+              producción (`style-src` sin 'unsafe-inline', vercel.json) la
+              bloquea, la palabra vieja se quedaba ocupando su lugar y la nueva
+              aparecía a su derecha, con un hueco. En local no pasaba porque el
+              servidor de desarrollo no manda la CSP. */}
+          <span className="-mb-[0.12em] inline-grid overflow-hidden whitespace-nowrap pb-[0.12em] align-bottom">
+            <AnimatePresence initial={false}>
+              <motion.span key={palabra} className="inline-flex [grid-area:1/1]">
                 {Array.from(palabra).map((letra, n) => (
                   <motion.span
                     key={n}
