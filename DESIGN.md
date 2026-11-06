@@ -278,10 +278,10 @@ Base 4px. Scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80`.
   value, so the page is seen passing beneath the glass bar. It is a CSS
   variable so that the bar and every band read the same number.
 - **App notice column**: while the app notice card is open on desktop
-  (`lg`), the page reserves a 340px right column for it and reflows once,
-  without a padding transition, when it is minimised (animating the padding
-  relaid out the whole page on every frame). Bands (`PageHeader`) extend under
-  that column so they reach the window edge instead of ending in a hard line.
+  (`lg`), the page reserves a 340px right column for it and reflows with a
+  padding transition when it is minimised. Bands (`PageHeader`) extend under
+  that column with the same transition, so they reach the window edge instead
+  of ending in a hard line, also while the page stretches.
 
 ### Band Architecture
 
@@ -338,7 +338,7 @@ no family repeats its neighbour's combination:
 | Family | Pages | Veil | Halo | Band |
 |---|---|---|---|---|
 | `explorar` | Vacancies | 25% | teal, top right | short, the filter bar right under it |
-| `ficha` | Job detail | 25% | tinted with the company's colour (`tonoRgb(nombre)`, the same tone as its initials tile; the neutral tone takes brand blue so no halo is grey) | tall letterhead |
+| `ficha` | Job detail | 25% | red (the palette's rose), behind the letterhead; the same on every job, since one colour per company would only repeat five tones across thousands of companies | tall letterhead |
 | `venta` | Plans | 45% | wide blue, centred | tallest, title centred and larger |
 | `trabajo` | Applications, my vacancies, received applications, profile, validator | none | faint blue, left | compact, smaller title |
 | `lectura` | Privacy | none | none | sober, document width |
@@ -427,8 +427,10 @@ minimal, the silhouette became the thing carrying the system's identity.
 - Active indicators slide: the nav underline and the tab underline use a
   shared `layoutId`, so they travel between items instead of blinking.
 - The app notice morphs: card and "Descarga la app" button are one element
-  changing shape with a spring; while open, the page leaves its column free
-  and reflows once when it is minimised (only the card animates).
+  changing shape with a spring in one movement (both pieces stay mounted and
+  cross-fade; the inactive one leaves the flow, so the shape change never
+  waits for a fade). While open, the page leaves its column free and reflows
+  with a padding transition when it is minimised.
 - Only five loops exist: the live veil behind the home page, the session
   screens and the page bands (see *The live veil*); the rotating word in the
   home headline; the shape field behind the 404; and two in the app notice:

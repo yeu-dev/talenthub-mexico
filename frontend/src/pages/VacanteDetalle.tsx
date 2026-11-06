@@ -4,7 +4,7 @@ import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
 import { AvisoLento, Button, clasesBoton, Card, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from '../components/ui';
-import Iniciales, { tonoRgb } from '../components/Iniciales';
+import Iniciales from '../components/Iniciales';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { formatoSalario } from '../lib/vacantes';
@@ -166,7 +166,6 @@ const VacanteDetalle: React.FC = () => {
       <PageHeader
         tono="oscuro"
         familia="ficha"
-        colorHalo={tonoRgb(vacante.empresa_nombre)}
         migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: vacante.titulo }]}
         inicio={<Iniciales nombre={vacante.empresa_nombre} tamano={56} />}
         titulo={vacante.titulo}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { cx } from '../lib/cx';
 import { QRCodeSVG } from 'qrcode.react';
 import { Camera, Clock, Download, Image, Map, MessageCircle, QrCode, ScanLine, X } from './icons';
 import { PLAY_STORE_URL } from '../lib/app';
@@ -121,39 +122,44 @@ const AppPromo: React.FC = () => {
         style={{ borderRadius: mini ? 9999 : 24 }}
         className="fixed bottom-6 right-6 z-40 hidden overflow-hidden lg:block"
       >
-        {/* `wait` y no `popLayout`: `popLayout` saca del flujo a la pieza que
-            sale inyectando una etiqueta `<style>`, y la CSP de producción
-            (vercel.json) la bloquea. Las dos piezas convivían en el
-            contenedor y el cambio de forma brincaba. Con `wait` sale una
-            (0.2 s) y luego entra la otra; el `layout` del contenedor sigue
-            haciendo el cambio de forma. */}
-        <AnimatePresence mode="wait" initial={false}>
-          {mini ? (
-            <motion.button
-              key="mini"
-              type="button"
-              onClick={abrir}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              className="flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[0.9375rem] font-mid text-white"
-            >
-              <QrCode size={18} className="icono-claro" />
-              Descarga la app
-            </motion.button>
-          ) : (
-            <motion.div
-              key="tarjeta"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <TarjetaApp onCerrar={encoger} />
-            </motion.div>
+        {/* Las dos piezas (botón y tarjeta) se quedan montadas y encimadas: la
+            activa ocupa el lugar y la otra sale del flujo (`absolute`, anclada
+            a la esquina), transparente y sin poder enfocarse (`inert`). Así el
+            contenedor cambia de forma en UN solo movimiento mientras una se
+            desvanece y la otra aparece.
+
+            Historia: con `AnimatePresence mode="popLayout"` se veía igual,
+            pero `popLayout` saca del flujo a la pieza que sale inyectando un
+            `<style>`, y la CSP de producción (vercel.json) lo bloquea. Se
+            cambió a `mode="wait"`, que primero desvanecía una pieza y hasta
+            después cambiaba de tamaño: al cerrar se veía un corte a media
+            bajada y al abrir, dos tirones. */}
+        <motion.button
+          layout
+          type="button"
+          onClick={abrir}
+          inert={!mini}
+          aria-hidden={!mini}
+          animate={{ opacity: mini ? 1 : 0, scale: mini ? 1 : 0.9 }}
+          transition={{ layout: FORMA, default: { duration: mini ? 0.2 : 0.12, delay: mini ? 0.12 : 0 } }}
+          className={cx(
+            'flex items-center gap-2 whitespace-nowrap px-4 py-3 text-[0.9375rem] font-mid text-white',
+            mini ? 'relative' : 'pointer-events-none absolute bottom-0 right-0'
           )}
-        </AnimatePresence>
+        >
+          <QrCode size={18} className="icono-claro" />
+          Descarga la app
+        </motion.button>
+        <motion.div
+          layout
+          inert={mini}
+          aria-hidden={mini}
+          animate={{ opacity: mini ? 0 : 1 }}
+          transition={{ layout: FORMA, default: { duration: mini ? 0.12 : 0.25, delay: mini ? 0 : 0.12 } }}
+          className={mini ? 'pointer-events-none absolute bottom-0 right-0' : 'relative'}
+        >
+          <TarjetaApp onCerrar={encoger} />
+        </motion.div>
       </motion.div>
 
       {/* ── Celular ── */}

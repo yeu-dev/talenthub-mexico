@@ -24,7 +24,7 @@ export interface Pestana {
  * | Familia    | Páginas                                | Velo | Halo                        | Franja |
  * |------------|----------------------------------------|------|-----------------------------|--------|
  * | `explorar` | Vacantes                               | 25%  | teal, arriba a la derecha   | baja, la barra de filtros pegada |
- * | `ficha`    | Detalle de vacante                     | 25%  | del color de la empresa     | alta, membrete |
+ * | `ficha`    | Detalle de vacante                     | 25%  | rojo, detrás del membrete   | alta, membrete |
  * | `venta`    | Planes                                 | 45%  | azul, centrado y amplio     | la más alta, título centrado |
  * | `trabajo`  | Postulaciones, vacantes, perfil, validador | —  | azul tenue a la izquierda   | compacta |
  * | `lectura`  | Privacidad                             | —    | —                           | sobria, ancho de documento |
@@ -37,7 +37,7 @@ export type Familia = 'explorar' | 'ficha' | 'venta' | 'trabajo' | 'lectura';
 interface Estilo {
   /** Opacidad del velo vivo; `null` = sin velo. */
   velo: number | null;
-  /** Clases del halo; `null` = sin halo. En `ficha` el color llega por `colorHalo`. */
+  /** Clases del halo; `null` = sin halo. */
   halo: string | null;
   arriba: string;
   /** Espacio de abajo cuando un panel de vidrio se monta sobre el filo. */
@@ -54,7 +54,11 @@ const FAMILIAS: Record<Familia, Estilo> = {
   },
   ficha: {
     velo: 0.25,
-    halo: '-left-48 -top-52 h-[600px] w-[880px]',
+    // Rojo fijo (el rosa de la paleta) y no uno por empresa: con miles de
+    // empresas los tonos se repetirían igual y no le dirían nada a nadie. Al
+    // 22% queda por debajo, en luminancia, del halo blanco al 15% que tenían
+    // antes todas las franjas: las migas en `muted-d` siguen pasando.
+    halo: '-left-48 -top-52 h-[600px] w-[880px] bg-[radial-gradient(closest-side,rgba(251,113,133,0.22),transparent_72%)]',
     arriba: 'pt-[calc(var(--nav-flow)+3.5rem)]',
     abajo: 'pb-36',
   },
@@ -78,14 +82,6 @@ const FAMILIAS: Record<Familia, Estilo> = {
     abajo: 'pb-28',
   },
 };
-
-/**
- * El halo de `ficha`, del color de la empresa, al 22%. Todos los tonos tienen
- * color (el neutro toma el azul de marca, ver `tonoRgb`) y, por su luminancia,
- * al 22% quedan por debajo del halo blanco al 15% que tenían antes todas las
- * franjas, así que las migas en `muted-d` siguen pasando.
- */
-export const fondoHaloFicha = (rgb: string) => `radial-gradient(closest-side, rgba(${rgb},0.22), transparent 72%)`;
 
 /** Lo que tenían todas las páginas antes de las familias. */
 const SIN_FAMILIA: Estilo = {
@@ -118,8 +114,6 @@ interface Props {
   tono?: 'claro' | 'oscuro';
   /** Solo en oscuro: el velo, el halo y la altura de la franja (ver `Familia`). */
   familia?: Familia;
-  /** Solo en `ficha`: el color de la empresa (`tonoRgb(nombre)`) para teñir el halo. */
-  colorHalo?: string;
   /**
    * Solo en oscuro: deja abajo el espacio para que el primer panel de vidrio
    * se monte sobre el filo. Sin panel que montar (Vacantes), la banda es corta.
@@ -146,7 +140,6 @@ const PageHeader: React.FC<Props> = ({
   ancho = 'page',
   tono = 'claro',
   familia,
-  colorHalo,
   solapa = true,
   children,
 }) => {
@@ -155,16 +148,18 @@ const PageHeader: React.FC<Props> = ({
   // (`lg:pr-[340px]` en `Pagina`). La franja negra se mete debajo de esa
   // columna con el mismo ancho y lo devuelve en padding: así llega al borde
   // de la ventana en lugar de cortarse en seco, y su contenido no se mueve.
+  // Se desliza con la misma transición que el padding de `Pagina`: así, al
+  // cerrar el aviso, la orilla de la franja se queda pegada al borde.
   const aviso = useColumnaAviso();
   const estilo = familia ? FAMILIAS[familia] : SIN_FAMILIA;
   const centrado = !!estilo.centrado && !inicio && !acciones && !pestanas;
-  const haloFicha = familia === 'ficha' && colorHalo;
   return (
   <header
     className={cx(
       oscuro
         ? cx(
             'relative isolate mt-[calc(var(--nav-flow)*-1)] overflow-hidden bg-night text-ink-d',
+            'transition-[margin,padding] duration-500 ease-base motion-reduce:transition-none',
             aviso && '-mr-[340px] pr-[340px]',
             estilo.arriba,
             solapa ? estilo.abajo : pestanas ? '' : 'pb-10'
@@ -178,13 +173,7 @@ const PageHeader: React.FC<Props> = ({
     )}
   >
     {oscuro && estilo.halo && (
-      <div
-        aria-hidden="true"
-        className={cx('pointer-events-none absolute -z-10', estilo.halo)}
-        // El color de la empresa llega en tiempo de ejecución; va por `style`
-        // (CSSOM), que la CSP sí permite, y no por una clase generada.
-        style={haloFicha ? { background: fondoHaloFicha(colorHalo) } : undefined}
-      />
+      <div aria-hidden="true" className={cx('pointer-events-none absolute -z-10', estilo.halo)} />
     )}
     {/* El mismo velo vivo de la portada, más tenue. Solo en las familias que lo llevan. */}
     {oscuro && estilo.velo !== null && <FondoVivo alto="franja" opacidad={estilo.velo} />}

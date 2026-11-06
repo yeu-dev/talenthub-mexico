@@ -19,23 +19,11 @@ const TONOS = [
   'bg-[rgba(251,113,133,0.14)] text-[#fdb1be]',
 ];
 
-/**
- * El color de cada tono, en el mismo orden, para teñir otras cosas (el halo
- * del detalle). El tono neutro no tiene color propio: ahí el halo toma el azul
- * de marca, para que ninguna vacante se quede con un halo gris.
- */
-const TONOS_RGB = ['74,102,255', '45,212,191', '167,139,250', '74,102,255', '251,113,133'];
-
-const indiceTono = (nombre: string) => {
+const tonoPara = (nombre: string) => {
   let h = 0;
   for (const c of nombre) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h % TONOS.length;
+  return TONOS[h % TONOS.length];
 };
-
-const tonoPara = (nombre: string) => TONOS[indiceTono(nombre)];
-
-/** "74,102,255": el color de la empresa, listo para `rgba(${tono},alfa)`. */
-export const tonoRgb = (nombre: string) => TONOS_RGB[indiceTono(nombre)];
 
 /** "Nebula Labs" → "NL"; "Santander SA de CV" → "SS". */
 export const iniciales = (nombre: string) =>
