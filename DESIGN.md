@@ -99,12 +99,13 @@ The home page, the session screens and the dark band at the top of every
 other page add one animated layer on top of the halos: **Dark Veil** from React Bits (`components/fondos/`), a slow blue veil
 in `{colors.accent}` rendered with WebGL.
 
-- From `md` only. On phones, and wherever WebGL is off, the static halos are
-  what shows.
+- On phones (below `md`) it is a **still frame**: it plays its entrance once,
+  then stops asking for frames, rendered at 1x with a quarter-size field so it
+  costs no battery. Wherever WebGL is off, the static halos are what shows.
 - No cursor interaction. It pauses itself under reduced motion, in a hidden
   tab and off screen.
 - Opacity 45%. Text sitting directly on it at its brightest point would
-  fail with `muted-d`, so panels over it darken from `md`
+  fail with `muted-d`, so panels over it darken at every size
   (`rgba(16,16,18,0.5)`: `muted` 4.97:1, `muted-d` 4.66:1), and text placed
   directly on it uses `ink-2d` (7.02:1) or brighter. At 50% `muted-d` drops
   to 4.53:1, so it does not go higher without darker panels.
@@ -116,7 +117,7 @@ in `{colors.accent}` rendered with WebGL.
 - As a mid-page section (`banda`: the "For companies" close of the home page
   and the closing band of `/empresas`) it is also at 25%, because text sits
   directly on it, and it fades in and out at the top and bottom. Cards on it
-  darken from `md` like the panels over the hero veil.
+  darken like the panels over the hero veil.
 - On the home page it is mounted from `App`, at full window width, and fades
   out before the salary list. Mounted inside the page it was clipped by the
   column reserved for the app notice.
