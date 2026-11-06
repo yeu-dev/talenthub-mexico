@@ -237,6 +237,7 @@ const DashboardValidador: React.FC = () => {
     <div className="min-h-screen mesh-page">
       <PageHeader
         tono="oscuro"
+        familia="trabajo"
         migas={[{ etiqueta: 'Validación' }, { etiqueta: 'Centro de validación' }]}
         titulo="Centro de validación"
         detalle={

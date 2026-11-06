@@ -38,14 +38,19 @@ const Empresas = diferida(() => import(/* webpackPrefetch: true */ './pages/Empr
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
  * escritorio deja libre la columna derecha donde flota; al minimizarla, la
- * página se estira con una transición del padding.
+ * página se estira de una sola vez.
+ *
+ * Antes el estirón era una transición del padding de medio segundo, y eso
+ * obligaba a recalcular el layout de toda la página en cada cuadro, con todo
+ * el vidrio desenfocado encima: en páginas largas como Privacidad, y sobre
+ * todo en Firefox, se trababa. La animación que se ve es la de la tarjeta
+ * (transformaciones, baratas); la página solo se acomoda una vez.
  */
 const Pagina: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { mostrar, mini } = usePromoApp();
   return (
     <div
       className={cx(
-        'transition-[padding] duration-500 ease-base motion-reduce:transition-none',
         mostrar && !mini && 'lg:pr-[340px]'
       )}
     >

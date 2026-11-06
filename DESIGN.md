@@ -92,6 +92,10 @@ did not, so every page turned dark without rewriting its classes. Read
 `mesh-page` is the page substrate: `{colors.night}` plus four fixed radial
 halos (blue, teal and a very low warm tone). Glass is a lens; without
 something behind it, a translucent card looks identical to an opaque one.
+The halos live on a `position: fixed` layer that covers the whole window
+(`z-index: -30`), not on the page container with `background-attachment:
+fixed`: that version was cut off at the app notice column and Firefox
+repainted it on every frame.
 
 ### The live veil
 
@@ -274,8 +278,10 @@ Base 4px. Scale: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80`.
   value, so the page is seen passing beneath the glass bar. It is a CSS
   variable so that the bar and every band read the same number.
 - **App notice column**: while the app notice card is open on desktop
-  (`lg`), the page reserves a 340px right column for it and reflows with a
-  padding transition when it is minimised.
+  (`lg`), the page reserves a 340px right column for it and reflows once,
+  without a padding transition, when it is minimised (animating the padding
+  relaid out the whole page on every frame). Bands (`PageHeader`) extend under
+  that column so they reach the window edge instead of ending in a hard line.
 
 ### Band Architecture
 
@@ -321,6 +327,30 @@ carries and what crosses its edge:
 - **Closed screens** (sign-in, registration, password recovery) — `AuthShell`:
   a single dark glass card over slowly drifting auroras, with no nav and no
   footer.
+
+#### Page families
+
+The inner pages used to share one identical band (white halo, veil at 25%,
+same height), so only their content told them apart. `PageHeader` now takes a
+`familia` that sets three things at once — veil, halo and band height — and
+no family repeats its neighbour's combination:
+
+| Family | Pages | Veil | Halo | Band |
+|---|---|---|---|---|
+| `explorar` | Vacancies | 25% | teal, top right | short, the filter bar right under it |
+| `ficha` | Job detail | 25% | tinted with the company's colour (`tonoRgb(nombre)`, the same tone as its initials tile; the neutral tone takes brand blue so no halo is grey) | tall letterhead |
+| `venta` | Plans | 45% | wide blue, centred | tallest, title centred and larger |
+| `trabajo` | Applications, my vacancies, received applications, profile, validator | none | faint blue, left | compact, smaller title |
+| `lectura` | Privacy | none | none | sober, document width |
+
+- `trabajo` has no veil on purpose: these are daily-use screens, and calm is
+  identity too.
+- `venta` raises the veil to 45% only because its band carries nothing but the
+  title (`ink-d`) and one line in `ink-2d`, both ≥7.02:1 at that intensity; no
+  breadcrumbs or tabs in `muted-d`, which would fail there.
+- The job detail shows its band from the first frame while it loads, with the
+  letterhead and the first panel as skeletons, so nothing jumps when the data
+  arrives (the profile already did this).
 
 The navigation marks the current section (white text and a 2px
 `{colors.accent-on-dark}` line on the bar's bottom edge that slides between
@@ -398,7 +428,7 @@ minimal, the silhouette became the thing carrying the system's identity.
   shared `layoutId`, so they travel between items instead of blinking.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
-  and reflows with a padding transition when it is minimised.
+  and reflows once when it is minimised (only the card animates).
 - Only five loops exist: the live veil behind the home page, the session
   screens and the page bands (see *The live veil*); the rotating word in the
   home headline; the shape field behind the 404; and two in the app notice:

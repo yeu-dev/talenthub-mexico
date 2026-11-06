@@ -82,6 +82,7 @@ const Vacantes: React.FC = () => {
       {/* ── Encabezado claro: es la herramienta de búsqueda, no una portada ── */}
       <PageHeader
         tono="oscuro"
+        familia="explorar"
         solapa={false}
         titulo="Vacantes"
         detalle={

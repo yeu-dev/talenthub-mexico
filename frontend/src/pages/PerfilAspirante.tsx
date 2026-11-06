@@ -313,6 +313,7 @@ const PerfilAspirante: React.FC = () => {
   const encabezado = (
     <PageHeader
       tono="oscuro"
+      familia="trabajo"
       ancho="doc"
       migas={migasDeCuenta('Mi perfil')}
       titulo="Mi perfil"
