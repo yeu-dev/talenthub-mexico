@@ -925,19 +925,55 @@ def mi_perfil_aspirante(request):
 
         # 2. S-SDLC FIX: Evitar el "QueryDict Trap" de los forms de Django
         data = {key: request.data.get(key) for key in request.data.keys()}
-        
-        # Procesamos las habilidades si vienen como JSON (ej: '["React", "Python"]')
+
+        # "Quitar" el CV o la foto. Llega como texto ('true') porque la web
+        # manda multipart. Si en la misma peticion viene un archivo nuevo,
+        # gana el archivo nuevo.
+        quitar = {
+            campo: str(data.pop(f'quitar_{campo}', '')).lower() in ('true', '1', 'si')
+            for campo in ('cv', 'foto')
+        }
+
+        # Las habilidades llegan como arreglo JSON ('["React", "Python"]').
+        # Un texto suelto ("React, Python", de la web anterior) se parte por
+        # comas: antes se guardaba entero como UN solo elemento de la lista.
         if 'habilidades' in data and isinstance(data['habilidades'], str):
             try:
                 data['habilidades'] = json.loads(data['habilidades'])
             except json.JSONDecodeError:
-                pass # Si falla, se queda el string nativo
+                data['habilidades'] = [h.strip() for h in data['habilidades'].split(',') if h.strip()]
+        if isinstance(data.get('habilidades'), list):
+            data['habilidades'] = [str(h).strip() for h in data['habilidades'] if str(h).strip()]
+
+        # Los archivos de antes, para borrarlos del almacenamiento si se
+        # reemplazan o se quitan. Antes se quedaban huerfanos en el bucket.
+        anteriores = {'cv': perfil.cv.name or '', 'foto': perfil.foto.name or ''}
 
         # 3. GUARDAR EL PERFIL DEL ASPIRANTE (Archivos y textos)
         serializer = AspiranteSerializer(perfil, data=data, partial=True, context={'request': request})
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        perfil = serializer.save()
+
+        for campo in ('cv', 'foto'):
+            archivo = getattr(perfil, campo)
+            anterior = anteriores[campo]
+            if quitar[campo] and campo not in request.FILES:
+                archivo.delete(save=False)
+                setattr(perfil, campo, None)
+                perfil.save(update_fields=[campo])
+            elif anterior and archivo.name and archivo.name != anterior:
+                # Solo si el nombre cambio: con Supabase un archivo con el
+                # mismo nombre se sobrescribe, y borrar "el anterior" borraria
+                # el nuevo.
+                try:
+                    archivo.storage.delete(anterior)
+                except Exception:
+                    pass  # Un huerfano en el bucket no debe tumbar el guardado.
+
+        return Response(
+            AspiranteSerializer(perfil, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
