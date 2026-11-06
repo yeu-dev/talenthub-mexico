@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
@@ -9,23 +9,31 @@ import { PromoAppProvider, usePromoApp } from './components/PromoApp';
 import { cx } from './lib/cx';
 import { ConfirmHost } from './components/ui';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Vacantes from './pages/Vacantes';
-import VacanteDetalle from './pages/VacanteDetalle';
-import Dashboard from './pages/Dashboard';
-import MisAplicaciones from './pages/MisAplicaciones';
-import AplicacionesEmpresa from './pages/AplicacionesEmpresa';
-import Planes from './pages/planes';
-import Checkout from './pages/Checkout';
-import DashboardValidador from './pages/DashboardValidador';
-import PerfilAspirante from './pages/PerfilAspirante';
-import SolicitarRecuperacion from './pages/auth/SolicitarRecuperacion';
-import RestablecerPassword from './pages/auth/RestablecerPassword';
-import PoliticasPrivacidad from './pages/PoliticasPrivacidad';
-import NoEncontrada from './pages/NoEncontrada';
 import FondoVivo from './components/fondos/FondoVivo';
-import Empresas from './pages/Empresas';
+import { diferida, EsperaPagina } from './lib/cargaDiferida';
+
+/*
+ * La portada va en el archivo principal porque es la primera que se abre. Las
+ * demás se descargan aparte, al visitarlas. `webpackPrefetch` las precarga en
+ * segundo plano cuando la primera página ya terminó: así la siguiente abre al
+ * instante, y el service worker las guarda para usarlas sin conexión.
+ */
+const Login = diferida(() => import(/* webpackPrefetch: true */ './pages/Login'));
+const Register = diferida(() => import(/* webpackPrefetch: true */ './pages/Register'));
+const Vacantes = diferida(() => import(/* webpackPrefetch: true */ './pages/Vacantes'));
+const VacanteDetalle = diferida(() => import(/* webpackPrefetch: true */ './pages/VacanteDetalle'));
+const Dashboard = diferida(() => import(/* webpackPrefetch: true */ './pages/Dashboard'));
+const MisAplicaciones = diferida(() => import(/* webpackPrefetch: true */ './pages/MisAplicaciones'));
+const AplicacionesEmpresa = diferida(() => import(/* webpackPrefetch: true */ './pages/AplicacionesEmpresa'));
+const Planes = diferida(() => import(/* webpackPrefetch: true */ './pages/planes'));
+const Checkout = diferida(() => import(/* webpackPrefetch: true */ './pages/Checkout'));
+const DashboardValidador = diferida(() => import(/* webpackPrefetch: true */ './pages/DashboardValidador'));
+const PerfilAspirante = diferida(() => import(/* webpackPrefetch: true */ './pages/PerfilAspirante'));
+const SolicitarRecuperacion = diferida(() => import(/* webpackPrefetch: true */ './pages/auth/SolicitarRecuperacion'));
+const RestablecerPassword = diferida(() => import(/* webpackPrefetch: true */ './pages/auth/RestablecerPassword'));
+const PoliticasPrivacidad = diferida(() => import(/* webpackPrefetch: true */ './pages/PoliticasPrivacidad'));
+const NoEncontrada = diferida(() => import(/* webpackPrefetch: true */ './pages/NoEncontrada'));
+const Empresas = diferida(() => import(/* webpackPrefetch: true */ './pages/Empresas'));
 
 /**
  * El contenido de cada página. Mientras la tarjeta de la app está abierta, en
@@ -100,6 +108,7 @@ function App() {
       <FondoPortada />
       <Navbar />
       <Pagina>
+      <Suspense fallback={<EsperaPagina />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -124,6 +133,7 @@ function App() {
         {/* Cualquier otra ruta: la página de "no encontrada", no un hueco. */}
         <Route path="*" element={<NoEncontrada />} />
       </Routes>
+      </Suspense>
 
       <Footer />
       </Pagina>
