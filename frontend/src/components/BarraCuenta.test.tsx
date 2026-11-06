@@ -81,7 +81,16 @@ test('con sesión la barra no lleva enlaces: todo vive en el menú de cuenta, co
   userEvent.click(screen.getByRole('button', { name: 'Cuenta de Yeu123' }));
   const menu = screen.getByRole('menu');
   const opciones = within(menu).getAllByRole('menuitem');
-  expect(opciones.map((o) => o.textContent)).toEqual(['Vacantes', 'Mis postulaciones', 'Mi perfil', 'Planes', 'Cerrar sesión']);
+  // Primero la cabecera (foto y nombre), que también lleva al perfil.
+  expect(opciones.map((o) => o.getAttribute('aria-label') ?? o.textContent)).toEqual([
+    'Yeu123, ver mi perfil',
+    'Mi perfil',
+    'Vacantes',
+    'Mis postulaciones',
+    'Planes',
+    'Cerrar sesión',
+  ]);
+  expect(within(menu).getByRole('menuitem', { name: 'Yeu123, ver mi perfil' })).toHaveAttribute('href', '/mi-perfil');
   // La barra se montó en /vacantes: esa opción va marcada.
   expect(within(menu).getByRole('menuitem', { name: 'Vacantes' })).toHaveAttribute('aria-current', 'page');
 });

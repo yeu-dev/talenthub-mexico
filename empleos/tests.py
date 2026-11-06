@@ -493,6 +493,60 @@ class PerfilAspiranteTests(PermisosBase):
         self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('username', respuesta.data)
 
+    def perfil_ana(self):
+        return Aspirante.objects.get(usuario=self.aspirante)
+
+    def test_quitar_el_cv_lo_borra_del_perfil_y_del_almacenamiento(self):
+        perfil = self.perfil_ana()
+        nombre = perfil.cv.name
+        self.assertTrue(perfil.cv.storage.exists(nombre))
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/perfil/aspirante/', {'quitar_cv': 'true'}, format='multipart')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertIsNone(respuesta.data['cv_url'])
+        perfil.refresh_from_db()
+        self.assertFalse(perfil.cv)
+        self.assertFalse(perfil.cv.storage.exists(nombre))
+
+    def test_reemplazar_el_cv_borra_el_anterior(self):
+        perfil = self.perfil_ana()
+        anterior = perfil.cv.name
+        self.como(self.aspirante)
+
+        nuevo = SimpleUploadedFile('nuevo.pdf', b'%PDF-1.4 nuevo', content_type='application/pdf')
+        respuesta = self.client.post('/api/perfil/aspirante/', {'cv': nuevo}, format='multipart')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        perfil.refresh_from_db()
+        self.assertNotEqual(perfil.cv.name, anterior)
+        self.assertTrue(perfil.cv.storage.exists(perfil.cv.name))
+        self.assertFalse(perfil.cv.storage.exists(anterior))
+
+    def test_si_viene_archivo_nuevo_gana_sobre_quitar(self):
+        self.como(self.aspirante)
+        nuevo = SimpleUploadedFile('otro.pdf', b'%PDF-1.4 otro', content_type='application/pdf')
+        self.client.post('/api/perfil/aspirante/', {'cv': nuevo, 'quitar_cv': 'true'}, format='multipart')
+        self.assertTrue(self.perfil_ana().cv)
+
+    def test_quitar_la_foto(self):
+        perfil = self.perfil_ana()
+        perfil.foto = SimpleUploadedFile('yo.png', b'\x89PNG', content_type='image/png')
+        perfil.save()
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/perfil/aspirante/', {'quitar_foto': 'true'}, format='multipart')
+        self.assertIsNone(respuesta.data['foto_url'])
+        self.assertFalse(self.perfil_ana().foto)
+
+    def test_las_habilidades_se_guardan_como_lista(self):
+        self.como(self.aspirante)
+        self.client.post('/api/perfil/aspirante/', {'habilidades': '["React", " Python ", ""]'}, format='multipart')
+        self.assertEqual(self.perfil_ana().habilidades, ['React', 'Python'])
+
+        # Un texto con comas (la web anterior) ya no se guarda como un solo elemento.
+        self.client.post('/api/perfil/aspirante/', {'habilidades': 'Docker, AWS'}, format='multipart')
+        self.assertEqual(self.perfil_ana().habilidades, ['Docker', 'AWS'])
+
 
 class SupabaseStorageTests(PermisosBase):
     """Supabase no es alcanzable desde las pruebas: se simula su API HTTP."""

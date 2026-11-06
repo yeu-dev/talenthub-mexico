@@ -24,10 +24,11 @@ export interface OpcionCuenta {
 /** Las opciones del menú según el rol. */
 export function opcionesDeCuenta(tipo: string | null): OpcionCuenta[] {
   if (tipo === 'aspirante') {
+    // "Mi perfil" primero: es lo que se busca al abrir el menú de la cuenta.
     return [
+      { etiqueta: 'Mi perfil', to: '/mi-perfil', Icono: UserRound },
       { etiqueta: 'Vacantes', to: '/vacantes', Icono: Search },
       { etiqueta: 'Mis postulaciones', to: '/mis-aplicaciones', Icono: Send },
-      { etiqueta: 'Mi perfil', to: '/mi-perfil', Icono: UserRound },
       { etiqueta: 'Planes', to: '/planes', Icono: CreditCard },
     ];
   }
@@ -94,15 +95,33 @@ const MenuCuenta: React.FC<{
         </>
       }
     >
-      {(cerrar) => (
-        <>
-          <div className="flex items-center gap-3 px-3.5 pb-3 pt-2.5">
+      {(cerrar) => {
+        const identidad = (
+          <>
             <AvatarCuenta nombre={username} foto={foto} tamano={36} />
-            <div className="min-w-0">
-              <p className="truncate text-[0.9375rem] font-mid text-ink-d">{username}</p>
-              <p className="text-[0.8125rem] capitalize text-muted-d">{tipo ?? 'Cuenta'}</p>
-            </div>
-          </div>
+            <span className="min-w-0">
+              <span className="block truncate text-[0.9375rem] font-mid text-ink-d">{username}</span>
+              <span className="block text-[0.8125rem] capitalize text-muted-d">{tipo ?? 'Cuenta'}</span>
+            </span>
+          </>
+        );
+        return (
+        <>
+          {/* Tu foto y tu nombre también llevan a tu perfil (solo el
+              aspirante tiene perfil). Es una opción más del menú. */}
+          {tipo === 'aspirante' ? (
+            <Link
+              to="/mi-perfil"
+              role="menuitem"
+              onClick={cerrar}
+              aria-label={`${username}, ver mi perfil`}
+              className="flex items-center gap-3 rounded-[18px] px-3.5 pb-3 pt-2.5 transition-colors hover:bg-white/[0.06] focus-visible:bg-white/[0.08] focus-visible:outline-none"
+            >
+              {identidad}
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3 px-3.5 pb-3 pt-2.5">{identidad}</div>
+          )}
           <div className="border-t border-hairline-d pt-1.5">
             {opcionesDeCuenta(tipo).map(({ etiqueta, to, Icono }) => {
               const actual = pathname === to || pathname.startsWith(`${to}/`);
@@ -130,7 +149,8 @@ const MenuCuenta: React.FC<{
             </button>
           </div>
         </>
-      )}
+        );
+      }}
     </Desplegable>
   );
 };

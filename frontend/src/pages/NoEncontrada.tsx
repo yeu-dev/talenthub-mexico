@@ -7,6 +7,7 @@ import { useSinAvisoApp } from '../components/PromoApp';
 import { rutaBusqueda } from '../lib/vacantes';
 import { EASE } from '../lib/motion';
 import { useTitulo } from '../hooks/useTitulo';
+import FondoFiguras from '../components/fondos/FondoFiguras';
 
 /** El halo que respira detrás del número. Quieto con "reducir movimiento". */
 const Halo: React.FC = () => {
@@ -32,6 +33,9 @@ const Halo: React.FC = () => {
  *
  * La ruta que se escribió no se repite en pantalla a propósito: no aporta
  * nada y cualquiera podría poner ahí el texto que quisiera.
+ *
+ * Detrás, el halo que respira y una trama de figuras en movimiento
+ * (`FondoFiguras`), tenue donde está el texto y completa a los costados.
  */
 const NoEncontrada: React.FC = () => {
   const navigate = useNavigate();
@@ -50,6 +54,12 @@ const NoEncontrada: React.FC = () => {
     // vea pasar por detrás de ella.
     <div className="relative isolate -mt-[var(--nav-flow)] flex min-h-[100svh] items-center justify-center overflow-hidden mesh-page px-6 pb-16 pt-[calc(var(--nav-flow)+3rem)] text-center">
       <Halo />
+      {/* Zona tranquila al 10% donde está todo lo que se lee (número, texto,
+          botones y buscador) y la trama completa solo a los costados. Peor
+          caso medido (punto al 28% bajo la zona tranquila): `ink-2` sobre la
+          trama da 10.6:1. En celular el texto ocupa casi todo el ancho, así
+          que ahí la trama va a la mitad. */}
+      <FondoFiguras className="pointer-events-none absolute inset-0 -z-10 h-full w-full opacity-50 md:opacity-100 [mask-image:radial-gradient(ellipse_45%_73%_at_50%_55%,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.1)_55%,black_100%)]" />
 
       <div className="w-full max-w-2xl">
         <motion.p
