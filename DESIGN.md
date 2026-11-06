@@ -398,11 +398,24 @@ minimal, the silhouette became the thing carrying the system's identity.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring; while open, the page leaves its column free
   and reflows with a padding transition when it is minimised.
-- Only four loops exist: the live veil behind the home page, the session
+- Only five loops exist: the live veil behind the home page, the session
   screens and the page bands (see *The live veil*); the rotating word in the
-  home headline; and two in the app notice: the phone floats, and a ring grows
-  and fades around the app icon. The CSS ones animate `transform` and
-  `opacity` only, never `box-shadow`, which repaints on every frame.
+  home headline; the shape field behind the 404; and two in the app notice:
+  the phone floats, and a ring grows and fades around the app icon. The CSS
+  ones animate `transform` and `opacity` only, never `box-shadow`, which
+  repaints on every frame.
+- **The 404 shape field** (`components/fondos/FondoFiguras.tsx`) is a fine
+  8px halftone of triangles, circles and squares in grey, whose size draws
+  soft drifting patches of light; another slow noise groups the shapes into
+  zones. It takes the idea of React Bits' *Shape Waves* but is our own canvas
+  2D code: the original needs WebGPU and `vgpu` (0.6, ~9 MB, Node-only
+  dependencies) and has no confirmed licence. Shapes are batched by form and
+  tone, so a frame is about 15 `fill()` calls, at 30 fps. Brightness tops out
+  at 28% white, and a 10% quiet ellipse covers everything that is read
+  (`ink-2` stays at 10.6:1 at the worst point); on phones it is a still frame
+  at half strength. It opens from the centre on load, never follows the
+  cursor, pauses off-screen and in hidden tabs, and is still under reduced
+  motion.
 - The home headline reads "Tu siguiente empleo en ___ ya trae el sueldo". The
   gap starts on "TI" and then cycles every 2.8s through languages, databases
   and web stack (up to 8). The names come from a curated list in

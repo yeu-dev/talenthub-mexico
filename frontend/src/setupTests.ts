@@ -27,3 +27,8 @@ class IntersectionObserverFalso {
 }
 
 Object.assign(global, { IntersectionObserver: IntersectionObserverFalso });
+
+// jsdom no dibuja en canvas y avisa "Not implemented" cada vez que alguien
+// pide un contexto (el fondo de la 404, las chispas). Sin contexto, esos
+// componentes no dibujan nada, que es lo que importa en pruebas.
+HTMLCanvasElement.prototype.getContext = (() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
