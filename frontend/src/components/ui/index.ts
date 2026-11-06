@@ -20,3 +20,4 @@ export { default as EmptyState } from './EmptyState';
 export { default as AvisoLento } from './AvisoLento';
 export { Skeleton, SkeletonCard, SkeletonList } from './Skeleton';
 export { Dialog, ConfirmHost } from './Dialog';
+export { default as Desplegable, claseOpcion } from './Desplegable';

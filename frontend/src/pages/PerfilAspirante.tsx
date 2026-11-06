@@ -12,6 +12,7 @@ import { rise, stagger } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
 import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
+import { avisarFotoCuenta } from '../lib/fotoCuenta';
 
 interface FormState {
   username: string;
@@ -68,6 +69,10 @@ const PerfilAspirante: React.FC = () => {
       setCvUrlActual(data.cv_url || '');
       setFotoUrlActual(data.foto_url || '');
       setFotoRota(false);
+      // El avatar de la barra usa la misma foto. Esto corre al abrir el perfil
+      // y otra vez después de guardar, así que una foto nueva se ve arriba
+      // al momento, sin recargar la página.
+      avisarFotoCuenta(data.foto_url || null);
     } catch (err: any) {
       // Un 404 solo significa "perfil aún sin crear": no es un error que reportar.
       if (err.response?.status !== 404) {

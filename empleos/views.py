@@ -502,6 +502,16 @@ class NotificacionViewSet(
             usuario=self.request.user
         ).order_by('-fecha')
 
+    @action(detail=False, methods=['post'], url_path='marcar-leidas')
+    def marcar_leidas(self, request):
+        """Marca como leidas todas las notificaciones del usuario.
+
+        La campana la llama al abrir su panel: antes nada marcaba nada, y el
+        contador solo subia. Una sola peticion en vez de un PATCH por aviso.
+        """
+        cambiadas = self.get_queryset().filter(leido=False).update(leido=True)
+        return Response({"marcadas": cambiadas})
+
 # ==============================
 # PAYPAL
 # ==============================
