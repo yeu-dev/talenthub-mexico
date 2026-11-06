@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapPin, CalendarDays, ArrowRight, Send, LogIn, Laptop, Code2, Briefcase, ListPlus, FileText } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
-import { AvisoLento, Button, clasesBoton, Card, EmptyState, SkeletonCard, Tag, TONO_MODALIDAD } from '../components/ui';
+import { AvisoLento, Button, clasesBoton, Card, EmptyState, Skeleton, Tag, TONO_MODALIDAD } from '../components/ui';
 import Iniciales from '../components/Iniciales';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
@@ -90,11 +90,31 @@ const VacanteDetalle: React.FC = () => {
     }
   };
 
+  // La franja está desde el primer cuadro, con la silueta del membrete y del
+  // panel adentro: antes, mientras cargaba, no había franja y al llegar la
+  // vacante todo brincaba hacia abajo.
   if (estado === 'cargando') {
     return (
       <div className="min-h-screen mesh-page">
-        <div className="mx-auto max-w-page px-6 pb-20 pt-10 md:px-7 md:pt-12">
-          <SkeletonCard />
+        <PageHeader
+          tono="oscuro"
+          familia="ficha"
+          migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: 'Cargando vacante…' }]}
+          inicio={<Skeleton className="h-14 w-14 flex-none rounded-[12px]" />}
+          titulo={
+            <>
+              <span className="sr-only">Cargando vacante</span>
+              <span aria-hidden="true" className="block h-9 w-[min(26rem,62vw)] animate-pulse rounded-ui bg-white/[0.06]" />
+            </>
+          }
+          detalle={<Skeleton className="mt-1 h-4 w-40" />}
+        />
+        <div className="glass-panel-overlap mx-auto max-w-page px-6 pb-20 md:px-7">
+          <div className="glass-panel edge-l p-7">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="mt-5 h-4 w-full" />
+            <Skeleton className="mt-2 h-4 w-4/5" />
+          </div>
           <AvisoLento cargando />
         </div>
       </div>
@@ -145,6 +165,7 @@ const VacanteDetalle: React.FC = () => {
       {/* ── Membrete: se lee como la ficha de un puesto, no como otra portada ── */}
       <PageHeader
         tono="oscuro"
+        familia="ficha"
         migas={[{ etiqueta: textoRegreso, to: rutaRegreso }, { etiqueta: vacante.titulo }]}
         inicio={<Iniciales nombre={vacante.empresa_nombre} tamano={56} />}
         titulo={vacante.titulo}
@@ -252,7 +273,8 @@ const VacanteDetalle: React.FC = () => {
               <p className="mt-0.5 text-[0.875rem] text-ink-2">
                 {vacante.empresa_nombre} · {modalidad}
               </p>
-              <Button className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
+              {/* El botón principal de la pantalla: destacado (borde de luz y chispas). */}
+              <Button destacado className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
                 <Send size={15} strokeWidth={1.8} />
                 {enviando ? 'Enviando…' : 'Postularme'}
               </Button>

@@ -20,3 +20,7 @@ export { default as EmptyState } from './EmptyState';
 export { default as AvisoLento } from './AvisoLento';
 export { Skeleton, SkeletonCard, SkeletonList } from './Skeleton';
 export { Dialog, ConfirmHost } from './Dialog';
+export { default as Desplegable, claseOpcion } from './Desplegable';
+export { default as BotonMantener, DURACION_MANTENER } from './BotonMantener';
+export { default as Contador } from './Contador';
+export { default as SliderElastico } from './SliderElastico';

@@ -6,12 +6,12 @@ import type { EstadoPostulacion } from '../components/ui';
 import VacanteCard from '../components/VacanteCard';
 import Iniciales from '../components/Iniciales';
 import FondoVivo from '../components/fondos/FondoVivo';
-import EmpresasQuePublican from '../components/portada/EmpresasQuePublican';
+import FondoGrano from '../components/fondos/FondoGrano';
 import Proceso from '../components/portada/Proceso';
+import SeccionFija from '../components/portada/SeccionFija';
 import type { Paso } from '../components/portada/Proceso';
 import { AIRE_CIERRE, AIRE_SECCION, CONTENEDOR, PARTIDA, TITULO_SECCION } from '../components/portada/comun';
 import { useSinAvisoApp } from '../components/PromoApp';
-import { useChispas } from '../hooks/useChispas';
 import { useTitulo } from '../hooks/useTitulo';
 import api from '../services/api';
 import { VacantePublica } from '../lib/vacantes';
@@ -21,9 +21,10 @@ import { VacantePublica } from '../lib/vacantes';
  *
  * Cada sección cambia de superficie y de composición respecto a la anterior
  * (DESIGN.md, *Band Architecture*):
- * hero con velo y partido → franja de empresas centrada → pasos en horizontal
- * sobre banda `surface` → panel en espejo sobre `night` → tablero de planes
- * en vidrio → cierre centrado con velo.
+ * hero con grano y partido → pasos en horizontal, fijos mientras el scroll
+ * los recorre → panel en espejo sobre `night` → cierre centrado con velo.
+ * Sin franja de empresas ni tablero de planes: los planes viven en /planes
+ * (el hero lleva "Ver planes"), igual que las vacantes viven en /vacantes.
  *
  * Todo lo que afirma lo hace el producto: publicar no pide plan, toda vacante
  * nace pendiente y solo sale aprobada por un validador, cambiar puesto,
@@ -32,14 +33,6 @@ import { VacantePublica } from '../lib/vacantes';
  * aspirante como notificación. Las piezas de "postulaciones recibidas" son
  * vistas de ejemplo, marcadas como tales y sin nombres de personas.
  */
-
-/** Los planes tal como los sirve `/planes/`. */
-interface Plan {
-  id: number;
-  nombre: string;
-  tipo_usuario: 'aspirante' | 'empresa';
-  precio: string;
-}
 
 const REGISTRO_EMPRESA = '/register?rol=empresa';
 
@@ -75,17 +68,16 @@ const PASOS: Paso[] = [
   },
 ];
 
-/** El botón principal de la pantalla: destacado (borde de luz y chispas). */
-const BotonPublicar: React.FC = () => {
-  const { lienzo, disparar } = useChispas();
-  return (
-    <Link to={REGISTRO_EMPRESA} onClick={disparar} className={clasesBoton({ tone: 'dark', destacado: true })}>
-      Publica tu primera vacante
-      <ArrowRight size={15} strokeWidth={1.8} />
-      {lienzo}
-    </Link>
-  );
-};
+/**
+ * El botón principal de la pantalla. Sin borde de luz ni chispas: ese efecto
+ * se reserva para Registrarse y Postularme (DESIGN.md, *Motion*).
+ */
+const BotonPublicar: React.FC = () => (
+  <Link to={REGISTRO_EMPRESA} className={clasesBoton({ tone: 'dark' })}>
+    Publica tu primera vacante
+    <ArrowRight size={15} strokeWidth={1.8} />
+  </Link>
+);
 
 /** Una postulación recibida, como se ve en el panel. Solo para las vistas de ejemplo. */
 const FilaPostulacion: React.FC<{ n: number; puesto: string; estado: EstadoPostulacion; conCv: boolean }> = ({
@@ -113,11 +105,12 @@ const FilaPostulacion: React.FC<{ n: number; puesto: string; estado: EstadoPostu
   </li>
 );
 
-/** "$399" + "MXN / mes", como en /planes. El gratuito dice "$0": su nombre ya dice "GRATIS". */
-const precioTexto = (precio: string) => {
-  const n = parseFloat(precio);
-  return { cifra: `$${new Intl.NumberFormat('es-MX').format(Number.isFinite(n) ? n : 0)}`, sufijo: 'MXN / mes' };
-};
+/**
+ * Cada sección de esta página mide al menos una pantalla y centra su
+ * contenido en vertical: se lee como bloques, uno por pantalla. Antes eran
+ * franjas cortas y la siguiente siempre se asomaba a medias.
+ */
+const PANTALLA = 'flex min-h-[100svh] flex-col justify-center';
 
 const Empresas: React.FC = () => {
   useTitulo('Para empresas');
@@ -126,7 +119,6 @@ const Empresas: React.FC = () => {
   useSinAvisoApp();
 
   const [vacantes, setVacantes] = useState<VacantePublica[]>([]);
-  const [planes, setPlanes] = useState<Plan[]>([]);
   const vivo = useRef(true);
 
   useEffect(() => {
@@ -134,11 +126,6 @@ const Empresas: React.FC = () => {
     api
       .get<VacantePublica[]>('/vacantes/')
       .then(({ data }) => vivo.current && setVacantes(data))
-      .catch(() => undefined);
-    api
-      .get<Plan[]>('/planes/')
-      .then(({ data }) => vivo.current && setPlanes(data.filter((p) => p.tipo_usuario === 'empresa')))
-      // Sin planes no se pinta la sección: el resto de la página no depende de ellos.
       .catch(() => undefined);
     return () => {
       vivo.current = false;
@@ -148,17 +135,22 @@ const Empresas: React.FC = () => {
   const muestra = vacantes[0];
 
   return (
-    <div className="relative isolate -mt-[var(--nav-flow)] overflow-hidden text-ink-d">
-      {/* ───────────── Hero: velo, partido ───────────── */}
-      <header className="relative isolate pb-[clamp(3.5rem,7vw,6.5rem)] pt-[calc(var(--nav-flow)+clamp(2.5rem,6vw,5rem))]">
-        <FondoVivo />
+    // `overflow-clip` y no `overflow-hidden`: recorta igual, pero deja que la
+    // sección fija de los pasos (`sticky`) se pegue a la ventana.
+    <div className="relative isolate -mt-[var(--nav-flow)] overflow-clip text-ink-d">
+      {/* ───────────── Hero: grano, partido, a pantalla completa ─────────────
+          Cada sección de esta página mide al menos una pantalla (`100svh`) y
+          centra su contenido: así se lee como bloques, uno por pantalla, y la
+          siguiente no se asoma a medias. */}
+      <header className={`relative isolate ${PANTALLA} pb-[clamp(3.5rem,7vw,6.5rem)] pt-[calc(var(--nav-flow)+clamp(2.5rem,6vw,5rem))]`}>
+        <FondoGrano />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -left-48 top-40 -z-10 h-[640px] w-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.22),transparent_72%)]"
         />
         {/* Aquí sí va centrado en vertical: es el hero, y el texto y las piezas
             tienen alturas parecidas. Partido desde `lg`; en tablet, apilado. */}
-        <div className={`${CONTENEDOR} grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16`}>
+        <div className={`${CONTENEDOR} grid w-full items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-16`}>
           <div>
             <h1 className="max-w-[16ch] font-heading text-[clamp(2.125rem,5vw,3.25rem)] font-mid leading-[1.05] tracking-[-0.02em]">
               Contrata gente de TI que ya sabe cuánto pagas
@@ -180,7 +172,7 @@ const Empresas: React.FC = () => {
               iba suelta encima y tapaba la ciudad y la fecha. */}
           <div className="hidden md:block">
             {muestra && (
-              <div className="md:[&>article]:bg-[rgba(16,16,18,0.5)]">
+              <div className="[&>article]:bg-[rgba(16,16,18,0.5)]">
                 <VacanteCard vacante={muestra} />
               </div>
             )}
@@ -198,28 +190,31 @@ const Empresas: React.FC = () => {
         </div>
       </header>
 
-      {/* ───────────── Franja de empresas: centrada ───────────── */}
-      <EmpresasQuePublican vacantes={vacantes} />
-
       {/* ───────────── Cómo funciona: horizontal, banda surface ───────────── */}
-      <section aria-labelledby="pasos-titulo" className={`relative isolate border-b border-hairline-d bg-surface ${AIRE_SECCION}`}>
-        <div className={CONTENEDOR}>
-          <h2 id="pasos-titulo" className={TITULO_SECCION}>
-            De la vacante a la contratación
-          </h2>
-          {/* En columna hasta `lg`, en fila desde ahí; cada tramo de línea
-              termina en el siguiente círculo, no en el borde de la página. */}
-          <Proceso pasos={PASOS} orientacion="horizontal" fondo="surface" className="mt-12" />
-        </div>
-      </section>
+      {/* Fija mientras el scroll recorre los pasos (`SeccionFija`). Los fondos
+          se alternan bloque a bloque: grano (hero) → `surface` (pasos) →
+          grano (panel) → velo (cierre). */}
+      <SeccionFija titulo="pasos-titulo" pasos={PASOS.length} className="border-b border-hairline-d bg-surface">
+        {(progreso) => (
+          <div className={`${CONTENEDOR} w-full`}>
+            <h2 id="pasos-titulo" className={TITULO_SECCION}>
+              De la vacante a la contratación
+            </h2>
+            {/* En columna hasta `lg`, en fila desde ahí; cada tramo de línea
+                termina en el siguiente círculo, no en el borde de la página. */}
+            <Proceso pasos={PASOS} orientacion="horizontal" fondo="surface" progreso={progreso} className="mt-12" />
+          </div>
+        )}
+      </SeccionFija>
 
       {/* ───────────── Tu panel: espejo, night con halo ───────────── */}
-      <section aria-labelledby="panel-titulo" className={`relative isolate ${AIRE_SECCION}`}>
+      <section aria-labelledby="panel-titulo" className={`relative isolate ${PANTALLA} overflow-hidden ${AIRE_SECCION}`}>
+        <FondoGrano banda />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[640px] w-[640px] -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.2),transparent_72%)]"
         />
-        <div className={`${CONTENEDOR} ${PARTIDA}`}>
+        <div className={`${CONTENEDOR} ${PARTIDA} w-full`}>
           <figure className="order-2 edge-d rounded-card bg-white/[0.05] p-5 backdrop-blur-md md:p-6 md:backdrop-blur-card lg:order-1">
             <p className="text-[0.9375rem] font-mid text-ink-d">Postulaciones recibidas</p>
             <ul className="mt-3 list-none p-0">
@@ -247,50 +242,10 @@ const Empresas: React.FC = () => {
         </div>
       </section>
 
-      {/* ───────────── Planes: tablero de vidrio ───────────── */}
-      {planes.length > 0 && (
-        // Solo aire abajo: arriba ya lo pone la sección del panel.
-        <section aria-labelledby="planes-titulo" className="relative isolate pb-[clamp(3.5rem,7vw,6.5rem)]">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-40 bottom-0 -z-10 h-[560px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.14),transparent_72%)]"
-          />
-          <div className={CONTENEDOR}>
-            <div className="flex flex-wrap items-baseline justify-between gap-4">
-              <h2 id="planes-titulo" className={TITULO_SECCION}>
-                Empieza gratis y crece cuando lo necesites
-              </h2>
-              <Link to="/planes" className="flex items-center gap-1.5 text-[0.9375rem] font-mid text-accent-on-dark hover:text-ink-d">
-                Qué incluye cada plan
-                <ArrowRight size={15} strokeWidth={1.8} aria-hidden="true" />
-              </Link>
-            </div>
-            {/* Un solo tablero partido por hairlines, no tres tarjetas iguales. */}
-            <dl className="edge-d mt-8 grid rounded-card bg-white/[0.04] backdrop-blur-md md:grid-cols-3 md:backdrop-blur-card">
-              {planes.map((plan) => {
-                const { cifra, sufijo } = precioTexto(plan.precio);
-                return (
-                  <div
-                    key={plan.id}
-                    className="border-b border-hairline-d p-6 last:border-b-0 md:border-b-0 md:border-r md:p-8 md:last:border-r-0"
-                  >
-                    <dt className="text-[0.9375rem] font-mid text-ink-2d">{plan.nombre}</dt>
-                    <dd className="mt-3 flex items-baseline gap-2">
-                      <span className="tabular text-[2rem] font-mid leading-none tracking-[-0.03em] text-ink-d">{cifra}</span>
-                      <span className="text-[0.875rem] text-muted-d">{sufijo}</span>
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-          </div>
-        </section>
-      )}
-
       {/* ───────────── Cierre: centrado, con velo ───────────── */}
-      <section aria-labelledby="cierre-titulo" className={`relative isolate overflow-hidden border-t border-hairline-d text-center ${AIRE_CIERRE}`}>
+      <section aria-labelledby="cierre-titulo" className={`relative isolate ${PANTALLA} overflow-hidden border-t border-hairline-d text-center ${AIRE_CIERRE}`}>
         <FondoVivo alto="banda" />
-        <div className={CONTENEDOR}>
+        <div className={`${CONTENEDOR} w-full`}>
           <h2 id="cierre-titulo" className="mx-auto max-w-[22ch] font-heading text-[clamp(1.75rem,3.6vw,2.5rem)] font-mid leading-[1.1] tracking-[-0.02em]">
             Tu próxima contratación empieza con una vacante
           </h2>

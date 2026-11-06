@@ -1,7 +1,6 @@
 import {
   chipsPopulares,
   coincide,
-  empresasQuePublican,
   formatoSalario,
   haceCuanto,
   mencionaPalabra,
@@ -197,11 +196,7 @@ describe('conteos de la portada', () => {
     vacante({ id: 3, empresa_nombre: 'Orbita', ubicacion: 'Monterrey, N.L.', modalidad: 'remoto' }),
   ];
 
-  it('cuenta empresas y ciudades de la que más tiene a la que menos', () => {
-    expect(empresasQuePublican(lista)).toEqual([
-      { etiqueta: 'Nebula Labs', n: 2 },
-      { etiqueta: 'Orbita', n: 1 },
-    ]);
+  it('cuenta ciudades de la que más tiene a la que menos', () => {
     expect(vacantesPorCiudad(lista)).toEqual([
       { etiqueta: 'Puebla', n: 2 },
       { etiqueta: 'Monterrey', n: 1 },

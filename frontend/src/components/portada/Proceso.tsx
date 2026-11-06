@@ -1,5 +1,13 @@
-import React, { useRef } from 'react';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  motion,
+  MotionValue,
+  useInView,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+} from 'framer-motion';
 import type { TargetAndTransition, Variants } from 'framer-motion';
 import type { LucideIcon } from '../icons';
 import { cx } from '../../lib/cx';
@@ -23,6 +31,10 @@ import { EASE } from '../../lib/motion';
  *   encendidos y la línea, completa.
  * - `orientacion="horizontal"` va en columna hasta `lg` y en fila desde ahí;
  *   la línea cambia de eje con el mismo tiempo.
+ * - Con `progreso` (lo da `SeccionFija`) la secuencia la lleva el scroll y
+ *   no el reloj: cada paso se enciende al llegar su tramo de scroll, la línea
+ *   se llena al ritmo del scroll (entre más rápido, más rápido) y al subir
+ *   todo retrocede. El gesto del ícono suena cada vez que su paso se enciende.
  */
 
 export type Gesto = 'mirada' | 'vuelo' | 'campana' | 'subida' | 'escudo' | 'bandeja';
@@ -63,25 +75,51 @@ const GESTOS: Record<Gesto, TargetAndTransition> = {
   bandeja: { y: [0, 5, -2, 0], scale: [1, 0.92, 1.06, 1], transition: { duration: 1, ease: 'easeOut' } },
 };
 
-const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'; fondo?: 'night' | 'surface'; className?: string }> = ({
-  pasos,
-  orientacion = 'vertical',
-  fondo = 'night',
+/** El tramo de línea cuando lo lleva el scroll: se llena entre el paso `i` y el siguiente. */
+const TramoGuiado: React.FC<{ progreso: MotionValue<number>; i: number; eje: 'x' | 'y'; className: string }> = ({
+  progreso,
+  i,
+  eje,
   className,
 }) => {
+  const llenado = useTransform(progreso, (p) => Math.min(1, Math.max(0, (p - i - 0.2) / 0.7)));
+  return <motion.span className={className} style={eje === 'x' ? { scaleX: llenado } : { scaleY: llenado }} />;
+};
+
+const Proceso: React.FC<{
+  pasos: Paso[];
+  orientacion?: 'vertical' | 'horizontal';
+  fondo?: 'night' | 'surface';
+  /** El avance del scroll, de 0 a `pasos.length` (ver `SeccionFija`). */
+  progreso?: MotionValue<number> | null;
+  className?: string;
+}> = ({ pasos, orientacion = 'vertical', fondo = 'night', progreso = null, className }) => {
   const ref = useRef<HTMLOListElement>(null);
   const visto = useInView(ref, { once: true, amount: 0.5 });
   const reducido = useReducedMotion();
-  // Sin movimiento, todo encendido desde el inicio.
-  const activo = visto || Boolean(reducido);
   const horizontal = orientacion === 'horizontal';
+
+  // Con scroll: cuántos pasos van encendidos. El primero se enciende en
+  // cuanto la sección se pega; los demás, al llegar su tramo de scroll.
+  const guiado = progreso !== null;
+  const cero = useMotionValue(0);
+  const fuente = progreso ?? cero;
+  const contar = (p: number) => Math.min(pasos.length, Math.floor(p) + 1);
+  const [encendidos, setEncendidos] = useState(() => contar(fuente.get()));
+  useMotionValueEvent(fuente, 'change', (p) => setEncendidos(contar(p)));
+  useEffect(() => setEncendidos(contar(fuente.get())), [fuente]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sin movimiento, todo encendido desde el inicio.
+  const activo = (i: number) => (guiado ? i < encendidos : visto || Boolean(reducido));
+  // Con scroll, sin retrasos: el ritmo lo pone el scroll, no el reloj.
+  const retraso = (i: number, extra = 0) => (reducido || guiado ? 0 : i * ENTRE_PASOS + extra);
 
   const circulo: Variants = {
     off: { borderColor: 'rgba(255,255,255,0.10)', backgroundColor: 'rgba(157,176,255,0)' },
     on: (i: number) => ({
       borderColor: 'rgba(157,176,255,0.55)',
       backgroundColor: 'rgba(157,176,255,0.10)',
-      transition: { delay: reducido ? 0 : i * ENTRE_PASOS, duration: 0.5, ease: EASE },
+      transition: { delay: retraso(i), duration: 0.5, ease: EASE },
     }),
   };
 
@@ -90,7 +128,7 @@ const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'
     on: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: reducido ? 0 : i * ENTRE_PASOS + 0.15, duration: 0.7, ease: EASE },
+      transition: { delay: retraso(i, 0.15), duration: guiado ? 0.4 : 0.7, ease: EASE },
     }),
   };
 
@@ -129,23 +167,31 @@ const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'
                     horizontal ? '-bottom-10 lg:hidden' : 'bottom-1'
                   )}
                 >
-                  <motion.span
-                    className="absolute inset-0 origin-top bg-accent-on-dark/60"
-                    variants={tramo}
-                    custom={i}
-                    initial="off"
-                    animate={activo ? 'on' : 'off'}
-                  />
-                </span>
-                {horizontal && (
-                  <span aria-hidden="true" className="absolute left-12 right-[-1.5rem] top-5 hidden h-px bg-hairline-d lg:block">
+                  {guiado ? (
+                    <TramoGuiado progreso={fuente} i={i} eje="y" className="absolute inset-0 origin-top bg-accent-on-dark/60" />
+                  ) : (
                     <motion.span
-                      className="absolute inset-0 origin-left bg-accent-on-dark/60"
+                      className="absolute inset-0 origin-top bg-accent-on-dark/60"
                       variants={tramo}
                       custom={i}
                       initial="off"
-                      animate={activo ? 'on' : 'off'}
+                      animate={activo(i) ? 'on' : 'off'}
                     />
+                  )}
+                </span>
+                {horizontal && (
+                  <span aria-hidden="true" className="absolute left-12 right-[-1.5rem] top-5 hidden h-px bg-hairline-d lg:block">
+                    {guiado ? (
+                      <TramoGuiado progreso={fuente} i={i} eje="x" className="absolute inset-0 origin-left bg-accent-on-dark/60" />
+                    ) : (
+                      <motion.span
+                        className="absolute inset-0 origin-left bg-accent-on-dark/60"
+                        variants={tramo}
+                        custom={i}
+                        initial="off"
+                        animate={activo(i) ? 'on' : 'off'}
+                      />
+                    )}
                   </span>
                 )}
               </>
@@ -159,7 +205,7 @@ const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'
               variants={circulo}
               custom={i}
               initial="off"
-              animate={activo ? 'on' : 'off'}
+              animate={activo(i) ? 'on' : 'off'}
             >
               <motion.span
                 className="flex"
@@ -167,9 +213,15 @@ const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'
                 // El retraso va dentro de la transición del gesto: si fuera en
                 // la prop `transition`, la del gesto lo pisaría.
                 animate={
-                  visto && !reducido
-                    ? { ...GESTOS[gesto], transition: { ...GESTOS[gesto].transition, delay: i * ENTRE_PASOS } }
-                    : undefined
+                  reducido
+                    ? undefined
+                    : guiado
+                      ? activo(i)
+                        ? GESTOS[gesto]
+                        : undefined
+                      : visto
+                        ? { ...GESTOS[gesto], transition: { ...GESTOS[gesto].transition, delay: i * ENTRE_PASOS } }
+                        : undefined
                 }
               >
                 <Icono size={18} strokeWidth={1.7} className="text-accent-on-dark" aria-hidden="true" />
@@ -181,7 +233,7 @@ const Proceso: React.FC<{ pasos: Paso[]; orientacion?: 'vertical' | 'horizontal'
               variants={texto}
               custom={i}
               initial="off"
-              animate={activo ? 'on' : 'off'}
+              animate={activo(i) ? 'on' : 'off'}
             >
               <h3 className="text-[1.0625rem] font-demi text-ink-d">{titulo}</h3>
               <p className="mt-1.5 max-w-[46ch] text-[0.9375rem] leading-relaxed text-ink-2d">{descripcion}</p>

@@ -425,6 +425,24 @@ class SuscripcionYNotificacionTests(PermisosBase):
         self.assertTrue(notificacion.leido)
         self.assertEqual(notificacion.mensaje, 'Original')
 
+    def test_marcar_leidas_solo_toca_las_del_usuario(self):
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Uno')
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Dos')
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Ya leida', leido=True)
+        ajena = Notificacion.objects.create(usuario=self.aspirante2, mensaje='De Beto')
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/notificaciones/marcar-leidas/')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(respuesta.data['marcadas'], 2)
+        self.assertFalse(Notificacion.objects.filter(usuario=self.aspirante, leido=False).exists())
+        ajena.refresh_from_db()
+        self.assertFalse(ajena.leido)
+
+    def test_marcar_leidas_pide_sesion(self):
+        respuesta = self.client.post('/api/notificaciones/marcar-leidas/')
+        self.assertIn(respuesta.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+
     def captura(self, monto):
         respuesta = mock.Mock()
         respuesta.json.return_value = {
@@ -432,6 +450,21 @@ class SuscripcionYNotificacionTests(PermisosBase):
             'purchase_units': [{'payments': {'captures': [{'amount': {'value': monto, 'currency_code': 'MXN'}}]}}],
         }
         return respuesta
+
+    def test_crear_pago_de_un_plan_que_no_existe(self):
+        self.como(self.aspirante)
+        respuesta = self.client.post('/api/pago/crear/', {'plan_id': 9999}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(respuesta.data['error'], 'PLAN_NO_ENCONTRADO')
+
+    @mock.patch('empleos.views.get_access_token', side_effect=RuntimeError('Faltan PAYPAL_CLIENT_ID'))
+    def test_crear_pago_sin_paypal_no_filtra_el_error_interno(self, _token):
+        self.como(self.aspirante)
+        with self.assertLogs('empleos.views', level='ERROR'):
+            respuesta = self.client.post('/api/pago/crear/', {'plan_id': self.plan_pro.id}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(respuesta.data['error'], 'PAGOS_NO_DISPONIBLES')
+        self.assertNotIn('PAYPAL', str(respuesta.data))
 
     @mock.patch('empleos.views.get_access_token', return_value='token')
     def test_pagar_el_plan_barato_no_activa_el_caro(self, _token):
@@ -474,6 +507,60 @@ class PerfilAspiranteTests(PermisosBase):
         respuesta = self.client.post('/api/perfil/aspirante/', {'username': 'beto'}, format='multipart')
         self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('username', respuesta.data)
+
+    def perfil_ana(self):
+        return Aspirante.objects.get(usuario=self.aspirante)
+
+    def test_quitar_el_cv_lo_borra_del_perfil_y_del_almacenamiento(self):
+        perfil = self.perfil_ana()
+        nombre = perfil.cv.name
+        self.assertTrue(perfil.cv.storage.exists(nombre))
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/perfil/aspirante/', {'quitar_cv': 'true'}, format='multipart')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertIsNone(respuesta.data['cv_url'])
+        perfil.refresh_from_db()
+        self.assertFalse(perfil.cv)
+        self.assertFalse(perfil.cv.storage.exists(nombre))
+
+    def test_reemplazar_el_cv_borra_el_anterior(self):
+        perfil = self.perfil_ana()
+        anterior = perfil.cv.name
+        self.como(self.aspirante)
+
+        nuevo = SimpleUploadedFile('nuevo.pdf', b'%PDF-1.4 nuevo', content_type='application/pdf')
+        respuesta = self.client.post('/api/perfil/aspirante/', {'cv': nuevo}, format='multipart')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        perfil.refresh_from_db()
+        self.assertNotEqual(perfil.cv.name, anterior)
+        self.assertTrue(perfil.cv.storage.exists(perfil.cv.name))
+        self.assertFalse(perfil.cv.storage.exists(anterior))
+
+    def test_si_viene_archivo_nuevo_gana_sobre_quitar(self):
+        self.como(self.aspirante)
+        nuevo = SimpleUploadedFile('otro.pdf', b'%PDF-1.4 otro', content_type='application/pdf')
+        self.client.post('/api/perfil/aspirante/', {'cv': nuevo, 'quitar_cv': 'true'}, format='multipart')
+        self.assertTrue(self.perfil_ana().cv)
+
+    def test_quitar_la_foto(self):
+        perfil = self.perfil_ana()
+        perfil.foto = SimpleUploadedFile('yo.png', b'\x89PNG', content_type='image/png')
+        perfil.save()
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/perfil/aspirante/', {'quitar_foto': 'true'}, format='multipart')
+        self.assertIsNone(respuesta.data['foto_url'])
+        self.assertFalse(self.perfil_ana().foto)
+
+    def test_las_habilidades_se_guardan_como_lista(self):
+        self.como(self.aspirante)
+        self.client.post('/api/perfil/aspirante/', {'habilidades': '["React", " Python ", ""]'}, format='multipart')
+        self.assertEqual(self.perfil_ana().habilidades, ['React', 'Python'])
+
+        # Un texto con comas (la web anterior) ya no se guarda como un solo elemento.
+        self.client.post('/api/perfil/aspirante/', {'habilidades': 'Docker, AWS'}, format='multipart')
+        self.assertEqual(self.perfil_ana().habilidades, ['Docker', 'AWS'])
 
 
 class SupabaseStorageTests(PermisosBase):
@@ -569,3 +656,42 @@ class RecuperarPasswordTests(PermisosBase):
         respuesta = self.client.post('/api/recuperar-password/', {'email': 'nadie@x.com'}, format='json')
         self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
         enviar.assert_not_called()
+
+
+class SembrarEmpresasTests(PermisosBase):
+    """El comando que siembra las empresas de demostración."""
+
+    def sembrar(self, *args):
+        from io import StringIO
+        from django.core.management import call_command
+
+        call_command('sembrar_empresas', *args, stdout=StringIO())
+
+    def test_crea_las_empresas_con_vacantes_publicas(self):
+        self.sembrar('--cuantas', '12')
+        demo = Empresa.objects.filter(usuario__username__startswith='demo_empresa_')
+        self.assertEqual(demo.count(), 12)
+        vacantes = Vacante.objects.filter(empresa__in=demo)
+        self.assertGreaterEqual(vacantes.count(), 12)
+        self.assertFalse(vacantes.exclude(activa=True, estado_validacion='aprobada').exists())
+        # Salen en el catálogo público, como las de cualquier empresa.
+        respuesta = self.client.get('/api/vacantes/')
+        self.assertGreaterEqual(len(respuesta.data), vacantes.count())
+
+    def test_las_cuentas_no_pueden_iniciar_sesion(self):
+        self.sembrar('--cuantas', '3')
+        for usuario in Usuario.objects.filter(username__startswith='demo_empresa_'):
+            self.assertFalse(usuario.has_usable_password())
+            self.assertTrue(usuario.email.endswith('@empresas.example'))
+
+    def test_correrlo_dos_veces_no_duplica(self):
+        self.sembrar('--cuantas', '5')
+        self.sembrar('--cuantas', '5')
+        self.assertEqual(Usuario.objects.filter(username__startswith='demo_empresa_').count(), 5)
+
+    def test_borrar_solo_quita_las_de_demostracion(self):
+        propias = Empresa.objects.count()
+        self.sembrar('--cuantas', '4')
+        self.sembrar('--borrar')
+        self.assertEqual(Empresa.objects.count(), propias)
+        self.assertFalse(Usuario.objects.filter(username__startswith='demo_empresa_').exists())

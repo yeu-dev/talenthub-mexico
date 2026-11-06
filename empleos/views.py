@@ -19,6 +19,9 @@ from decimal import Decimal, InvalidOperation
 
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Esto le dice a Django: "Trae el modelo de usuarios que estemos usando en este proyecto"
 User = get_user_model()
@@ -502,6 +505,16 @@ class NotificacionViewSet(
             usuario=self.request.user
         ).order_by('-fecha')
 
+    @action(detail=False, methods=['post'], url_path='marcar-leidas')
+    def marcar_leidas(self, request):
+        """Marca como leidas todas las notificaciones del usuario.
+
+        La campana la llama al abrir su panel: antes nada marcaba nada, y el
+        contador solo subia. Una sola peticion en vez de un PATCH por aviso.
+        """
+        cambiadas = self.get_queryset().filter(leido=False).update(leido=True)
+        return Response({"marcadas": cambiadas})
+
 # ==============================
 # PAYPAL
 # ==============================
@@ -562,9 +575,16 @@ def capturar_pago(request):
         else:
             return Response({"error": "El pago no se pudo completar", "details": capture_data}, status=400)
 
-    except Exception as e:
-        print("Error en capturar_pago:", str(e))
-        return Response({"error": str(e)}, status=500)
+    except Exception:
+        # Igual que en `crear_pago`: el detalle técnico va al log, no al navegador.
+        logger.exception("No se pudo capturar la orden de PayPal %s", request.data.get('order_id'))
+        return Response(
+            {
+                "error": "PAGOS_NO_DISPONIBLES",
+                "detail": "No pudimos confirmar tu pago con PayPal. Si ya se hizo el cargo, escríbenos antes de reintentar.",
+            },
+            status=503
+        )
 
 def monto_capturado_coincide(capture_data, plan):
     try:
@@ -584,9 +604,20 @@ def monto_capturado_coincide(capture_data, plan):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_pago(request):
+    # El plan se revisa aparte: es un error del que paga (un enlace viejo), no
+    # de PayPal, y merece su propio mensaje.
+    plan = Plan.objects.filter(id=request.data.get('plan_id')).first()
+    if not plan:
+        return Response(
+            {"error": "PLAN_NO_ENCONTRADO", "detail": "Ese plan ya no existe. Elige uno en la página de planes."},
+            status=404
+        )
+
+    # Cualquier otra falla es de PayPal o de su configuración (llaves que
+    # faltan, PayPal caído, una respuesta sin orden). Antes se respondía con
+    # `str(e)`, que mandaba al navegador textos internos como "'id'" o el
+    # nombre de las variables de entorno; ahora eso solo va al log.
     try:
-        plan_id = request.data.get('plan_id')
-        plan = Plan.objects.get(id=plan_id)
         access_token = get_access_token()
         
         url = f"{PAYPAL_BASE_URL}/v2/checkout/orders"
@@ -607,9 +638,16 @@ def crear_pago(request):
         response = requests.post(url, json=order_data, headers=headers, timeout=20)
         order = response.json()
         return Response({"id": order['id']})
-        
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+
+    except Exception:
+        logger.exception("No se pudo crear la orden de PayPal para el plan %s", plan.id)
+        return Response(
+            {
+                "error": "PAGOS_NO_DISPONIBLES",
+                "detail": "El servicio de pagos no responde en este momento. Intenta de nuevo en unos minutos.",
+            },
+            status=503
+        )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -915,19 +953,55 @@ def mi_perfil_aspirante(request):
 
         # 2. S-SDLC FIX: Evitar el "QueryDict Trap" de los forms de Django
         data = {key: request.data.get(key) for key in request.data.keys()}
-        
-        # Procesamos las habilidades si vienen como JSON (ej: '["React", "Python"]')
+
+        # "Quitar" el CV o la foto. Llega como texto ('true') porque la web
+        # manda multipart. Si en la misma peticion viene un archivo nuevo,
+        # gana el archivo nuevo.
+        quitar = {
+            campo: str(data.pop(f'quitar_{campo}', '')).lower() in ('true', '1', 'si')
+            for campo in ('cv', 'foto')
+        }
+
+        # Las habilidades llegan como arreglo JSON ('["React", "Python"]').
+        # Un texto suelto ("React, Python", de la web anterior) se parte por
+        # comas: antes se guardaba entero como UN solo elemento de la lista.
         if 'habilidades' in data and isinstance(data['habilidades'], str):
             try:
                 data['habilidades'] = json.loads(data['habilidades'])
             except json.JSONDecodeError:
-                pass # Si falla, se queda el string nativo
+                data['habilidades'] = [h.strip() for h in data['habilidades'].split(',') if h.strip()]
+        if isinstance(data.get('habilidades'), list):
+            data['habilidades'] = [str(h).strip() for h in data['habilidades'] if str(h).strip()]
+
+        # Los archivos de antes, para borrarlos del almacenamiento si se
+        # reemplazan o se quitan. Antes se quedaban huerfanos en el bucket.
+        anteriores = {'cv': perfil.cv.name or '', 'foto': perfil.foto.name or ''}
 
         # 3. GUARDAR EL PERFIL DEL ASPIRANTE (Archivos y textos)
         serializer = AspiranteSerializer(perfil, data=data, partial=True, context={'request': request})
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        perfil = serializer.save()
+
+        for campo in ('cv', 'foto'):
+            archivo = getattr(perfil, campo)
+            anterior = anteriores[campo]
+            if quitar[campo] and campo not in request.FILES:
+                archivo.delete(save=False)
+                setattr(perfil, campo, None)
+                perfil.save(update_fields=[campo])
+            elif anterior and archivo.name and archivo.name != anterior:
+                # Solo si el nombre cambio: con Supabase un archivo con el
+                # mismo nombre se sobrescribe, y borrar "el anterior" borraria
+                # el nuevo.
+                try:
+                    archivo.storage.delete(anterior)
+                except Exception:
+                    pass  # Un huerfano en el bucket no debe tumbar el guardado.
+
+        return Response(
+            AspiranteSerializer(perfil, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )

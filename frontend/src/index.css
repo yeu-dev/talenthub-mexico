@@ -106,10 +106,24 @@
      translúcida se ve idéntica a una opaca. Estos halos le dan tono —azul,
      verde azulado y un cálido muy bajo— que atravesar.
 
-     `fixed` (los halos quietos mientras el contenido corre encima) solo desde
-     `md`: en celular obliga a repintar todo el fondo en cada cuadro del scroll
-     y se traba en gama media. Ahí se mueven con la página, que casi no se nota. */
-  .mesh-page {
+     Los halos van en una capa aparte, `position: fixed`, que cubre toda la
+     ventana: quietos mientras el contenido corre encima. Antes eran el fondo
+     del propio contenedor con `background-attachment: fixed`, y eso tenía dos
+     problemas:
+     - con el aviso de la app abierto, el contenedor deja libre la columna
+       derecha y el fondo se cortaba en seco ahí;
+     - Firefox repinta un `background-attachment: fixed` completo en cada
+       cuadro, así que al cerrar el aviso (la página anima su padding) o al
+       hacer scroll se trababa, con todo el vidrio re-desenfocándose encima.
+     Una capa fija se compone aparte y no se repinta.
+
+     Va en `z-index: -30` dentro del contexto raíz: debajo de todo, también de
+     las capas `-z-10`, y el pie (opaco, en `night`) la tapa al llegar abajo.
+     La 404 es la excepción: su contenedor es un contexto propio (`isolate`)
+     y ahí la capa fija taparía el pie; como esa página esconde el aviso, no
+     tiene columna que cortar y se queda con el fondo en el contenedor. */
+  .mesh-page,
+  .mesh-page:not(.isolate)::before {
     background-color: theme('colors.night');
     background-image:
       radial-gradient(48% 40% at 6% 8%, rgba(74, 102, 255, 0.2), transparent 70%),
@@ -118,10 +132,16 @@
       radial-gradient(56% 48% at 16% 90%, rgba(255, 170, 92, 0.06), transparent 72%);
   }
 
-  @media (min-width: 768px) {
-    .mesh-page {
-      background-attachment: fixed;
-    }
+  .mesh-page:not(.isolate) {
+    background: none;
+  }
+
+  .mesh-page:not(.isolate)::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -30;
+    pointer-events: none;
   }
 
   /* Panel de vidrio oscuro: la firma del sistema. Montado sobre el filo de
@@ -305,7 +325,9 @@
   /* Bucles: el celular del aviso flota, el ícono late, el esqueleto pulsa. */
   .animate-flotar,
   .animate-latido,
-  .animate-pulse {
+  .animate-pulse,
+  .animate-barra,
+  .animate-spin {
     animation: none !important;
   }
 

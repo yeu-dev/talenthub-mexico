@@ -4,12 +4,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Pencil, EyeOff, RotateCcw, ExternalLink, Trash2, Check } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
-import { Button, Card, EmptyState, Field, Input, Select, Textarea, SkeletonList, Tag } from '../components/ui';
+import { AvisoLento, BotonMantener, Button, Contador, Card, EmptyState, Field, Input, Select, Textarea, SkeletonList, Tag } from '../components/ui';
 import type { TagTono } from '../components/ui';
 import { stagger, EASE, DUR, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
-import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
+import { migasDeCuenta } from '../lib/cuenta';
 
 interface Vacante {
   id: number;
@@ -194,16 +194,18 @@ const Dashboard: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  // Dos pasos, porque no tiene vuelta atrás: mantener presionado
+  // (`BotonMantener`) y luego confirmar con el nombre de la vacante.
+  const handleDelete = async (vacante: Vacante) => {
     const ok = await showConfirm(
-      'Se eliminará de forma permanente junto con sus postulaciones.',
+      `Se eliminará "${vacante.titulo}" junto con sus postulaciones. No se puede deshacer.`,
       '¿Eliminar esta vacante?',
       { confirmLabel: 'Sí, eliminar', destructive: true }
     );
     if (!ok) return;
 
     try {
-      await api.delete(`/vacantes/${id}/`);
+      await api.delete(`/vacantes/${vacante.id}/`);
       showSuccess('La vacante ya no existe.', 'Vacante eliminada');
       fetchVacantes();
     } catch (error) {
@@ -256,9 +258,9 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen mesh-page">
       <PageHeader
         tono="oscuro"
+        familia="trabajo"
         migas={migasDeCuenta('Mis vacantes')}
         titulo="Mis vacantes"
-        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
         detalle={
           estado === 'listo'
             ? vacantes.length === 1
@@ -285,7 +287,7 @@ const Dashboard: React.FC = () => {
             {resumen.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
-                  {total}
+                  <Contador valor={total} />
                 </p>
                 <p className="mt-2 text-[0.8125rem] text-muted">{label}</p>
               </div>
@@ -420,6 +422,7 @@ const Dashboard: React.FC = () => {
 
           {/* ── Listado ── */}
           {estado === 'cargando' && <SkeletonList count={3} />}
+          <AvisoLento cargando={estado === 'cargando'} />
 
           {estado === 'error' && (
             <EmptyState
@@ -520,17 +523,15 @@ const Dashboard: React.FC = () => {
                           Ver
                         </Button>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          // El "!" no es capricho: gana a `text-ink` del ghost sin depender
-                          // del orden en que Tailwind genere los colores.
-                          className="ml-auto !text-danger hover:border-danger/40"
-                          onClick={() => handleDelete(vacante.id)}
+                        {/* Se mantiene presionado: elimina la vacante y sus postulaciones. */}
+                        <BotonMantener
+                          className="ml-auto"
+                          accion="eliminar la vacante y sus postulaciones"
+                          alConfirmar={() => handleDelete(vacante)}
                         >
                           <Trash2 size={14} strokeWidth={1.8} />
-                          Eliminar
-                        </Button>
+                          Mantén para eliminar
+                        </BotonMantener>
                       </div>
                     </Card>
                   </motion.li>
