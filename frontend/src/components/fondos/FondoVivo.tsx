@@ -7,8 +7,10 @@ import { useColumnaAviso } from '../PromoApp';
  * (Dark Veil, de React Bits).
  *
  * Reglas:
- * - solo desde `md`: en celular se quedan los halos quietos, que no gastan
- *   batería ni GPU;
+ * - en celular (menos de 768px) va **quieto**: se dibuja la entrada, se queda
+ *   en un cuadro fijo y ya no pide más cuadros, así que no gasta batería. Se
+ *   dibuja a 1x y con el campo a la mitad, que en una pantalla chica no se
+ *   nota. Antes en celular no se montaba y solo quedaban los halos;
  * - sin interacción con el cursor (DESIGN.md prohíbe lo que lo sigue);
  * - se pausa solo con "reducir movimiento", con la pestaña oculta y cuando sale
  *   de la pantalla (lo trae el componente);
@@ -17,9 +19,11 @@ import { useColumnaAviso } from '../PromoApp';
  * - intensidad medida: al 45% y en su punto más brillante, el texto gris
  *   (`muted`) sobre los paneles oscurecidos da 4.97:1 y `muted-d` 4.66:1.
  *   Al 50% `muted-d` ya baja a 4.53: no subirla más sin oscurecer los paneles.
+ *   Esos paneles se oscurecen en todos los tamaños, celular incluido, porque
+ *   el velo ahora también está ahí.
  */
 
-/** `true` desde 768px. Se escucha el cambio para no montar WebGL al encoger la ventana. */
+/** `true` desde 768px. Se escucha el cambio para pausar el velo al encoger la ventana. */
 const useDesdeMd = () => {
   const consulta = '(min-width: 768px)';
   const [coincide, setCoincide] = useState(() =>
@@ -79,7 +83,6 @@ type Alto = 'pagina' | 'pantalla' | 'franja' | 'banda';
 const FondoVivo: React.FC<{ alto?: Alto }> = ({ alto = 'pagina' }) => {
   const desdeMd = useDesdeMd();
   const aviso = useColumnaAviso();
-  if (!desdeMd) return null;
 
   const estilo: React.CSSProperties | undefined =
     alto === 'franja'
@@ -108,6 +111,9 @@ const FondoVivo: React.FC<{ alto?: Alto }> = ({ alto = 'pagina' }) => {
         grain={0.03}
         opacity={alto === 'franja' || alto === 'banda' ? 0.25 : 0.45}
         mouseInteraction={false}
+        paused={!desdeMd}
+        dpr={desdeMd ? undefined : 1}
+        quality={desdeMd ? undefined : 0.25}
       />
     </div>
   );

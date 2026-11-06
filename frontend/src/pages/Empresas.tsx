@@ -180,7 +180,7 @@ const Empresas: React.FC = () => {
               iba suelta encima y tapaba la ciudad y la fecha. */}
           <div className="hidden md:block">
             {muestra && (
-              <div className="md:[&>article]:bg-[rgba(16,16,18,0.5)]">
+              <div className="[&>article]:bg-[rgba(16,16,18,0.5)]">
                 <VacanteCard vacante={muestra} />
               </div>
             )}

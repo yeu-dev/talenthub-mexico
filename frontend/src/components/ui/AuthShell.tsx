@@ -53,7 +53,7 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
           className="absolute -right-32 bottom-[-8%] h-[560px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(56,190,178,0.18),transparent_72%)]"
         />
       </div>
-      {/* El velo vivo, desde `md`, encima de las auroras. */}
+      {/* El velo vivo encima de las auroras (en celular, quieto). */}
       <FondoVivo alto="pantalla" />
 
       <div
@@ -87,7 +87,7 @@ const AuthShell: React.FC<Props> = ({ title, subtitle, children, footer, wide = 
               rectángulo trazado. `riseGlass`: un fade aplanaría el vidrio. */}
           <motion.div
             variants={riseGlass}
-            className="edge-d rounded-card bg-white/[0.045] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9 md:bg-[rgba(16,16,18,0.5)]"
+            className="edge-d rounded-card bg-[rgba(16,16,18,0.5)] p-8 backdrop-blur-overlay backdrop-saturate-150 sm:p-9"
           >
             <div className="mb-7">
               <h1 className="text-h3 font-demi text-ink-d">{title}</h1>

@@ -15,7 +15,7 @@ import { AIRE_SECCION, CONTENEDOR, PARTIDA, TITULO_SECCION } from './comun';
  * derecha. Así las dos secciones partidas no se leen como la misma dos veces.
  *
  * La pieza visual es una vacante real ya publicada, tal cual se ve en el
- * listado. Sobre el velo su vidrio se oscurece desde `md`
+ * listado. Sobre el velo su vidrio se oscurece en todos los tamaños
  * (`rgba(16,16,18,0.5)`, la misma regla que los paneles de la portada), para
  * que su texto gris siga pasando AA.
  *
@@ -43,7 +43,7 @@ const ParaEmpresas: React.FC<{ vacantes: VacantePublica[] }> = ({ vacantes }) =>
         <div className={PARTIDA}>
           {muestra && (
             <figure className="order-2 hidden md:block lg:order-1 lg:mt-2">
-              <div className="md:[&>article]:bg-[rgba(16,16,18,0.5)]">
+              <div className="[&>article]:bg-[rgba(16,16,18,0.5)]">
                 <VacanteCard vacante={muestra} />
               </div>
               <figcaption className="mt-3 text-[0.8125rem] text-muted-d">Así se ve una vacante publicada</figcaption>

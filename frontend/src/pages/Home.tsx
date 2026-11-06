@@ -182,7 +182,7 @@ const Home: React.FC = () => {
           </motion.ul>
 
           {/* Buscador en vidrio oscuro */}
-            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-white/[0.06] p-3 backdrop-blur-md backdrop-saturate-150 md:bg-[rgba(16,16,18,0.5)] md:p-4 md:backdrop-blur-card">
+            <motion.div variants={riseGlass} initial="hidden" animate="show" className="mt-8 edge-d rounded-card bg-[rgba(16,16,18,0.5)] p-3 backdrop-blur-md backdrop-saturate-150 md:p-4 md:backdrop-blur-card">
               <form onSubmit={buscar} role="search" className="flex flex-col gap-1 md:flex-row md:items-center md:gap-0">
                 <label className={campo}>
                   <Search size={18} strokeWidth={1.7} className="flex-none text-muted-d" aria-hidden="true" />
