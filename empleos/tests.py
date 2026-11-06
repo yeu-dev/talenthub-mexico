@@ -656,3 +656,42 @@ class RecuperarPasswordTests(PermisosBase):
         respuesta = self.client.post('/api/recuperar-password/', {'email': 'nadie@x.com'}, format='json')
         self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
         enviar.assert_not_called()
+
+
+class SembrarEmpresasTests(PermisosBase):
+    """El comando que siembra las empresas de demostración."""
+
+    def sembrar(self, *args):
+        from io import StringIO
+        from django.core.management import call_command
+
+        call_command('sembrar_empresas', *args, stdout=StringIO())
+
+    def test_crea_las_empresas_con_vacantes_publicas(self):
+        self.sembrar('--cuantas', '12')
+        demo = Empresa.objects.filter(usuario__username__startswith='demo_empresa_')
+        self.assertEqual(demo.count(), 12)
+        vacantes = Vacante.objects.filter(empresa__in=demo)
+        self.assertGreaterEqual(vacantes.count(), 12)
+        self.assertFalse(vacantes.exclude(activa=True, estado_validacion='aprobada').exists())
+        # Salen en el catálogo público, como las de cualquier empresa.
+        respuesta = self.client.get('/api/vacantes/')
+        self.assertGreaterEqual(len(respuesta.data), vacantes.count())
+
+    def test_las_cuentas_no_pueden_iniciar_sesion(self):
+        self.sembrar('--cuantas', '3')
+        for usuario in Usuario.objects.filter(username__startswith='demo_empresa_'):
+            self.assertFalse(usuario.has_usable_password())
+            self.assertTrue(usuario.email.endswith('@empresas.example'))
+
+    def test_correrlo_dos_veces_no_duplica(self):
+        self.sembrar('--cuantas', '5')
+        self.sembrar('--cuantas', '5')
+        self.assertEqual(Usuario.objects.filter(username__startswith='demo_empresa_').count(), 5)
+
+    def test_borrar_solo_quita_las_de_demostracion(self):
+        propias = Empresa.objects.count()
+        self.sembrar('--cuantas', '4')
+        self.sembrar('--borrar')
+        self.assertEqual(Empresa.objects.count(), propias)
+        self.assertFalse(Usuario.objects.filter(username__startswith='demo_empresa_').exists())

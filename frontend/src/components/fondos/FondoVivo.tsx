@@ -24,7 +24,7 @@ import { useColumnaAviso } from '../PromoApp';
  */
 
 /** `true` desde 768px. Se escucha el cambio para pausar el velo al encoger la ventana. */
-const useDesdeMd = () => {
+export const useDesdeMd = () => {
   const consulta = '(min-width: 768px)';
   const [coincide, setCoincide] = useState(() =>
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'

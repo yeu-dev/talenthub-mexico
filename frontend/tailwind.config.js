@@ -149,6 +149,10 @@ module.exports = {
       // celular flota y el ícono de TalentHub late. Ambos se apagan con
       // `prefers-reduced-motion` (ver index.css).
       keyframes: {
+        barra: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(250%)' },
+        },
         flotar: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
@@ -162,6 +166,8 @@ module.exports = {
         },
       },
       animation: {
+        // La barra de carga global: un tramo azul que cruza mientras se espera.
+        barra: 'barra 1.4s cubic-bezier(0.45,0,0.55,1) infinite',
         flotar: 'flotar 4.5s ease-in-out infinite',
         latido: 'latido 2.4s ease-out infinite',
       },

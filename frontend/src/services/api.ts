@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import * as sesion from "../lib/sesion";
+import { empezoPeticion, terminoPeticion } from "../lib/cargas";
 
 // Configuración de URLs dinámicas
 const API_URL = process.env.REACT_APP_API_URL || "https://talenthub-mexico.onrender.com/api";
@@ -10,11 +11,36 @@ const api = axios.create({
   baseURL: API_URL
 });
 
-/** Marca de una petición que ya se repitió sin token, para no entrar en bucle. */
-type ConfigReintento = InternalAxiosRequestConfig & { _sinToken?: boolean };
+/**
+ * `silencioso`: la petición no enciende la barra de carga global (sondeos y el
+ * aviso que despierta al servidor). Se pasa en la config de axios.
+ */
+declare module "axios" {
+  interface AxiosRequestConfig {
+    silencioso?: boolean;
+  }
+}
+
+/**
+ * `_sinToken`: una petición que ya se repitió sin token, para no entrar en bucle.
+ * `_contada`: ya sumó en la barra de carga; al terminar se resta una sola vez.
+ */
+type ConfigReintento = InternalAxiosRequestConfig & { _sinToken?: boolean; _contada?: boolean };
+
+/** Resta de la barra de carga la petición que terminó, si había sumado. */
+const descontar = (config?: ConfigReintento) => {
+  if (config?._contada) {
+    config._contada = false;
+    terminoPeticion();
+  }
+};
 
 api.interceptors.request.use(
   (config: ConfigReintento) => {
+    if (!config.silencioso && !config.url?.startsWith('/notificaciones')) {
+      config._contada = true;
+      empezoPeticion();
+    }
     const token = localStorage.getItem('token');
     if (token && !config._sinToken) {
       config.headers.Authorization = `Token ${token}`;
@@ -39,9 +65,13 @@ api.interceptors.request.use(
  * maneja la propia pantalla.
  */
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    descontar(response.config as ConfigReintento);
+    return response;
+  },
   (error: AxiosError) => {
     const config = error.config as ConfigReintento | undefined;
+    descontar(config);
     const llevabaToken = Boolean(config?.headers?.Authorization);
 
     if (error.response?.status === 401 && config && llevabaToken && !config._sinToken) {

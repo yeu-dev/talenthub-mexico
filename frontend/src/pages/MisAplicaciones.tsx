@@ -4,11 +4,11 @@ import { motion } from 'framer-motion';
 import { ExternalLink, ArrowRight, RotateCcw } from '../components/icons';
 import api from '../services/api';
 import { showError } from '../utils/alerts';
-import { Button, clasesBoton, Card, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
+import { AvisoLento, Button, clasesBoton, Card, Contador, EmptyState, ProcessTrack, SkeletonList } from '../components/ui';
 import { stagger, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
-import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
+import { migasDeCuenta } from '../lib/cuenta';
 
 interface Aplicacion {
   id: number;
@@ -80,7 +80,6 @@ const MisAplicaciones: React.FC = () => {
         familia="trabajo"
         migas={migasDeCuenta('Mis postulaciones')}
         titulo="Mis postulaciones"
-        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
         detalle={
           estado === 'listo'
             ? aplicaciones.length === 1
@@ -97,7 +96,7 @@ const MisAplicaciones: React.FC = () => {
             {conteos.map(({ label, total }) => (
               <div key={label} className="px-6 py-7">
                 <p className="tabular text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
-                  {total}
+                  <Contador valor={total} />
                 </p>
                 <p className="mt-2 text-[0.8125rem] text-muted">{label}</p>
               </div>
@@ -107,6 +106,7 @@ const MisAplicaciones: React.FC = () => {
 
         <div className={estado === 'listo' && aplicaciones.length > 0 ? '' : 'glass-panel glass-panel-overlap-sm edge-l p-2'}>
           {estado === 'cargando' && <SkeletonList count={3} />}
+          <AvisoLento cargando={estado === 'cargando'} />
 
           {estado === 'error' && (
             <EmptyState

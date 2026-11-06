@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, RotateCcw } from './icons';
 import { Desplegable } from './ui';
+import { motion } from 'framer-motion';
 import { cx } from '../lib/cx';
+import { EASE } from '../lib/motion';
 import { haceCuanto } from '../lib/vacantes';
 import { useNotificaciones, Notificacion } from '../hooks/useNotificaciones';
 
@@ -85,7 +87,7 @@ const Campana: React.FC<{ tipo: string | null }> = ({ tipo }) => {
 
           {lista.length > 0 && (
             <ul className="max-h-[22rem] list-none overflow-y-auto p-0">
-              {lista.map((n) => {
+              {lista.map((n, i) => {
                 const destino = destinoDe(n, tipo);
                 const nuevo = resaltados.has(n.id);
                 const cuerpo = (
@@ -106,8 +108,15 @@ const Campana: React.FC<{ tipo: string | null }> = ({ tipo }) => {
                   </>
                 );
                 const clase = 'flex gap-3 rounded-ui px-3.5 py-3';
+                // Animated List: al abrir el panel, los avisos entran uno tras
+                // otro (los primeros ocho; los demás ya están fuera de vista).
                 return (
-                  <li key={n.id}>
+                  <motion.li
+                    key={n.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, delay: Math.min(i, 8) * 0.045, ease: EASE }}
+                  >
                     {destino ? (
                       <Link
                         to={destino}
@@ -119,7 +128,7 @@ const Campana: React.FC<{ tipo: string | null }> = ({ tipo }) => {
                     ) : (
                       <div className={clase}>{cuerpo}</div>
                     )}
-                  </li>
+                  </motion.li>
                 );
               })}
             </ul>

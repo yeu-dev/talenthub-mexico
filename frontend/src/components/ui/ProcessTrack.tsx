@@ -1,5 +1,7 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { cx } from '../../lib/cx';
+import { EASE } from '../../lib/motion';
 
 /** Los estados exactos que devuelve la API de postulaciones. */
 export type EstadoPostulacion = 'pendiente' | 'revisado' | 'aceptado' | 'rechazado';
@@ -73,12 +75,31 @@ const ProcessTrack: React.FC<Props> = ({ estado, tone = 'light', className }) =>
     return i === step.filled - 1 ? final : neutro;
   };
 
+  // Animado: al entrar en pantalla los segmentos se llenan en orden, de
+  // izquierda a derecha. Cada relleno lleva su color en la `key`, así que
+  // cuando una empresa cambia el estado solo se vuelve a llenar el segmento
+  // que cambió, ahí mismo. Es `scaleX` (transformación): con "reducir
+  // movimiento", `MotionConfig` lo deja en su lugar sin animar.
   return (
     <span className={cx('inline-flex items-center gap-[11px]', className)}>
       <span className="flex flex-none gap-[3px]" aria-hidden="true">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className={cx('block h-[3px] w-[17px] rounded-sm', fillFor(i))} />
-        ))}
+        {[0, 1, 2].map((i) => {
+          const relleno = fillFor(i);
+          return (
+            <span key={i} className={cx('relative block h-[3px] w-[17px] overflow-hidden rounded-sm', empty)}>
+              {relleno !== empty && (
+                <motion.span
+                  key={relleno}
+                  className={cx('absolute inset-0 origin-left', relleno)}
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: i * 0.18, ease: EASE }}
+                />
+              )}
+            </span>
+          );
+        })}
       </span>
       <span className={cx('text-[0.875rem]', oscuro ? TEXTO[step.tono].oscuro : TEXTO[step.tono].claro)}>
         {step.label}

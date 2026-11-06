@@ -5,6 +5,8 @@ import { Check, ExternalLink, FileText, Lock, RotateCcw, Search, X } from '../co
 import api, { getMediaUrl } from '../services/api';
 import { showError, showSuccess } from '../utils/alerts';
 import {
+  AvisoLento,
+  BotonMantener,
   Button,
   Card,
   EmptyState,
@@ -16,7 +18,7 @@ import { cx } from '../lib/cx';
 import { DUR, EASE, stagger, subeResorte } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
-import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
+import { migasDeCuenta } from '../lib/cuenta';
 
 interface Aplicacion {
   id: number;
@@ -139,7 +141,6 @@ const AplicacionesEmpresa: React.FC = () => {
         familia="trabajo"
         migas={migasDeCuenta('Postulaciones')}
         titulo="Postulaciones recibidas"
-        pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
         detalle={
           estado === 'cargando'
             ? 'Cargando candidaturas…'
@@ -199,7 +200,10 @@ const AplicacionesEmpresa: React.FC = () => {
             }
           />
         ) : estado === 'cargando' ? (
-          <SkeletonList count={3} />
+          <>
+            <SkeletonList count={3} />
+            <AvisoLento cargando />
+          </>
         ) : visibles.length === 0 ? (
           <EmptyState
             title={filtro ? 'Ninguna postulación en este estado' : 'Todavía no recibes postulaciones'}
@@ -326,16 +330,14 @@ const AplicacionesEmpresa: React.FC = () => {
                           <Check size={14} strokeWidth={2} />
                           Aceptar
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="!text-danger hover:border-danger/40"
+                        <BotonMantener
                           disabled={ocupada || a.estado === 'rechazado'}
-                          onClick={() => cambiarEstado(a, 'rechazado')}
+                          accion={`rechazar a ${a.usuario_nombre}`}
+                          alConfirmar={() => cambiarEstado(a, 'rechazado')}
                         >
                           <X size={14} strokeWidth={1.8} />
-                          Rechazar
-                        </Button>
+                          Mantén para rechazar
+                        </BotonMantener>
 
                         {resuelta && (
                           <Button

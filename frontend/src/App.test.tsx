@@ -60,7 +60,7 @@ test('si la API falla, la portada lo dice, ofrece reintentar y conserva el enlac
   mockFalla = true;
   renderHome();
 
-  expect(await screen.findByText('No pudimos cargar las vacantes recientes')).toBeInTheDocument();
+  expect(await screen.findByText('No pudimos cargar las vacantes')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument();
   // La banda para empresas no depende de la API: sigue a la vista con error.
   expect(screen.getByRole('heading', { name: /publica gratis/i })).toBeInTheDocument();
@@ -76,7 +76,7 @@ test('reintentar vuelve a pedir las vacantes y las muestra', async () => {
   userEvent.click(reintentar);
 
   expect((await screen.findAllByText('Desarrollador Frontend React'))[0]).toBeInTheDocument();
-  expect(screen.queryByText('No pudimos cargar las vacantes recientes')).not.toBeInTheDocument();
+  expect(screen.queryByText('No pudimos cargar las vacantes')).not.toBeInTheDocument();
 });
 
 test('el titular de la portada se ve desde el primer cuadro (no arranca en opacidad 0)', async () => {

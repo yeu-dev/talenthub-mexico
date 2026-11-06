@@ -289,26 +289,51 @@ Every page opens with a dark band under the nav (`PageHeader` with
 `tono="oscuro"`), and what changes from page to page is what that band
 carries and what crosses its edge:
 
-- **Home** — the tallest band, with one headline, three icon claims and the
+- **Home** — the tallest band (at least one full screen, `100svh`, so the next
+  section never peeks in), with one headline, three icon claims and the
   search on a glass panel; quick searches derived from real data. Below it,
   a long page where **each section changes surface and composition from the
   one before**, so no two read as the same band twice:
-  1. *Companies that post here* — centred credits strip between hairlines.
-  2. *Recent vacancies* — the salary list on a glass container.
-  3. *Search by stack, city or modality* — full-width `{colors.surface}` band
-     with a teal halo; an open three-column index (stack 1.7fr with its real
-     salary range, city and modality 1fr each), every count exactly what the
-     linked search returns.
-  4. *For job seekers* — back on `night` with a blue halo; steps on the left,
+  The first view stays clean: no companies strip and no recent-vacancies
+  list under the search (the full list lives in `/vacantes`). While the
+  vacancies load, a skeleton holds the carousel's place.
+  1. *Search by stack, city or modality* — full-width `{colors.surface}` band
+     with a teal halo and a carousel (`portada/Carrusel.tsx`, the mechanics of
+     React Bits' Prism Carousel in our own code): one large card in the centre
+     and, on each side, ever narrower grey cards that show only a slice of
+     their art, like blinds. Each card is a stack (with its real salary range),
+     a city or a modality; its art is two crossing colour ribbons in CSS, not a
+     stock photo. Below, its type, name and real count, pill arrows and a
+     no counter and no arrows. It is driven by the page scroll: the section
+     is one screen plus 110px of scroll per card, and its content is sticky,
+     so when it arrives it pins, the scroll moves the cards from the first to
+     the last, and then it unpins and the page goes on. Being native scroll,
+     it works the same with wheel, trackpad, scrollbar, keyboard and touch,
+     and nothing traps the user. What is pinned measures exactly one screen:
+     the centre card shrinks on short screens so title, card and caption fit.
+     Dragging with the mouse or clicking a side card scrolls the page to that
+     card; the centre card opens the search, whose results are exactly the
+     count shown. Under reduced motion it jumps from card to card. The home
+     root clips with `overflow: clip`, not `hidden`, so `sticky` still pins to
+     the window.
+  2. *For job seekers* — back on `night` with a blue halo, pinned while the
+     scroll walks the steps (`SeccionFija`); steps on the left,
      the real "Mis postulaciones" track on the right (marked as an example).
-  5. *For companies* — the closing band, with the live veil (`banda`) and in
+  3. *For companies* — the closing band, with the live veil (`banda`) and in
      mirror: a real published vacancy on the left, the pitch on the right.
 - **Companies (`/empresas`)** — the landing for whoever hires, with the app
-  notice hidden: hero with the veil and two real product pieces (a vacancy and
-  an example application) instead of stock photos → the companies strip →
-  horizontal steps on a `surface` band → the applications panel in mirror →
-  the company plans from `/planes/` on one glass board split by hairlines →
-  a centred closing band with the veil.
+  notice hidden. Every section is at least one full screen (`100svh`) with its
+  content centred, so it reads as one block per screen: hero with the grain
+  (`FondoGrano`: Grainient from React Bits, a dark brand blue and violet gradient with
+  still film grain, flowing slowly; still on phones and under reduced motion)
+  and two real product pieces (a vacancy and an example application) instead
+  of stock photos → the steps, pinned while the scroll walks them
+  (`SeccionFija`), on `surface` → the applications panel in mirror, with the
+  grain again (`banda`: it fades in and out) → a centred closing band with the
+  veil. Backgrounds alternate block by block: grain, surface, grain, veil. The
+  grain is this page's identity; the home page keeps the veil. No companies strip and no
+  plans board: plans live in `/planes` (the hero links there), the same way
+  vacancies live in `/vacantes`.
 - **Rhythm** — section padding is fluid (`py-[clamp(3.5rem,7vw,6.5rem)]`,
   less for closings), never a fixed `py-20`/`py-28` tuned for one width.
   Split sections stack until `lg` and from there sit in two columns aligned
@@ -323,7 +348,11 @@ carries and what crosses its edge:
   company and salary; the summary and the sticky action card are glass panels
   mounted across the band's edge (`glass-panel-overlap`).
 - **Account pages** (profile, applications, company and validator panels) —
-  band with breadcrumbs ("Mi cuenta › …") and tabs between sibling sections.
+  band with breadcrumbs ("Mi cuenta › …"). No tabs between sibling sections:
+  they repeated the account menu in the bar. Navigation is never repeated.
+- **Listing (`/vacantes`) at scale** — 12 cards at a time and a "Ver más
+  vacantes" button with "Ves 12 de 240 vacantes"; every new search starts
+  again at 12.
 - **Closed screens** (sign-in, registration, password recovery) — `AuthShell`:
   a single dark glass card over slowly drifting auroras, with no nav and no
   footer.
@@ -424,17 +453,64 @@ minimal, the silhouette became the thing carrying the system's identity.
 - Card hover lifts by border, background and translation — **never shadow**.
 - Lists enter with `subeResorte`: a short spring rise with a small settle,
   staggered — not a fade (glass panels must not animate opacity).
-- Active indicators slide: the nav underline and the tab underline use a
-  shared `layoutId`, so they travel between items instead of blinking.
+- Active indicators slide: the nav underline, the tab underline and the
+  active modality pill on `/vacantes` use a shared `layoutId`, so they travel
+  between items instead of blinking.
+- Destructive actions are held (`BotonMantener`, Hold Button from React
+  Bits): removing the CV, deleting a vacancy and rejecting an application
+  fill a red layer across the pill over 1.2 s; releasing early rolls it back.
+  What cannot be undone (deleting a vacancy, removing the CV) then asks in a
+  dialog that names it; rejecting is only held, because "Reabrir" reverts it. It works with the keyboard (hold Space or
+  Enter) and announces "Mantén presionado para…". Under reduced motion the
+  layer tints in place instead of crossing, and the hold time stays.
+- The highlighted button (`destacado`: light border on hover, sparks on
+  click) exists in two places only, the two conversion moments: "Registrarse"
+  in the nav and "Postularme" on the job detail. The sheen (`reflejo`) stays
+  only on what opens a vacancy or a search. Every effect lives in few places,
+  with a purpose; it is not repeated everywhere.
+- The step sequences (`Proceso`) on the home page and on `/empresas` are
+  driven by the page scroll from `lg` up: the section pins (`SeccionFija`, one
+  screen plus 320px of scroll per step), each step lights up when its stretch
+  of scroll arrives, the line fills at the speed of the scroll (faster scroll,
+  faster fill) and scrolling up rolls it back; each icon gesture plays when its
+  step lights up. Below `lg` the stacked content would not fit one screen, so
+  there it plays once on entering, as before; under reduced motion everything
+  is lit from the start.
+- The application track (`ProcessTrack`) fills its segments in order when it
+  enters the screen; when a company changes a status, only the segment that
+  changed fills again, in place.
 - The app notice morphs: card and "Descarga la app" button are one element
   changing shape with a spring in one movement (both pieces stay mounted and
   cross-fade; the inactive one leaves the flow, so the shape change never
   waits for a fade). While open, the page leaves its column free and reflows
   with a padding transition when it is minimised.
-- Only five loops exist: the live veil behind the home page, the session
-  screens and the page bands (see *The live veil*); the rotating word in the
+- Only six loops exist: the live veil behind the home page, the session
+  screens and the page bands (see *The live veil*); the grain behind the
+  `/empresas` hero and applications panel; the rotating word in the
   home headline; the shape field behind the 404; and two in the app notice:
-  the phone floats, and a ring grows and fades around the app icon. The CSS
+  the phone floats, and a ring grows and fades around the app icon. The
+  loading bar and the loading ring are not counted: they only run while
+  something is actually being waited for, and both stop under reduced motion.
+- **Every wait says something, and a long wait says how long it has been.**
+  The Render free plan sleeps the API, and the first request can take up to a
+  minute, so:
+  - the app pings the API (`/planes/`, `silencioso`) as soon as it opens, so
+    the server wakes while someone reads the home page or types in the login;
+  - a 2px loading bar runs along the bottom edge of the nav whenever a request
+    takes longer than 0.3 s (`BarraCarga`, counted by the axios interceptors;
+    the bell's 60 s polling and the wake-up ping do not light it);
+  - after 4 s, under the skeletons of all nine data pages, `AvisoLento` shows
+    a card with a ring, "Despertando el servidor · 18 s" and why; after a
+    minute it offers "Reintentar". The seconds are hidden from screen readers
+    so the status is announced once.
+- Count Up: the numbers of the metric panels (my vacancies, my applications,
+  validator) count up to their value when they enter the screen.
+- The salary filter on `/vacantes` is an Elastic Slider: a native range input
+  (keyboard and screen reader as usual) whose track stretches a little when
+  dragged past its end and springs back. Its maximum comes from the real
+  vacancies.
+- The bell panel is an Animated List: notices enter one after another when it
+  opens. The CSS
   ones animate `transform` and `opacity` only, never `box-shadow`, which
   repaints on every frame.
 - **The 404 shape field** (`components/fondos/FondoFiguras.tsx`) is a fine

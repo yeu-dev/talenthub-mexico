@@ -5,7 +5,8 @@ import { clasesBoton, ProcessTrack } from '../ui';
 import type { EstadoPostulacion } from '../ui';
 import Proceso from './Proceso';
 import type { Paso } from './Proceso';
-import { AIRE_SECCION, CONTENEDOR, PARTIDA, TITULO_SECCION } from './comun';
+import { CONTENEDOR, PARTIDA, TITULO_SECCION } from './comun';
+import SeccionFija from './SeccionFija';
 
 /**
  * Para quien busca: qué pasa después de encontrar la vacante. Es el
@@ -52,19 +53,27 @@ const EJEMPLO: { puesto: string; estado: EstadoPostulacion }[] = [
 
 const ParaQuienBusca: React.FC = () => (
   // De vuelta a `night`, con el halo azul a la izquierda: sale de la banda
-  // `surface` de "Explora" y entra al velo de "Para empresas".
-  <section aria-labelledby="busca-titulo" className={`relative isolate overflow-hidden ${AIRE_SECCION}`}>
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute -left-56 top-1/2 -z-10 h-[680px] w-[680px] -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.2),transparent_72%)]"
-    />
-    <div className={`${CONTENEDOR} ${PARTIDA}`}>
+  // `surface` de "Explora" y entra al velo de "Para empresas". Fija mientras
+  // el scroll recorre los pasos (`SeccionFija`). Sin grano: el grano es la
+  // identidad de /empresas y el velo, la de la portada.
+  <SeccionFija
+    titulo="busca-titulo"
+    pasos={PASOS.length}
+    fondo={
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-56 top-1/2 -z-10 h-[680px] w-[680px] -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(74,102,255,0.2),transparent_72%)]"
+      />
+    }
+  >
+    {(progreso) => (
+    <div className={`${CONTENEDOR} ${PARTIDA} w-full`}>
       <div>
         <h2 id="busca-titulo" className={TITULO_SECCION}>
           De la búsqueda a la respuesta, sin adivinar
         </h2>
 
-        <Proceso pasos={PASOS} className="mt-10" />
+        <Proceso pasos={PASOS} progreso={progreso} className="mt-10" />
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link to="/register" className={clasesBoton({ tone: 'dark' })}>
@@ -95,7 +104,8 @@ const ParaQuienBusca: React.FC = () => (
         <figcaption className="mt-2 text-[0.8125rem] text-muted-d">Vista de ejemplo de tu panel</figcaption>
       </figure>
     </div>
-  </section>
+    )}
+  </SeccionFija>
 );
 
 export default ParaQuienBusca;
