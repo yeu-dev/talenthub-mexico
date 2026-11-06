@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, ShieldCheck } from '../components/icons';
 import api from '../services/api';
 import { showSuccess, showError } from '../utils/alerts';
+import { mensajeDeError } from '../lib/errores';
 import { rise, riseGlass, stagger } from '../lib/motion';
 import { useTitulo } from '../hooks/useTitulo';
 
@@ -13,6 +14,10 @@ const Checkout: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  // Cuando falla `crearOrden`, el aviso ya salió con el motivo del servidor,
+  // pero PayPal atrapa el error y vuelve a llamar a `onError`. Sin esta marca
+  // salían dos avisos para la misma falla, y el segundo culpaba a PayPal.
+  const yaAvisado = useRef(false);
 
   const initialOptions = {
     // TODO: mover a REACT_APP_PAYPAL_CLIENT_ID. Hoy es la llave de sandbox y
@@ -25,11 +30,13 @@ const Checkout: React.FC = () => {
 
   /** Django crea la orden y devuelve el id que PayPal generó. */
   const crearOrden = async () => {
+    yaAvisado.current = false;
     try {
       const response = await api.post('/pago/crear/', { plan_id: planId });
       return response.data.id;
     } catch (error) {
-      showError('No pudimos conectar con el servidor de pagos.');
+      yaAvisado.current = true;
+      showError(mensajeDeError(error, 'No pudimos iniciar el pago. Intenta de nuevo.'), 'No se pudo iniciar el pago');
       throw error;
     }
   };
@@ -43,9 +50,21 @@ const Checkout: React.FC = () => {
       showSuccess('Tu plan quedó activo.', 'Pago procesado');
       navigate(localStorage.getItem('user_tipo') === 'empresa' ? '/dashboard' : '/vacantes');
     } catch (error) {
-      showError('El cobro se hizo pero no pudimos validarlo. Escríbenos antes de reintentar.', 'Revisa tu pago');
+      showError(
+        mensajeDeError(error, 'El cobro se hizo pero no pudimos validarlo. Escríbenos antes de reintentar.'),
+        'Revisa tu pago'
+      );
       setLoading(false);
     }
+  };
+
+  /** Fallas de PayPal mismo. Si la falla fue nuestra, ya se avisó arriba. */
+  const alFallar = () => {
+    if (yaAvisado.current) {
+      yaAvisado.current = false;
+      return;
+    }
+    showError('PayPal canceló la operación o falló el cobro.');
   };
 
   return (
@@ -86,7 +105,7 @@ const Checkout: React.FC = () => {
                 onApprove={capturarOrden}
                 // `pill` es la silueta del sistema; `rect` chocaba con todo lo demás.
                 style={{ layout: 'vertical', shape: 'pill', color: 'black' }}
-                onError={() => showError('PayPal canceló la operación o falló el cobro.')}
+                onError={alFallar}
               />
             </PayPalScriptProvider>
           </div>

@@ -19,6 +19,9 @@ from decimal import Decimal, InvalidOperation
 
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Esto le dice a Django: "Trae el modelo de usuarios que estemos usando en este proyecto"
 User = get_user_model()
@@ -572,9 +575,16 @@ def capturar_pago(request):
         else:
             return Response({"error": "El pago no se pudo completar", "details": capture_data}, status=400)
 
-    except Exception as e:
-        print("Error en capturar_pago:", str(e))
-        return Response({"error": str(e)}, status=500)
+    except Exception:
+        # Igual que en `crear_pago`: el detalle técnico va al log, no al navegador.
+        logger.exception("No se pudo capturar la orden de PayPal %s", request.data.get('order_id'))
+        return Response(
+            {
+                "error": "PAGOS_NO_DISPONIBLES",
+                "detail": "No pudimos confirmar tu pago con PayPal. Si ya se hizo el cargo, escríbenos antes de reintentar.",
+            },
+            status=503
+        )
 
 def monto_capturado_coincide(capture_data, plan):
     try:
@@ -594,9 +604,20 @@ def monto_capturado_coincide(capture_data, plan):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def crear_pago(request):
+    # El plan se revisa aparte: es un error del que paga (un enlace viejo), no
+    # de PayPal, y merece su propio mensaje.
+    plan = Plan.objects.filter(id=request.data.get('plan_id')).first()
+    if not plan:
+        return Response(
+            {"error": "PLAN_NO_ENCONTRADO", "detail": "Ese plan ya no existe. Elige uno en la página de planes."},
+            status=404
+        )
+
+    # Cualquier otra falla es de PayPal o de su configuración (llaves que
+    # faltan, PayPal caído, una respuesta sin orden). Antes se respondía con
+    # `str(e)`, que mandaba al navegador textos internos como "'id'" o el
+    # nombre de las variables de entorno; ahora eso solo va al log.
     try:
-        plan_id = request.data.get('plan_id')
-        plan = Plan.objects.get(id=plan_id)
         access_token = get_access_token()
         
         url = f"{PAYPAL_BASE_URL}/v2/checkout/orders"
@@ -617,9 +638,16 @@ def crear_pago(request):
         response = requests.post(url, json=order_data, headers=headers, timeout=20)
         order = response.json()
         return Response({"id": order['id']})
-        
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+
+    except Exception:
+        logger.exception("No se pudo crear la orden de PayPal para el plan %s", plan.id)
+        return Response(
+            {
+                "error": "PAGOS_NO_DISPONIBLES",
+                "detail": "El servicio de pagos no responde en este momento. Intenta de nuevo en unos minutos.",
+            },
+            status=503
+        )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

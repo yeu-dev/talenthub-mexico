@@ -451,6 +451,21 @@ class SuscripcionYNotificacionTests(PermisosBase):
         }
         return respuesta
 
+    def test_crear_pago_de_un_plan_que_no_existe(self):
+        self.como(self.aspirante)
+        respuesta = self.client.post('/api/pago/crear/', {'plan_id': 9999}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(respuesta.data['error'], 'PLAN_NO_ENCONTRADO')
+
+    @mock.patch('empleos.views.get_access_token', side_effect=RuntimeError('Faltan PAYPAL_CLIENT_ID'))
+    def test_crear_pago_sin_paypal_no_filtra_el_error_interno(self, _token):
+        self.como(self.aspirante)
+        with self.assertLogs('empleos.views', level='ERROR'):
+            respuesta = self.client.post('/api/pago/crear/', {'plan_id': self.plan_pro.id}, format='json')
+        self.assertEqual(respuesta.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(respuesta.data['error'], 'PAGOS_NO_DISPONIBLES')
+        self.assertNotIn('PAYPAL', str(respuesta.data))
+
     @mock.patch('empleos.views.get_access_token', return_value='token')
     def test_pagar_el_plan_barato_no_activa_el_caro(self, _token):
         self.como(self.aspirante)
