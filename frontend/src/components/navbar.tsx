@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Menu, X, LogOut } from "./icons";
-import api from "../services/api";
-import { Button, clasesBoton } from "./ui";
+import { Menu, X } from "./icons";
+import { clasesBoton } from "./ui";
 import { cx } from "../lib/cx";
 import { EASE, DUR, SPRING } from "../lib/motion";
 import Brand from "./Brand";
+import Campana from "./Campana";
+import MenuCuenta from "./MenuCuenta";
 import { useCambiosDeSesion } from "../lib/sesion";
+import { olvidarFotoCuenta, useFotoCuenta } from "../lib/fotoCuenta";
 import { useChispas } from "../hooks/useChispas";
 
 // La sección actual: texto blanco y una línea azul en el borde de la barra
@@ -83,21 +85,8 @@ const Navbar: React.FC = () => {
   const username = localStorage.getItem("user_username");
   const tipo = localStorage.getItem("user_tipo");
 
-  const [unreadCount, setUnreadCount] = useState(0);
+  const foto = useFotoCuenta(tipo, Boolean(token));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    if (!token) return;
-    const fetchNotifications = async () => {
-      try {
-        const response = await api.get("/notificaciones/");
-        setUnreadCount(response.data.filter((n: any) => !n.leido).length);
-      } catch (error) {
-        console.error("Error cargando notificaciones");
-      }
-    };
-    fetchNotifications();
-  }, [token, location.pathname]);
 
   // Cerrar el menú al cambiar de ruta: si no, queda abierto sobre la página nueva.
   useEffect(() => {
@@ -105,109 +94,43 @@ const Navbar: React.FC = () => {
   }, [location.pathname]);
 
   const logout = () => {
+    olvidarFotoCuenta();
     localStorage.clear();
     window.location.href = "/";
   };
 
   if (isAuthPage) return null;
 
+  // El logo es el "inicio" de cada rol: con sesión la barra no lleva enlaces.
   let rutaLogo = "/";
   if (token) {
-    rutaLogo = tipo === "empresa" ? "/dashboard" : "/vacantes";
+    rutaLogo = tipo === "empresa" ? "/dashboard" : tipo === "validador" ? "/validador" : "/vacantes";
   }
 
   // La sección actual se marca: texto blanco y una línea azul debajo. Antes
   // todos los links se veían igual y no se sabía en qué página se estaba.
   const linkPlano = "text-[0.9375rem] text-white/90 transition-colors duration-200 hover:text-white";
 
+  /**
+   * Los enlaces de la barra, solo para visitantes. Con sesión la barra lleva
+   * logo, campana y avatar, y todas las secciones viven en el menú de cuenta:
+   * antes salían en la barra, en el menú y en las pestañas de la página.
+   */
   const navLinks = (enMenu: boolean) => (
     <>
-      {tipo !== "empresa" && tipo !== "validador" && (
-        <Enlace to="/vacantes" enMenu={enMenu}>
-          Vacantes
-        </Enlace>
-      )}
-
-      {tipo === "aspirante" && (
-        <>
-          <Enlace to="/mi-perfil" enMenu={enMenu}>
-            Mi perfil
-          </Enlace>
-          <Enlace to="/mis-aplicaciones" enMenu={enMenu}>
-            Mis postulaciones
-          </Enlace>
-        </>
-      )}
-
-      {tipo === "empresa" && (
-        <>
-          <Enlace to="/dashboard" enMenu={enMenu}>
-            Mis vacantes
-          </Enlace>
-          <Enlace to="/aplicaciones-empresa" enMenu={enMenu}>
-            Postulaciones
-          </Enlace>
-        </>
-      )}
-
-      {tipo === "validador" && (
-        <Enlace to="/validador" enMenu={enMenu} className="text-accent-on-dark hover:text-accent-on-dark">
-          Panel de auditoría
-        </Enlace>
-      )}
-
-      {tipo !== "validador" && (
-        <Enlace to="/planes" enMenu={enMenu}>
-          Planes
-        </Enlace>
-      )}
-
-      {/* La portada para quien contrata. Solo sin sesión: quien ya entró
-          sabe qué tipo de cuenta tiene, y la empresa ya tiene su panel. */}
-      {!token && (
-        <Enlace to="/empresas" enMenu={enMenu}>
-          Para empresas
-        </Enlace>
-      )}
-
+      <Enlace to="/vacantes" enMenu={enMenu}>
+        Vacantes
+      </Enlace>
+      <Enlace to="/planes" enMenu={enMenu}>
+        Planes
+      </Enlace>
+      {/* La portada para quien contrata. */}
+      <Enlace to="/empresas" enMenu={enMenu}>
+        Para empresas
+      </Enlace>
       <Enlace to="/politicas" enMenu={enMenu}>
         Privacidad
       </Enlace>
-    </>
-  );
-
-  const sessionControls = !token ? (
-    <>
-      <Link to="/login" className={linkPlano}>
-        Iniciar sesión
-      </Link>
-      <EnlaceRegistro />
-    </>
-  ) : (
-    <>
-      <Link
-        to="/mis-aplicaciones"
-        aria-label={unreadCount > 0 ? `Notificaciones: ${unreadCount} sin leer` : "Notificaciones"}
-        // El padding agranda el área de toque a 44×44 y el margen negativo lo
-        // compensa: la campana no se mueve. El globo se recorre lo mismo.
-        className="relative -m-3 rounded-pill p-3 text-white/90 transition-colors duration-200 hover:bg-white/[0.06] hover:text-white"
-      >
-        <Bell size={20} strokeWidth={1.6} />
-        {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-pill bg-accent px-1 text-[0.6875rem] font-mid text-white">
-            {unreadCount}
-          </span>
-        )}
-      </Link>
-
-      <span className="text-[0.9375rem] text-white/90">
-        Hola, <span className="text-white">{username}</span>
-      </span>
-
-      <Button variant="ghost" tone="dark" size="sm" onClick={logout}>
-        <LogOut size={14} strokeWidth={1.8} />
-        Cerrar sesión
-      </Button>
     </>
   );
 
@@ -219,23 +142,42 @@ const Navbar: React.FC = () => {
         <div className="flex h-16 items-center justify-between gap-6">
           <Brand to={rutaLogo} />
 
-          <div className="hidden items-center gap-6 lg:flex">{navLinks(false)}</div>
-          <div className="hidden items-center gap-5 lg:flex">{sessionControls}</div>
+          {token ? (
+            // Con sesión, en todos los anchos: campana y avatar. El menú de
+            // cuenta es el mismo en celular, así que las tres líneas sobran.
+            <div className="flex items-center gap-5">
+              <Campana tipo={tipo} />
+              <MenuCuenta username={username ?? "Mi cuenta"} tipo={tipo} foto={foto} alCerrarSesion={logout} />
+            </div>
+          ) : (
+            <>
+              <div className="hidden items-center gap-6 lg:flex">{navLinks(false)}</div>
 
-          <button
-            type="button"
-            aria-expanded={isMobileMenuOpen}
-            aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-            // 44×44 de área de toque; el margen negativo deja el ícono donde estaba.
-            className="-mr-2.5 flex h-11 w-11 items-center justify-center rounded-pill text-white/90 transition-colors hover:bg-white/[0.06] hover:text-white lg:hidden"
-            onClick={() => setIsMobileMenuOpen((open) => !open)}
-          >
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+              <div className="flex items-center gap-5">
+                <div className="hidden items-center gap-5 lg:flex">
+                  <Link to="/login" className={linkPlano}>
+                    Iniciar sesión
+                  </Link>
+                  <EnlaceRegistro />
+                </div>
+
+                <button
+                  type="button"
+                  aria-expanded={isMobileMenuOpen}
+                  aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+                  // 44×44 de área de toque; el margen negativo deja el ícono donde estaba.
+                  className="-mr-2.5 flex h-11 w-11 items-center justify-center rounded-pill text-white/90 transition-colors hover:bg-white/[0.06] hover:text-white lg:hidden"
+                  onClick={() => setIsMobileMenuOpen((open) => !open)}
+                >
+                  {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <AnimatePresence initial={false}>
-          {isMobileMenuOpen && (
+          {!token && isMobileMenuOpen && (
             <motion.div
               key="mobile"
               initial={{ height: 0, opacity: 0 }}
@@ -247,7 +189,10 @@ const Navbar: React.FC = () => {
               <div className="flex flex-col gap-5 border-t border-hairline-d py-5">
                 {navLinks(true)}
                 <div className="flex flex-wrap items-center gap-4 border-t border-hairline-d pt-5">
-                  {sessionControls}
+                  <Link to="/login" className={linkPlano}>
+                    Iniciar sesión
+                  </Link>
+                  <EnlaceRegistro />
                 </div>
               </div>
             </motion.div>

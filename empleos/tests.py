@@ -425,6 +425,24 @@ class SuscripcionYNotificacionTests(PermisosBase):
         self.assertTrue(notificacion.leido)
         self.assertEqual(notificacion.mensaje, 'Original')
 
+    def test_marcar_leidas_solo_toca_las_del_usuario(self):
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Uno')
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Dos')
+        Notificacion.objects.create(usuario=self.aspirante, mensaje='Ya leida', leido=True)
+        ajena = Notificacion.objects.create(usuario=self.aspirante2, mensaje='De Beto')
+        self.como(self.aspirante)
+
+        respuesta = self.client.post('/api/notificaciones/marcar-leidas/')
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(respuesta.data['marcadas'], 2)
+        self.assertFalse(Notificacion.objects.filter(usuario=self.aspirante, leido=False).exists())
+        ajena.refresh_from_db()
+        self.assertFalse(ajena.leido)
+
+    def test_marcar_leidas_pide_sesion(self):
+        respuesta = self.client.post('/api/notificaciones/marcar-leidas/')
+        self.assertIn(respuesta.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+
     def captura(self, monto):
         respuesta = mock.Mock()
         respuesta.json.return_value = {

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sileo';
 import Navbar from './components/navbar';
@@ -16,7 +16,6 @@ import VacanteDetalle from './pages/VacanteDetalle';
 import Dashboard from './pages/Dashboard';
 import MisAplicaciones from './pages/MisAplicaciones';
 import AplicacionesEmpresa from './pages/AplicacionesEmpresa';
-import Perfil from './pages/PerfilAspirante';
 import Planes from './pages/planes';
 import Checkout from './pages/Checkout';
 import DashboardValidador from './pages/DashboardValidador';
@@ -110,7 +109,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/mis-aplicaciones" element={<MisAplicaciones />} />
         <Route path="/aplicaciones-empresa" element={<AplicacionesEmpresa />} />
-        <Route path="/perfil" element={<Perfil />} />
+        {/* `/perfil` era la misma página que `/mi-perfil` con otro import; se
+            queda solo como redirección para los enlaces viejos. */}
+        <Route path="/perfil" element={<Navigate to="/mi-perfil" replace />} />
         <Route path="/planes" element={<Planes />} />
         <Route path="/empresas" element={<Empresas />} />
         <Route path="/checkout/:planId" element={<Checkout />} />
