@@ -77,6 +77,7 @@ const MisAplicaciones: React.FC = () => {
     <div className="min-h-screen mesh-page">
       <PageHeader
         tono="oscuro"
+        familia="trabajo"
         migas={migasDeCuenta('Mis postulaciones')}
         titulo="Mis postulaciones"
         pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}

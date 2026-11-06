@@ -263,6 +263,7 @@ const Planes: React.FC = () => {
     <div className="mesh-page">
       <PageHeader
         tono="oscuro"
+        familia="venta"
         titulo="Planes"
         detalle="Elige el plan de tu cuenta. Puedes cambiarlo después."
       />

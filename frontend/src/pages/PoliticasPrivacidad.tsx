@@ -138,6 +138,7 @@ const PoliticasPrivacidad: React.FC = () => {
   <div className="mesh-page">
     <PageHeader
       tono="oscuro"
+      familia="lectura"
       migas={[{ etiqueta: 'Inicio', to: '/' }, { etiqueta: 'Aviso de privacidad' }]}
       titulo="Cómo tratamos tus datos"
       detalle="Cómo TalentHub México recopila, utiliza y protege los datos personales dentro de su plataforma de empleo tecnológico."

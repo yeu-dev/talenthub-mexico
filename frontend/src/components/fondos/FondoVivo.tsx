@@ -80,7 +80,13 @@ const intersectar = (mascara: string): React.CSSProperties => ({
 
 type Alto = 'pagina' | 'pantalla' | 'franja' | 'banda';
 
-const FondoVivo: React.FC<{ alto?: Alto }> = ({ alto = 'pagina' }) => {
+/**
+ * `opacidad` cambia la intensidad por defecto (45% en la portada, 25% en la
+ * franja y la banda). La franja de `/planes` la sube al 45%: ahí solo van el
+ * título en `ink-d` y el detalle en `ink-2d`, que pasan sobre el velo a esa
+ * intensidad (7.02:1 o más), sin migas ni pestañas en gris.
+ */
+const FondoVivo: React.FC<{ alto?: Alto; opacidad?: number }> = ({ alto = 'pagina', opacidad }) => {
   const desdeMd = useDesdeMd();
   const aviso = useColumnaAviso();
 
@@ -109,7 +115,7 @@ const FondoVivo: React.FC<{ alto?: Alto }> = ({ alto = 'pagina' }) => {
         brightness={0.85}
         glow={0.25}
         grain={0.03}
-        opacity={alto === 'franja' || alto === 'banda' ? 0.25 : 0.45}
+        opacity={opacidad ?? (alto === 'franja' || alto === 'banda' ? 0.25 : 0.45)}
         mouseInteraction={false}
         paused={!desdeMd}
         dpr={desdeMd ? undefined : 1}
