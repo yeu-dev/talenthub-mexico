@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 import { Camera, Check, ExternalLink, FileText, Pencil, RotateCcw, Save, Trash2, Upload } from '../components/icons';
 import api, { getMediaUrl } from '../services/api';
 import { showConfirm, showError, showSuccess } from '../utils/alerts';
-import { Button, Card, Field, Input, Skeleton, Tag, Textarea, clasesBoton } from '../components/ui';
+import { AvisoLento, BotonMantener, Button, Card, Field, Input, Skeleton, Tag, Textarea, clasesBoton } from '../components/ui';
 import EntradaChips from '../components/EntradaChips';
 import { prepararFoto, validarCv } from '../lib/archivos';
 import { mensajeDeError } from '../lib/errores';
 import { rise, stagger } from '../lib/motion';
 import PageHeader from '../components/PageHeader';
 import { useTitulo } from '../hooks/useTitulo';
-import { migasDeCuenta, pestanasDeCuenta } from '../lib/cuenta';
+import { migasDeCuenta } from '../lib/cuenta';
 import { avisarFotoCuenta } from '../lib/fotoCuenta';
 
 /**
@@ -255,12 +255,14 @@ const PerfilAspirante: React.FC = () => {
     }
   };
 
+  // Quitar el CV va en dos pasos, porque no tiene vuelta atrás: mantener
+  // presionado (`BotonMantener`) y luego confirmar con el nombre del archivo.
   const guardarCv = async () => {
     if (quitarCv && !cvNuevo) {
       const ok = await showConfirm(
-        'Sin CV no puedes postularte, y las empresas a las que ya te postulaste dejarán de verlo hasta que subas otro.',
+        `Se quitará "${cvNombre || 'tu CV'}". Sin CV no puedes postularte, y las empresas a las que ya te postulaste dejarán de verlo hasta que subas otro.`,
         '¿Quitar tu CV?',
-        { confirmLabel: 'Sí, quitarlo' }
+        { confirmLabel: 'Sí, quitarlo', destructive: true }
       );
       if (!ok) return;
     }
@@ -317,7 +319,6 @@ const PerfilAspirante: React.FC = () => {
       ancho="doc"
       migas={migasDeCuenta('Mi perfil')}
       titulo="Mi perfil"
-      pestanas={pestanasDeCuenta(localStorage.getItem('user_tipo'))}
     />
   );
 
@@ -336,6 +337,7 @@ const PerfilAspirante: React.FC = () => {
             </div>
           </div>
           <Skeleton className="mt-8 h-56 w-full rounded-card" />
+          <AvisoLento cargando />
         </div>
       </div>
     );
@@ -614,7 +616,9 @@ const PerfilAspirante: React.FC = () => {
                   ) : quitarCv ? (
                     <>
                       <p className="truncate text-body text-ink line-through decoration-white/40">{cvNombre}</p>
-                      <p className="text-[0.8125rem] text-muted">Se quitará al guardar</p>
+                      <p className="text-[0.8125rem] text-muted">
+                        Sin CV no puedes postularte, y las empresas dejarán de verlo hasta que subas otro.
+                      </p>
                     </>
                   ) : cvUrl ? (
                     <>
@@ -629,7 +633,18 @@ const PerfilAspirante: React.FC = () => {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {cvPendiente ? (
+                  {quitarCv && !cvNuevo ? (
+                    <>
+                      <BotonMantener accion="quitar tu CV" alConfirmar={guardarCv} disabled={guardando === 'cv'}>
+                        <Trash2 size={14} strokeWidth={1.8} />
+                        {guardando === 'cv' ? 'Quitando…' : 'Mantén para quitar'}
+                      </BotonMantener>
+                      <Button variant="ghost" size="sm" onClick={() => setQuitarCv(false)}>
+                        <RotateCcw size={14} strokeWidth={1.8} />
+                        Deshacer
+                      </Button>
+                    </>
+                  ) : cvPendiente ? (
                     <>
                       <Button size="sm" onClick={guardarCv} disabled={guardando === 'cv'}>
                         <Save size={14} strokeWidth={1.8} />

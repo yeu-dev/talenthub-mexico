@@ -16,9 +16,11 @@ import {
 import api from '../services/api';
 import { showSuccess, showError, showConfirm } from '../utils/alerts';
 import {
+  AvisoLento,
   Button,
   clasesBoton,
   Card,
+  Contador,
   EmptyState,
   Input,
   SkeletonList,
@@ -262,9 +264,10 @@ const DashboardValidador: React.FC = () => {
         <div className="glass-panel glass-panel-overlap-sm edge-l mb-8 grid grid-cols-2 gap-px overflow-hidden sm:grid-cols-4">
           {METRICAS.map(({ label, total }) => (
             <div key={label} className="px-6 py-7">
-              <span className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink">
-                {total}
-              </span>
+              <Contador
+                valor={total}
+                className="tabular block text-[1.75rem] font-mid leading-none tracking-[-0.03em] text-ink"
+              />
               <p className="mt-2 text-[0.8125rem] text-muted">{label}</p>
             </div>
           ))}
@@ -282,7 +285,10 @@ const DashboardValidador: React.FC = () => {
             }
           />
         ) : estado === 'cargando' ? (
-          <SkeletonList count={3} />
+          <>
+            <SkeletonList count={3} />
+            <AvisoLento cargando />
+          </>
         ) : (
           <>
             <Tabs

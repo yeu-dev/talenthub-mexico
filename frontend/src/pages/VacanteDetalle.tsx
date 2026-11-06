@@ -273,7 +273,8 @@ const VacanteDetalle: React.FC = () => {
               <p className="mt-0.5 text-[0.875rem] text-ink-2">
                 {vacante.empresa_nombre} · {modalidad}
               </p>
-              <Button className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
+              {/* El botón principal de la pantalla: destacado (borde de luz y chispas). */}
+              <Button destacado className="mt-5 w-full" onClick={handleAplicar} disabled={enviando}>
                 <Send size={15} strokeWidth={1.8} />
                 {enviando ? 'Enviando…' : 'Postularme'}
               </Button>

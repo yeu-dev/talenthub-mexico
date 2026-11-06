@@ -147,10 +147,6 @@ function contar(valores: string[]): Conteo[] {
 
 const porFrecuencia = (valores: string[]): string[] => contar(valores).map((item) => item.etiqueta);
 
-/** Las empresas que tienen vacantes publicadas, de la que más publica a la que menos. */
-export const empresasQuePublican = (vacantes: VacantePublica[], maximo = 8): Conteo[] =>
-  contar(vacantes.map((v) => v.empresa_nombre)).slice(0, maximo);
-
 /** Las ciudades con vacantes, de la que más tiene a la que menos. */
 export const vacantesPorCiudad = (vacantes: VacantePublica[], maximo = 6): Conteo[] =>
   contar(vacantes.map((v) => ciudad(v.ubicacion))).slice(0, maximo);

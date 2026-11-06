@@ -8,6 +8,7 @@ import AppPromo from './components/AppPromo';
 import { PromoAppProvider, usePromoApp } from './components/PromoApp';
 import { cx } from './lib/cx';
 import { ConfirmHost } from './components/ui';
+import api from './services/api';
 import Home from './pages/Home';
 import FondoVivo from './components/fondos/FondoVivo';
 import { diferida, EsperaPagina } from './lib/cargaDiferida';
@@ -97,7 +98,21 @@ export const AlInicio: React.FC = () => {
   return null;
 };
 
+/**
+ * Despierta al servidor de Render en cuanto se abre la app, sin esperar la
+ * respuesta. El plan gratis lo duerme cuando nadie lo usa y la primera
+ * petición tarda hasta un minuto; así, mientras alguien lee la portada o
+ * escribe su usuario en el login, el servidor ya va despertando. Es
+ * `silencioso`: no enciende la barra de carga, porque nadie lo está esperando.
+ */
+const useDespertarServidor = () => {
+  useEffect(() => {
+    api.get('/planes/', { silencioso: true }).catch(() => {});
+  }, []);
+};
+
 function App() {
+  useDespertarServidor();
   // `reducedMotion="user"`: framer-motion lee la preferencia del sistema. Si
   // está activa, apaga desplazamientos, escalas y `layoutId` (las líneas que
   // se deslizan) y deja los cambios de opacidad y color. Si no, todo se ve

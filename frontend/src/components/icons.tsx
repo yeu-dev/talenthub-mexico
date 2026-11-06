@@ -9,6 +9,7 @@ import {
   Buildings,
   CalendarBlank,
   Camera as PhCamera,
+  CaretLeft,
   CaretRight,
   ChatCircle,
   Check as PhCheck,
@@ -101,6 +102,7 @@ export const Building2 = icono(Buildings, 'Building2');
 export const CalendarDays = icono(CalendarBlank, 'CalendarDays');
 export const Camera = icono(PhCamera, 'Camera');
 export const Check = icono(PhCheck, 'Check');
+export const ChevronLeft = icono(CaretLeft, 'ChevronLeft');
 export const ChevronRight = icono(CaretRight, 'ChevronRight');
 export const Clock = icono(PhClock, 'Clock');
 export const Code2 = icono(Code, 'Code2');

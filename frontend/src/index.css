@@ -325,7 +325,9 @@
   /* Bucles: el celular del aviso flota, el ícono late, el esqueleto pulsa. */
   .animate-flotar,
   .animate-latido,
-  .animate-pulse {
+  .animate-pulse,
+  .animate-barra,
+  .animate-spin {
     animation: none !important;
   }
 

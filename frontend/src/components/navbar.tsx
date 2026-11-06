@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BarraCarga from './BarraCarga';
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "./icons";
@@ -138,6 +139,7 @@ const Navbar: React.FC = () => {
   // (4.62:1) incluso cuando lo que pasa por debajo es blanco puro.
   return (
     <div className="sticky top-0 z-50 border-b border-hairline-d bg-night/60 shadow-glass-edge-d backdrop-blur-overlay backdrop-saturate-150">
+      <BarraCarga />
       <nav className="mx-auto max-w-page px-6 md:px-7">
         <div className="flex h-16 items-center justify-between gap-6">
           <Brand to={rutaLogo} />

@@ -48,15 +48,17 @@ test('el hero le habla a quien contrata y lleva al registro como empresa', async
   const publicar = screen.getByRole('link', { name: /publica tu primera vacante/i });
   expect(publicar).toHaveAttribute('href', '/register?rol=empresa');
   // Espera a que lleguen los datos para no dejar estado pendiente.
-  // La empresa sale en la vacante del hero y en la franja de empresas.
+  // La empresa sale en la vacante del hero.
   expect((await screen.findAllByText('Nebula Labs')).length).toBeGreaterThan(0);
 });
 
-test('solo muestra los planes de empresa, con su precio real', async () => {
+test('los planes no se repiten aquí: el hero lleva a /planes', async () => {
   renderEmpresas();
-  expect(await screen.findByText('PRO')).toBeInTheDocument();
-  expect(screen.getByText('$399')).toBeInTheDocument();
-  expect(screen.queryByText('PREMIUM')).not.toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Ver planes' })).toHaveAttribute('href', '/planes');
+  // Ni el tablero de planes ni la franja de empresas: viven en sus páginas.
+  expect(screen.queryByText('Empieza gratis y crece cuando lo necesites')).not.toBeInTheDocument();
+  expect(screen.queryByText('Empresas que publican aquí')).not.toBeInTheDocument();
+  expect(await screen.findByText('Nebula Labs')).toBeInTheDocument();
 });
 
 test('las postulaciones de ejemplo están marcadas como tales', async () => {

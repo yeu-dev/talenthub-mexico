@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import PerfilAspirante from './PerfilAspirante';
@@ -118,18 +118,23 @@ test('las habilidades son chips: Enter agrega, la X quita, y se mandan como list
   expect(JSON.parse(mockEnviados[0].get('habilidades') as string)).toEqual(['Python']);
 });
 
-test('el CV muestra cuál tienes, y Quitar se puede deshacer o confirmar', async () => {
+test('el CV muestra cuál tienes, y Quitar se puede deshacer o confirmar manteniendo presionado', async () => {
   renderPerfil();
   const fila = (await screen.findByText('Mi CV.pdf')).closest('div.rounded-ui') as HTMLElement;
   expect(within(fila).getByRole('link', { name: /ver/i })).toHaveAttribute('href', mockPerfil.cv_url);
 
   userEvent.click(within(fila).getByRole('button', { name: 'Quitar' }));
-  expect(screen.getByText('Se quitará al guardar')).toBeInTheDocument();
+  expect(screen.getByText(/Sin CV no puedes postularte/)).toBeInTheDocument();
   userEvent.click(within(fila).getByRole('button', { name: /deshacer/i }));
-  expect(screen.queryByText('Se quitará al guardar')).not.toBeInTheDocument();
+  expect(screen.queryByText(/Sin CV no puedes postularte/)).not.toBeInTheDocument();
 
   userEvent.click(within(fila).getByRole('button', { name: 'Quitar' }));
-  userEvent.click(within(fila).getByRole('button', { name: /guardar/i }));
-  await waitFor(() => expect(mockEnviados).toHaveLength(1));
+  const mantener = within(fila).getByRole('button', { name: /mantén para quitar/i });
+  // Un clic suelto no quita nada: hay que mantenerlo.
+  userEvent.click(mantener);
+  expect(mockEnviados).toHaveLength(0);
+  // Mantener Espacio hasta que el relleno llega al final.
+  fireEvent.keyDown(mantener, { key: ' ' });
+  await waitFor(() => expect(mockEnviados).toHaveLength(1), { timeout: 2500 });
   expect(mockEnviados[0].get('quitar_cv')).toBe('true');
 });

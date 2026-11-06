@@ -1,15 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MapPin, RotateCcw, Search, X } from '../components/icons';
+import { MapPin, Plus, RotateCcw, Search, X } from '../components/icons';
 import api from '../services/api';
-import { AvisoLento, Button, EmptyState, Input, SkeletonList } from '../components/ui';
+import { AvisoLento, Button, EmptyState, SkeletonList, SliderElastico } from '../components/ui';
 import PageHeader from '../components/PageHeader';
 import VacanteCard from '../components/VacanteCard';
 import { useTitulo } from '../hooks/useTitulo';
 import { motion } from 'framer-motion';
 import { cx } from '../lib/cx';
-import { stagger, subeResorte } from '../lib/motion';
+import { SPRING, stagger, subeResorte } from '../lib/motion';
 import { coincide, VacantePublica } from '../lib/vacantes';
+
+/** "25,000": los pesos del control de sueldo. */
+const PESOS = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
+
+/**
+ * Cuántas tarjetas se pintan de una vez. Con las empresas de demostración hay
+ * cientos de vacantes; pintarlas todas de golpe hacía la página lenta y
+ * eterna. "Ver más" agrega otras tantas.
+ */
+const POR_PAGINA = 12;
 
 const MODALIDADES = [
   { valor: '', etiqueta: 'Todas' },
@@ -71,6 +81,17 @@ const Vacantes: React.FC = () => {
   }, [vacantes, q, lugar, modalidad, salario]);
 
   const hayFiltros = Boolean(q || lugar || modalidad || salario);
+
+  // Cada búsqueda nueva arranca otra vez con las primeras 12.
+  const [mostradas, setMostradas] = useState(POR_PAGINA);
+  useEffect(() => setMostradas(POR_PAGINA), [q, lugar, modalidad, salario]);
+
+  // El tope del control de sueldo sale de las vacantes reales: el sueldo
+  // máximo más alto, redondeado a los siguientes $5,000.
+  const sueldoTope = useMemo(() => {
+    const maximos = vacantes.map((v) => parseFloat(v.salario_max)).filter((n) => Number.isFinite(n) && n > 0);
+    return maximos.length ? Math.ceil(Math.max(...maximos) / 5000) * 5000 : 100000;
+  }, [vacantes]);
   const limpiarFiltros = () => setParams(new URLSearchParams(), { replace: true });
 
   const campo =
@@ -135,32 +156,40 @@ const Vacantes: React.FC = () => {
                     aria-checked={activo}
                     onClick={() => cambiar('modalidad', valor)}
                     className={cx(
-                      'rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-[color,border-color,background-color,transform] duration-200 active:scale-95',
+                      'relative rounded-pill border px-3.5 py-1.5 text-[0.875rem] font-mid transition-[color,border-color,background-color,transform] duration-200 active:scale-95',
                       activo
-                        ? 'border-accent bg-accent/[0.08] text-accent-on-dark'
+                        ? 'border-transparent text-accent-on-dark'
                         : 'border-hairline bg-white/[0.04] text-ink-2 hover:border-hairline-strong hover:text-ink'
                     )}
                   >
-                    {etiqueta}
+                    {/* La píldora activa se desliza de una opción a otra, como la
+                        línea de la barra. Con "reducir movimiento" solo cambia. */}
+                    {activo && (
+                      <motion.span
+                        layoutId="modalidad-activa"
+                        transition={SPRING}
+                        aria-hidden="true"
+                        className="absolute inset-[-1px] rounded-pill border border-accent bg-accent/[0.08]"
+                      />
+                    )}
+                    <span className="relative">{etiqueta}</span>
                   </button>
                 );
               })}
             </div>
-            <div className="w-[150px]">
-              <label htmlFor="f-salario" className="sr-only">
-                Sueldo mínimo
-              </label>
-              <Input
-                id="f-salario"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={1000}
-                value={salario}
-                onChange={(e) => cambiar('salario', e.target.value)}
-                placeholder="Sueldo mín."
-              />
-            </div>
+            {/* Elastic Slider: arrastrar es más claro que escribir una cifra. */}
+            <SliderElastico
+              id="f-salario"
+              className="w-[200px] px-1"
+              etiqueta="Sueldo mínimo"
+              valor={Number(salario) || 0}
+              min={0}
+              max={sueldoTope}
+              paso={1000}
+              alCambiar={(n) => cambiar('salario', n > 0 ? String(n) : '')}
+              formato={(n) => '$' + PESOS.format(n)}
+              textoMinimo="Cualquiera"
+            />
             {hayFiltros && (
               <Button variant="ghost" size="sm" onClick={limpiarFiltros}>
                 <X size={14} strokeWidth={1.8} />
@@ -223,12 +252,24 @@ const Vacantes: React.FC = () => {
               animate="show"
               className="grid list-none grid-cols-1 gap-4 p-0 lg:grid-cols-2"
             >
-              {vacantesFiltradas.map((vacante) => (
+              {vacantesFiltradas.slice(0, mostradas).map((vacante) => (
                 <motion.li key={vacante.id} variants={subeResorte}>
                   <VacanteCard vacante={vacante} conDescripcion />
                 </motion.li>
               ))}
             </motion.ul>
+          )}
+
+          {estado === 'listo' && vacantesFiltradas.length > mostradas && (
+            <div className="mt-10 flex flex-col items-center gap-3">
+              <p className="tabular text-[0.875rem] text-muted" aria-live="polite">
+                Ves {mostradas} de {vacantesFiltradas.length} vacantes
+              </p>
+              <Button variant="ghost" onClick={() => setMostradas((n) => n + POR_PAGINA)}>
+                <Plus size={15} strokeWidth={1.8} />
+                Ver más vacantes
+              </Button>
+            </div>
           )}
         </div>
       </div>
